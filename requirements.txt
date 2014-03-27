@@ -1,0 +1,7 @@
+temp-dir>=0.1.1
+pkginfo >=1.1, <1.2
+requests >=2.2.1, <2.3
+# pip 1.5.3: Fixed #1111:
+#   pip install --download was failing using local --find-links (PR #1524)
+pip >= 1.5.3
+twine >=1.2.3, <1.3
