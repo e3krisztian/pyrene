@@ -10,7 +10,7 @@ There are three types of repos you need to know of:
 
 You need to know, that
 - there is only one active index at a time, defined by configuration files `~/.pip/pip.conf` and `~/.pypirc`
-- installation of packages is done with [pip](pip-installer.org)
+- installation of packages is done with [pip](http://www.pip-installer.org)
 - upload of packages is done with [twine](https://pypi.python.org/pypi/twine)
 
 I support the following commands:
