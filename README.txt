@@ -1,7 +1,7 @@
 paix - Pa[ckage] I[nde]x [Tool], or peace
 
 I am a tool to manage your interactions with Python package repositories.
-I potentially enable you to efficiently use multiple repos.
+I can potentially enable you to efficiently use multiple repos.
 
 There are three types of repos you need to know of:
 - https://pypi.python.org - the global python public package repo
@@ -13,7 +13,7 @@ You need to know, that
 - installation of packages is done with [pip](http://www.pip-installer.org)
 - upload of packages is done with [twine](https://pypi.python.org/pypi/twine)
 
-I support the following commands:
+I *will* support the following commands:
 
 paix use repo
 paix copy package[s] repo:
