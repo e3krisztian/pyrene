@@ -21,18 +21,21 @@ class Repo(object):
 
     @abc.abstractmethod
     def save_as_pip_conf(self):
-        # TODO
         pass
 
     @abc.abstractmethod
     def download_packages(self, package_spec, directory):
-        # TODO
         pass
 
     @abc.abstractmethod
     def upload_packages(self, package_files):
-        # TODO
         pass
+
+# TODO:
+# concrete implementations:
+# class FileRepo
+# class HttpRepo
+# class PythonRepo(HttpRepo)
 
 
 class RepoManager(object):
@@ -96,11 +99,12 @@ class Paix(BaseCmd):
         '''
         copy [REPO:]PACKAGE-SPEC [...] REPO:
         '''
-        repo = None
         words = line.split()
         destination = words[-1]
         assert destination.endswith(':')
         destination_repo = self.repo_manager.get_repo(destination.rstrip(':'))
+
+        repo = None
         for package_spec in words[:-1]:
             if ':' in package_spec:
                 repo_name, _, package_spec = package_spec.partition(':')
@@ -111,4 +115,5 @@ class Paix(BaseCmd):
                         'No repo specified for package'.format(package_spec)
                     )
             repo.download_packages(package_spec, self.__directory)
+
         destination_repo.upload_packages(self.__directory.files)

@@ -116,7 +116,10 @@ class Test_Paix(unittest.TestCase):
 
         self.paix.onecmd('copy repo1:roman==2.0.0 repo2:')
 
-        self.repo1.download_packages.assert_called_once_with('roman==2.0.0', self.directory)
+        self.repo1.download_packages.assert_called_once_with(
+            'roman==2.0.0',
+            self.directory
+        )
 
     def test_copy_uses_repo_to_upload_packages(self):
         self.directory.files = ['roman-2.0.0.zip']
@@ -131,7 +134,10 @@ class Test_Paix(unittest.TestCase):
 
         self.paix.onecmd('copy repo1:pkg repo2:')
 
-        self.repo1.download_packages.assert_called_once_with('pkg', self.directory)
+        self.repo1.download_packages.assert_called_once_with(
+            'pkg',
+            self.directory
+        )
         self.repo2.upload_packages.assert_called_once_with(list(package_files))
 
     def test_copy_from_two_repos(self):
@@ -140,8 +146,14 @@ class Test_Paix(unittest.TestCase):
 
         self.paix.onecmd('copy repo1:a repo2:b somerepo:')
 
-        self.repo1.download_packages.assert_called_once_with('a', self.directory)
-        self.repo2.download_packages.assert_called_once_with('b', self.directory)
+        self.repo1.download_packages.assert_called_once_with(
+            'a',
+            self.directory
+        )
+        self.repo2.download_packages.assert_called_once_with(
+            'b',
+            self.directory
+        )
         self.somerepo.upload_packages.assert_called_once_with(
             list(package_files)
         )
