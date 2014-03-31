@@ -85,6 +85,7 @@ class Paix(BaseCmd):
     prompt = 'Paix: '
 
     def __init__(self, repo_manager, directory):
+        super(Paix, self).__init__()
         self.repo_manager = repo_manager
         self.__directory = directory
 

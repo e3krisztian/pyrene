@@ -157,3 +157,26 @@ class Test_Paix(unittest.TestCase):
         self.somerepo.upload_packages.assert_called_once_with(
             list(package_files)
         )
+
+    @unittest.skip('TODO')
+    def test_define_http_repo(self):
+        self.paix.onecmd('define_http_repo new-repo')
+
+    @unittest.skip('TODO')
+    def test_define_file_repo(self):
+        self.paix.onecmd('define_file_repo new-repo')
+
+    @unittest.skip('TODO')
+    def test_drop(self):
+        self.paix.onecmd('drop repo1')
+
+    @unittest.skip('TODO')
+    def test_configure(self):
+        # file repos:
+        self.paix.onecmd('configure repo1 directory ')
+
+        # http repos:
+        self.paix.onecmd('configure repo1 download-url http://...')
+        self.paix.onecmd('configure repo1 upload-url http://...')
+        self.paix.onecmd('configure repo1 username user')
+        self.paix.onecmd('configure repo1 password pass')
