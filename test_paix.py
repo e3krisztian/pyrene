@@ -2,15 +2,28 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import os
-from temp_dir import within_temp_dir
-import tempfile
 import shutil
 import sys
 
 import unittest
 import mock
 import paix as m
+
+
+# https://docs.python.org/2.7/library/itertools.html#itertools-recipes
+from itertools import imap, groupby
+from operator import itemgetter
+
+
+def unique_justseen(iterable, key=None):
+    '''List unique elements, preserving order.
+
+    Remember only the element just seen.
+    '''
+    return map(next, imap(itemgetter(1), groupby(iterable, key)))
+
+assert unique_justseen('AAAABBBCCDAABBB') == list('ABCDAB')
+assert unique_justseen('ABBCcAD', unicode.lower) == list('ABCAD')
 
 
 def rmtree(dir):
@@ -31,86 +44,104 @@ def read_file(path):
         return file.read()
 
 
-class Test_Executor_copy(unittest.TestCase):
-
-    def setUp(self):
-        self.executor = m.Executor()
-
-    @within_temp_dir
-    def test_copy(self):
-        with open('source', 'wb') as f:
-            f.write(b'@!')
-
-        self.executor.copy('source', 'destfile')
-
-        with open('destfile', 'rb') as f:
-            self.assertEqual(b'@!', f.read())
-
-    @within_temp_dir
-    def test_copy_creates_missing_directories(self):
-        with open('source', 'wb') as f:
-            f.write(b'@!')
-
-        self.executor.copy('source', 'destdir/destfile')
-
-        self.assertTrue(os.path.isdir('destdir'))
-        with open('destdir/destfile', 'rb') as f:
-            self.assertEqual(b'@!', f.read())
-
-    def test_copy_expands_tilde(self):
-        home = os.path.expanduser('~')
-        temp_dir = None
-        try:
-            temp_dir = tempfile.mkdtemp(dir=home)
-            temp_dir_with_tilde = os.path.join('~', os.path.basename(temp_dir))
-            source = os.path.join(temp_dir_with_tilde, 'source')
-            destination = os.path.join(temp_dir_with_tilde, 'destination')
-
-            write_file(os.path.join(temp_dir, 'source'), b'~!')
-
-            self.executor.copy(source, destination)
-
-            self.assertEqual(b'~!', read_file(os.path.expanduser(destination)))
-        finally:
-            rmtree(temp_dir)
-
-
 class Test_Paix(unittest.TestCase):
 
     def setUp(self):
-        self.executor = mock.Mock()
-        self.paix = m.Paix(executor=self.executor)
+        self.repo1 = mock.Mock(spec_set=m.Repo)
+        self.repo2 = mock.Mock(spec_set=m.Repo)
+        self.somerepo = mock.Mock(spec_set=m.Repo)
+        self.repo_manager = mock.Mock(spec_set=m.RepoManager)
+        self.repo_manager.get_repo.configure_mock(side_effect=self.get_repo)
+        self.directory = mock.Mock(spec_set=m.Directory)
+        self.paix = m.Paix(
+            repo_manager=self.repo_manager,
+            directory=self.directory
+        )
+
+    def get_repo(self, repo_name):
+        if repo_name == 'repo1':
+            return self.repo1
+        if repo_name == 'repo2':
+            return self.repo2
+        if repo_name == 'somerepo':
+            return self.somerepo
 
     def test_use(self):
         self.paix.onecmd('use somerepo')
 
-        self.assertEqual(
-            [
-                mock.call.copy(
-                    '~/.paix/repos/somerepo/pip.conf',
-                    '~/.pip/pip.conf'
-                )
-            ],
-            self.executor.mock_calls
-        )
+        self.somerepo.save_as_pip_conf.assert_called_once_with()
 
-    @unittest.skip("not the way")
     def test_copy_single_package(self):
-        self.paix.onecmd('copy roman==2.0.0 private:')
+        self.directory.files = ['roman-2.0.0.zip']
+
+        self.paix.onecmd('copy repo1:roman==2.0.0 repo2:')
 
         self.assertEqual(
-            [
-                mock.call.execute('pip install -d . roman==2.0.0'.split()),
-                mock.call.list_files(),
-                mock.call.execute('twine upload roman-2.0.0.zip')
-            ],
-            self.executor.mock_calls
+            unique_justseen(
+                sorted(
+                    [
+                        mock.call.get_repo('repo1'),
+                        mock.call.get_repo('repo2'),
+                    ]
+                )
+            ),
+            unique_justseen(sorted(self.repo_manager.mock_calls))
         )
 
-    @unittest.skip('ONLY PLANNED, NO MEAT YET')
-    def test_copy_to_local(self):
-        pass
+        self.repo1.download_packages.assert_called_once_with(
+            'roman==2.0.0',
+            self.directory
+        )
+        self.repo2.upload_packages.assert_called_once_with(['roman-2.0.0.zip'])
 
-    @unittest.skip('ONLY PLANNED, NO MEAT YET')
-    def test_copy_from_local(self):
-        pass
+    def test_copy_uses_repo_manager(self):
+        self.directory.files = ['roman-2.0.0.zip']
+
+        self.paix.onecmd('copy repo1:roman==2.0.0 repo2:')
+
+        self.assertEqual(
+            unique_justseen(
+                sorted(
+                    [
+                        mock.call.get_repo('repo1'),
+                        mock.call.get_repo('repo2'),
+                    ]
+                )
+            ),
+            unique_justseen(sorted(self.repo_manager.mock_calls))
+        )
+
+    def test_copy_uses_repo_to_download_packages(self):
+        self.directory.files = ['roman-2.0.0.zip']
+
+        self.paix.onecmd('copy repo1:roman==2.0.0 repo2:')
+
+        self.repo1.download_packages.assert_called_once_with('roman==2.0.0', self.directory)
+
+    def test_copy_uses_repo_to_upload_packages(self):
+        self.directory.files = ['roman-2.0.0.zip']
+
+        self.paix.onecmd('copy repo1:roman==2.0.0 repo2:')
+
+        self.repo2.upload_packages.assert_called_once_with(['roman-2.0.0.zip'])
+
+    def test_copy_package_with_dependencies(self):
+        package_files = ('pkg-1.0.0.tar.gz', 'dep-0.3.1.zip')
+        self.directory.files = list(package_files)
+
+        self.paix.onecmd('copy repo1:pkg repo2:')
+
+        self.repo1.download_packages.assert_called_once_with('pkg', self.directory)
+        self.repo2.upload_packages.assert_called_once_with(list(package_files))
+
+    def test_copy_from_two_repos(self):
+        package_files = ('a-1.egg', 'b-2.tar.gz')
+        self.directory.files = list(package_files)
+
+        self.paix.onecmd('copy repo1:a repo2:b somerepo:')
+
+        self.repo1.download_packages.assert_called_once_with('a', self.directory)
+        self.repo2.download_packages.assert_called_once_with('b', self.directory)
+        self.somerepo.upload_packages.assert_called_once_with(
+            list(package_files)
+        )

@@ -4,10 +4,42 @@ from __future__ import unicode_literals
 
 
 from cmd import Cmd
-import os.path
-import shutil
-# from temp_dir import within_temp_dir
 import traceback
+import abc
+
+
+class Directory(object):
+
+    @property
+    def files(self):
+        # TODO
+        pass
+
+
+class Repo(object):
+    __metaclass__ = abc.ABCMeta
+
+    @abc.abstractmethod
+    def save_as_pip_conf(self):
+        # TODO
+        pass
+
+    @abc.abstractmethod
+    def download_packages(self, package_spec, directory):
+        # TODO
+        pass
+
+    @abc.abstractmethod
+    def upload_packages(self, package_files):
+        # TODO
+        pass
+
+
+class RepoManager(object):
+
+    def get_repo(self):
+        # TODO
+        pass
 
 
 class BaseCmd(Cmd, object):
@@ -35,23 +67,12 @@ class BaseCmd(Cmd, object):
     do_bye = do_EOF
 
 
-class Executor(object):
-
-    def copy(self, source, destination):
-        try:
-            os.makedirs(os.path.dirname(destination))
-        except OSError:
-            pass
-        shutil.copy2(
-            os.path.expanduser(source),
-            os.path.expanduser(destination)
-        )
-
-
 class Paix(BaseCmd):
 
     intro = '''
-    Paix provides tools to work with different repos of python packages:
+    Paix provides tools to work with different repos of python packages.
+
+    e.g. one might use three different repos:
 
      - pypi.python.org       (globally shared)
      - private pypi instance (project/company specific,
@@ -60,22 +81,34 @@ class Paix(BaseCmd):
     '''
     prompt = 'Paix: '
 
-    def __init__(self, executor):
-        self.__executor = executor
+    def __init__(self, repo_manager, directory):
+        self.repo_manager = repo_manager
+        self.__directory = directory
 
     def do_use(self, repo):
         '''
         Set up pip to use REPO
         '''
-        self.__executor.copy(
-            '~/.paix/repos/{}/pip.conf'.format(repo),
-            '~/.pip/pip.conf'
-        )
+        repo = self.repo_manager.get_repo(repo)
+        repo.save_as_pip_conf()
 
     def do_copy(self, line):
         '''
         copy [REPO:]PACKAGE-SPEC [...] REPO:
         '''
-        # words = line.replace(':', ': ').split()
-        # check
-        # destination_repo = words[-1]
+        repo = None
+        words = line.split()
+        destination = words[-1]
+        assert destination.endswith(':')
+        destination_repo = self.repo_manager.get_repo(destination.rstrip(':'))
+        for package_spec in words[:-1]:
+            if ':' in package_spec:
+                repo_name, _, package_spec = package_spec.partition(':')
+                repo = self.repo_manager.get_repo(repo_name)
+            if package_spec:
+                if not repo:
+                    raise AssertionError(
+                        'No repo specified for package'.format(package_spec)
+                    )
+            repo.download_packages(package_spec, self.__directory)
+        destination_repo.upload_packages(self.__directory.files)
