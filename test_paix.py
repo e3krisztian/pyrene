@@ -4,13 +4,34 @@ from __future__ import unicode_literals
 
 import os
 from temp_dir import within_temp_dir
+import tempfile
+import shutil
+import sys
 
 import unittest
 import mock
 import paix as m
 
 
-class Test_Executor(unittest.TestCase):
+def rmtree(dir):
+    if dir:
+        try:
+            shutil.rmtree(dir)
+        except:
+            sys.stderr.write('could not remove {}'.format(dir))
+
+
+def write_file(path, content):
+    with open(path, 'wb') as file:
+        file.write(content)
+
+
+def read_file(path):
+    with open(path, 'rb') as file:
+        return file.read()
+
+
+class Test_Executor_copy(unittest.TestCase):
 
     def setUp(self):
         self.executor = m.Executor()
@@ -37,7 +58,21 @@ class Test_Executor(unittest.TestCase):
             self.assertEqual(b'@!', f.read())
 
     def test_copy_expands_tilde(self):
-        pass
+        home = os.path.expanduser('~')
+        temp_dir = None
+        try:
+            temp_dir = tempfile.mkdtemp(dir=home)
+            temp_dir_with_tilde = os.path.join('~', os.path.basename(temp_dir))
+            source = os.path.join(temp_dir_with_tilde, 'source')
+            destination = os.path.join(temp_dir_with_tilde, 'destination')
+
+            write_file(os.path.join(temp_dir, 'source'), b'~!')
+
+            self.executor.copy(source, destination)
+
+            self.assertEqual(b'~!', read_file(os.path.expanduser(destination)))
+        finally:
+            rmtree(temp_dir)
 
 
 class Test_Paix(unittest.TestCase):
@@ -59,6 +94,7 @@ class Test_Paix(unittest.TestCase):
             self.executor.mock_calls
         )
 
+    @unittest.skip("not the way")
     def test_copy_single_package(self):
         self.paix.onecmd('copy roman==2.0.0 private:')
 

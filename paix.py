@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 from cmd import Cmd
 import os.path
 import shutil
-from temp_dir import within_temp_dir
+# from temp_dir import within_temp_dir
 import traceback
 
 
@@ -76,6 +76,6 @@ class Paix(BaseCmd):
         '''
         copy [REPO:]PACKAGE-SPEC [...] REPO:
         '''
-        words = line.replace(':', ': ').split()
+        # words = line.replace(':', ': ').split()
         # check
-        destination_repo = words[-1]
+        # destination_repo = words[-1]
