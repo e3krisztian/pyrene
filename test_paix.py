@@ -97,9 +97,17 @@ class Test_RepoManager(unittest.TestCase):
         repo = self.repo_manager.get_repo('repo')
         self.assertEqual('/a/repo/dir', repo.directory)
 
-    @unittest.skip('TODO: RepoManager methods has persistent results')
     def test_set_is_persistent(self):
-        pass
+        self.repo_manager.define('repo')
+        self.repo_manager.set('repo', 'type', m.REPOTYPE_FILE)
+        self.repo_manager.set('repo', 'directory', '/a/repo/dir')
+
+        other_repo_manager = m.RepoManager(self.repo_store)
+
+        repo = other_repo_manager.get_repo('repo')
+        self.assertEqual('/a/repo/dir', repo.directory)
+
+    # @unittest.skip('TODO: RepoManager methods has persistent results')
 
 
 class Test_FileRepo(unittest.TestCase):

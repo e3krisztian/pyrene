@@ -193,6 +193,7 @@ class UndefinedRepoType(ValueError):
 class UnknownRepoType(ValueError):
     '''type was given, but it is unknown'''
 
+
 KEY_TYPE = 'type'
 KEY_DIRECTORY = 'directory'
 KEY_USERNAME = 'username'
@@ -214,6 +215,8 @@ class RepoManager(object):
     def __init__(self, filename):
         self._repo_store_filename = filename
         self._config = RawConfigParser()
+        if os.path.exists(self._repo_store_filename):
+            self._config.read(self._repo_store_filename)
 
     def _save(self):
         with open(self._repo_store_filename, 'wt') as f:
@@ -247,7 +250,7 @@ class RepoManager(object):
 
     def set(self, repo_name, key, value):
         self._config.set(repo_name, key, value)
-        # TODO: save
+        self._save()
 
 
 class BaseCmd(Cmd, object):
