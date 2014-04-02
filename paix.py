@@ -9,6 +9,7 @@ import abc
 
 import pip
 import os
+import sys
 import shutil
 from ConfigParser import RawConfigParser
 import contextlib
@@ -388,7 +389,11 @@ def main():
         RepoManager('/tmp/paix/repo-store.ini'),
         Directory('/tmp/paix/tempdir'),
     )
-    cmd.cmdloop()
+    line = ' '.join(sys.argv[1:])
+    if line:
+        cmd.onecmd(line)
+    else:
+        cmd.cmdloop()
 
 if __name__ == '__main__':
     main()
