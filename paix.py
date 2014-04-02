@@ -244,8 +244,8 @@ class RepoManager(object):
         self._save()
 
     def drop(self, repo_name):
-        # TODO
-        pass
+        self._config.remove_section(repo_name)
+        self._save()
 
     def set(self, repo_name, key, value):
         self._config.set(repo_name, key, value)
