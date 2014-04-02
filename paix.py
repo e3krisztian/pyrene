@@ -20,7 +20,7 @@ class Repo(object):
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
-    def save_as_pip_conf(self):
+    def get_as_pip_conf(self):
         pass
 
     @abc.abstractmethod
@@ -89,12 +89,16 @@ class Paix(BaseCmd):
         self.repo_manager = repo_manager
         self.__directory = directory
 
+    def write_file(self, filename, content):
+        # TODO
+        pass
+
     def do_use(self, repo):
         '''
         Set up pip to use REPO
         '''
         repo = self.repo_manager.get_repo(repo)
-        repo.save_as_pip_conf()
+        self.write_file('~/.pip/pip.conf', repo.get_as_pip_conf())
 
     def do_copy(self, line):
         '''

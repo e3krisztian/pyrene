@@ -10,6 +10,7 @@ import mock
 import paix as m
 
 
+# START: unique_justseen
 # https://docs.python.org/2.7/library/itertools.html#itertools-recipes
 from itertools import imap, groupby
 from operator import itemgetter
@@ -24,6 +25,8 @@ def unique_justseen(iterable, key=None):
 
 assert unique_justseen('AAAABBBCCDAABBB') == list('ABCDAB')
 assert unique_justseen('ABBCcAD', unicode.lower) == list('ABCAD')
+
+# END: unique_justseen
 
 
 def rmtree(dir):
@@ -57,6 +60,7 @@ class Test_Paix(unittest.TestCase):
             repo_manager=self.repo_manager,
             directory=self.directory
         )
+        self.paix.write_file = mock.Mock()
 
     def get_repo(self, repo_name):
         if repo_name == 'repo1':
@@ -67,9 +71,17 @@ class Test_Paix(unittest.TestCase):
             return self.somerepo
 
     def test_use(self):
+        self.somerepo.get_as_pip_conf.configure_mock(
+            return_value=mock.sentinel.pip_conf
+        )
+
         self.paix.onecmd('use somerepo')
 
-        self.somerepo.save_as_pip_conf.assert_called_once_with()
+        self.somerepo.get_as_pip_conf.assert_called_once_with()
+        self.paix.write_file.assert_called_once_with(
+            '~/.pip/pip.conf',
+            mock.sentinel.pip_conf
+        )
 
     def test_copy_single_package(self):
         self.directory.files = ['roman-2.0.0.zip']
@@ -159,12 +171,8 @@ class Test_Paix(unittest.TestCase):
         )
 
     @unittest.skip('TODO')
-    def test_define_http_repo(self):
-        self.paix.onecmd('define_http_repo new-repo')
-
-    @unittest.skip('TODO')
-    def test_define_file_repo(self):
-        self.paix.onecmd('define_file_repo new-repo')
+    def test_define(self):
+        self.paix.onecmd('define new-repo')
 
     @unittest.skip('TODO')
     def test_drop(self):
@@ -173,10 +181,16 @@ class Test_Paix(unittest.TestCase):
     @unittest.skip('TODO')
     def test_configure(self):
         # file repos:
+        self.paix.onecmd('configure repo1 type file')
         self.paix.onecmd('configure repo1 directory ')
 
         # http repos:
+        self.paix.onecmd('configure repo1 type http')
         self.paix.onecmd('configure repo1 download-url http://...')
         self.paix.onecmd('configure repo1 upload-url http://...')
         self.paix.onecmd('configure repo1 username user')
         self.paix.onecmd('configure repo1 password pass')
+
+        # specials:
+        self.paix.onecmd('configure repo1 type python')
+        self.paix.onecmd('configure repo1 type piplocal')
