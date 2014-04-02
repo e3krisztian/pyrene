@@ -157,16 +157,23 @@ class Test_RepoManager(unittest.TestCase):
 
 class Test_FileRepo(unittest.TestCase):
 
-    @unittest.skip('TODO: test attributes of all repo types')
-    def test_directory_is_available_on_file_repo(self):
-        pass
+    def test_attributes(self):
+        repo = m.FileRepo({'directory': 'dir@', 'type': 'file'})
+        self.assertEqual('file', repo.type)
+        self.assertEqual('dir@', repo.directory)
 
 
 class Test_HttpRepo(unittest.TestCase):
 
-    @unittest.skip('TODO: test attributes of all repo types')
-    def test_http_repo_attribute_download_url(self):
-        pass
+    def test_attributes(self):
+        repo = m.FileRepo(
+            {
+                'download_url': 'https://priv.repos.org/simple',
+                'type': 'http'
+            }
+        )
+        self.assertEqual('http', repo.type)
+        self.assertEqual('https://priv.repos.org/simple', repo.download_url)
 
 
 class Test_Paix_write_file(unittest.TestCase):
