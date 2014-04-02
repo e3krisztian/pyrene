@@ -113,7 +113,7 @@ class Test_RepoManager(unittest.TestCase):
 
     def test_get_repo_returns_repo(self):
         self.repo_manager.define('repo')
-        self.repo_manager.set('repo', 'type', 'PyPI')
+        self.repo_manager.set('repo', 'type', 'pypi')
         repo = self.repo_manager.get_repo('repo')
         self.assertIsInstance(repo, m.Repo)
 
@@ -148,6 +148,11 @@ class Test_RepoManager(unittest.TestCase):
         other_repo_manager = m.RepoManager(self.repo_store)
         with self.assertRaises(m.UnknownRepoError):
             other_repo_manager.get_repo('repo')
+
+    def test_repo_names(self):
+        self.repo_manager.define('r1')
+        self.repo_manager.define('r4')
+        self.assertEqual({'r1', 'r4'}, set(self.repo_manager.repo_names))
 
 
 class Test_FileRepo(unittest.TestCase):
@@ -324,6 +329,23 @@ class Test_Paix(unittest.TestCase):
         self.paix.onecmd('set repo1 key=value')
 
         self.repo_manager.set.assert_called_once_with('repo1', 'key', 'value')
+
+    def test_complete_set_on_repo(self):
+        self.repo_manager.repo_names = ('repo', 'repo2')
+        completion = self.paix.complete_set('re', 'set re key=value', 4, 5)
+        self.assertEqual({'repo', 'repo2'}, set(completion))
+
+    def test_complete_set_on_key(self):
+        completion = self.paix.complete_set('', 'set re key=value', 7, 7)
+        self.assertEqual(set(m.REPO_ATTRIBUTES), set(completion))
+
+    def test_complete_set_on_key_ty(self):
+        completion = self.paix.complete_set('ty', 'set re ty=value', 7, 9)
+        self.assertEqual({'type'}, set(completion))
+
+    def test_complete_set_on_value(self):
+        completion = self.paix.complete_set('key=', 'set re key=value', 7, 11)
+        self.assertEqual(set(), set(completion))
 
 
 class Test_set_env(unittest.TestCase):

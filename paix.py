@@ -87,7 +87,7 @@ class Repo(object):
 
 REPOTYPE_FILE = 'file'
 REPOTYPE_HTTP = 'http'
-REPOTYPE_PYPI = 'PyPI'
+REPOTYPE_PYPI = 'pypi'
 REPOTYPE_PIPLOCAL = 'piplocal'
 
 
@@ -130,7 +130,6 @@ PIPCONF_HTTPREPO = '''\
 [global]
 index-url = {download_url}
 extra-index-url =
-process-dependency-links = false
 '''
 
 
@@ -183,6 +182,14 @@ KEY_PASSWORD = 'password'
 KEY_DOWNLOAD_URL = 'download_url'
 KEY_UPLOAD_URL = 'upload_url'
 
+REPO_ATTRIBUTES = {
+    KEY_TYPE,
+    KEY_DIRECTORY,
+    KEY_DOWNLOAD_URL,
+    KEY_UPLOAD_URL,
+    KEY_USERNAME,
+    KEY_PASSWORD,
+}
 
 TYPE_TO_CLASS = {
     REPOTYPE_FILE: FileRepo,
@@ -233,6 +240,10 @@ class RepoManager(object):
     def set(self, repo_name, key, value):
         self._config.set(repo_name, key, value)
         self._save()
+
+    @property
+    def repo_names(self):
+        return self._config.sections()
 
 
 class BaseCmd(Cmd, object):
@@ -358,3 +369,19 @@ class Paix(BaseCmd):
         repo, key_value = line.split()
         key, _, value = key_value.partition('=')
         self.repo_manager.set(repo, key, value)
+
+    def complete_set(self, text, line, begidx, endidx):
+        completions = ()
+        complete_line = line[:endidx]
+        words = complete_line.split()
+        complete_index = len(words) + (0 if text else 1)
+        # complete_index == 1: complete on command, but it is done already
+        if complete_index == 2:
+            completions = self.repo_manager.repo_names
+        elif complete_index == 3:
+            if '=' in text:
+                if text.startswith('type='):
+                    completions = tuple(TYPE_TO_CLASS)
+            else:
+                completions = REPO_ATTRIBUTES.copy()
+        return {c for c in completions if c.startswith(text)}
