@@ -69,6 +69,9 @@ class Repo(object):
         super(Repo, self).__init__()
         self._attributes = attributes
 
+    def __getattr__(self, key):
+        return self._attributes[key]
+
     @abc.abstractmethod
     def get_as_pip_conf(self):
         pass
@@ -96,10 +99,6 @@ find-links = {directory}
 
 
 class FileRepo(Repo):
-
-    @property
-    def directory(self):
-        return self._attributes[KEY_DIRECTORY]
 
     def get_as_pip_conf(self):
         return PIPCONF_FILEREPO.format(directory=self.directory)
@@ -136,22 +135,6 @@ process-dependency-links = false
 
 
 class HttpRepo(Repo):
-
-    @property
-    def username(self):
-        return self[KEY_USERNAME]
-
-    @property
-    def password(self):
-        return self[KEY_PASSWORD]
-
-    @property
-    def download_url(self):
-        return self[KEY_DOWNLOAD_URL]
-
-    @property
-    def upload_url(self):
-        return self[KEY_UPLOAD_URL]
 
     def get_as_pip_conf(self):
         return PIPCONF_HTTPREPO.format(download_url=self.download_url)
