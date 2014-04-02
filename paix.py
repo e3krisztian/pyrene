@@ -56,10 +56,10 @@ class Directory(object):
 
     @property
     def files(self):
-        return sorted(
-            f for f in os.listdir(self.path)
-            if os.path.isfile(os.path.join(self.path, f))
+        candidates = (
+            os.path.join(self.path, f) for f in os.listdir(self.path)
         )
+        return sorted(f for f in candidates if os.path.isfile(f))
 
 
 class Repo(object):
@@ -105,12 +105,10 @@ class FileRepo(Repo):
 
     def download_packages(self, package_spec, directory):
         pip_install(
-            [
-                '--find-links', self.directory,
-                '--no-index',
-                '--download', directory.path,
-                package_spec,
-            ]
+            '--find-links', self.directory,
+            '--no-index',
+            '--download', directory.path,
+            package_spec,
         )
 
     def upload_packages(self, package_files):
@@ -140,11 +138,9 @@ class HttpRepo(Repo):
 
     def download_packages(self, package_spec, directory):
         pip_install(
-            [
-                '--index-url', self.download_url,
-                '--download', directory.path,
-                package_spec,
-            ]
+            '--index-url', self.download_url,
+            '--download', directory.path,
+            package_spec,
         )
 
     def upload_packages(self, package_files):
@@ -190,6 +186,7 @@ REPO_ATTRIBUTES = {
     KEY_USERNAME,
     KEY_PASSWORD,
 }
+REPO_ATTRIBUTE_COMPLETIONS = tuple('{}='.format(a) for a in REPO_ATTRIBUTES)
 
 TYPE_TO_CLASS = {
     REPOTYPE_FILE: FileRepo,
@@ -375,13 +372,23 @@ class Paix(BaseCmd):
         complete_line = line[:endidx]
         words = complete_line.split()
         complete_index = len(words) + (0 if text else 1)
-        # complete_index == 1: complete on command, but it is done already
+        assert complete_index > 1, "complete on command not done???"
         if complete_index == 2:
             completions = self.repo_manager.repo_names
-        elif complete_index == 3:
-            if '=' in text:
-                if text.startswith('type='):
-                    completions = tuple(TYPE_TO_CLASS)
-            else:
-                completions = REPO_ATTRIBUTES.copy()
-        return {c for c in completions if c.startswith(text)}
+        elif '=' in words[-1]:
+            if words[-1].startswith('type='):
+                completions = tuple(TYPE_TO_CLASS)
+        else:
+            completions = REPO_ATTRIBUTE_COMPLETIONS
+        return sorted(c for c in completions if c.startswith(text))
+
+
+def main():
+    cmd = Paix(
+        RepoManager('/tmp/paix/repo-store.ini'),
+        Directory('/tmp/paix/tempdir'),
+    )
+    cmd.cmdloop()
+
+if __name__ == '__main__':
+    main()

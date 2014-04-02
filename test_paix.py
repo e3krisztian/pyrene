@@ -337,6 +337,11 @@ class Test_Paix(unittest.TestCase):
 
         self.repo_manager.set.assert_called_once_with('repo1', 'key', 'value')
 
+    def test_complete_set_before_repo(self):
+        self.repo_manager.repo_names = ('repo', 'repo2')
+        completion = self.paix.complete_set('', 'set re key=value', 4, 4)
+        self.assertEqual({'repo', 'repo2'}, set(completion))
+
     def test_complete_set_on_repo(self):
         self.repo_manager.repo_names = ('repo', 'repo2')
         completion = self.paix.complete_set('re', 'set re key=value', 4, 5)
@@ -344,11 +349,29 @@ class Test_Paix(unittest.TestCase):
 
     def test_complete_set_on_key(self):
         completion = self.paix.complete_set('', 'set re key=value', 7, 7)
-        self.assertEqual(set(m.REPO_ATTRIBUTES), set(completion))
+        self.assertEqual(set(m.REPO_ATTRIBUTE_COMPLETIONS), set(completion))
 
     def test_complete_set_on_key_ty(self):
         completion = self.paix.complete_set('ty', 'set re ty=value', 7, 9)
-        self.assertEqual({'type'}, set(completion))
+        self.assertEqual({'type='}, set(completion))
+
+    def test_complete_set_on_type_value_fi(self):
+        completion = self.paix.complete_set(
+            'fi',
+            'set re type=fi',
+            12,
+            14,
+        )
+        self.assertEqual(['file'], completion)
+
+    def test_complete_set_on_empty_type_value(self):
+        completion = self.paix.complete_set(
+            '',
+            'set re type=',
+            12,
+            12,
+        )
+        self.assertEqual(set(m.TYPE_TO_CLASS), set(completion))
 
     def test_complete_set_on_value(self):
         completion = self.paix.complete_set('key=', 'set re key=value', 7, 11)
@@ -394,4 +417,6 @@ class Test_Directory(unittest.TestCase):
         write_file('a/file1', '')
         write_file('a/file2', '')
 
-        self.assertEqual(['file1', 'file2'], d.files)
+        f1 = os.path.join('a', 'file1')
+        f2 = os.path.join('a', 'file2')
+        self.assertEqual([f1, f2], d.files)
