@@ -35,10 +35,15 @@ def pip_install(*args):
 
 class Directory(object):
 
+    def __init__(self, path):
+        self.path = os.path.normpath(path)
+
     @property
     def files(self):
-        # TODO
-        pass
+        return sorted(
+            f for f in os.listdir(self.path)
+            if os.path.isfile(os.path.join(self.path, f))
+        )
 
 
 class Repo(object):

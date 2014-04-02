@@ -2,13 +2,15 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import os
 import shutil
 import sys
 
 import unittest
 import mock
+from temp_dir import within_temp_dir
+
 import paix as m
-import os
 
 # START: unique_justseen
 # https://docs.python.org/2.7/library/itertools.html#itertools-recipes
@@ -214,3 +216,15 @@ class Test_set_env(unittest.TestCase):
             self.assertEqual('2', os.environ['new'])
 
         self.assertNotIn('new', os.environ)
+
+
+class Test_Directory(unittest.TestCase):
+
+    @within_temp_dir
+    def test_files(self):
+        os.makedirs('a/directory')
+        d = m.Directory('a')
+        write_file('a/file1', '')
+        write_file('a/file2', '')
+
+        self.assertEqual(['file1', 'file2'], d.files)
