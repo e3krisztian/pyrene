@@ -9,6 +9,7 @@ import sys
 import unittest
 import mock
 from temp_dir import within_temp_dir
+import tempfile
 
 import paix as m
 
@@ -45,6 +46,74 @@ write_file = m.write_file
 def read_file(path):
     with open(path, 'rb') as file:
         return file.read()
+
+
+class Test_RepoManager_create(unittest.TestCase):
+
+    @within_temp_dir
+    def test_missing_repo_store_define_creates_it(self):
+        repo_manager = m.RepoManager('repo_store')
+        repo_manager.define('repo')
+
+        self.assertTrue(os.path.isfile('repo_store'))
+
+
+class Test_RepoManager(unittest.TestCase):
+
+    def setUp(self):
+        fd, self.repo_store = tempfile.mkstemp()
+        os.close(fd)
+        self.repo_manager = m.RepoManager(self.repo_store)
+
+    def tearDown(self):
+        os.remove(self.repo_store)
+
+    def test_get_repo_fails_on_undefined_repo(self):
+        with self.assertRaises(m.UnknownRepoError):
+            self.repo_manager.get_repo('undefined')
+
+    def test_get_repo_fails_on_missing_repo_type(self):
+        self.repo_manager.define('no-type')
+        with self.assertRaises(m.UndefinedRepoType):
+            self.repo_manager.get_repo('no-type')
+
+    def test_get_repo_returns_repo(self):
+        self.repo_manager.define('repo')
+        self.repo_manager.set('repo', 'type', 'PyPI')
+        repo = self.repo_manager.get_repo('repo')
+        self.assertIsInstance(repo, m.Repo)
+
+    def test_get_repo_fails_on_unknown_repo_type(self):
+        self.repo_manager.define('repo')
+        self.repo_manager.set('repo', 'type', 'unknown!')
+        with self.assertRaises(m.UnknownRepoType):
+            self.repo_manager.get_repo('repo')
+
+    def test_directory_is_available_on_file_repo(self):
+        self.repo_manager.define('repo')
+        self.repo_manager.set('repo', 'type', m.REPOTYPE_FILE)
+        self.repo_manager.set('repo', 'directory', '/a/repo/dir')
+
+        repo = self.repo_manager.get_repo('repo')
+        self.assertEqual('/a/repo/dir', repo.directory)
+
+    @unittest.skip('TODO: RepoManager methods has persistent results')
+    def test_set_is_persistent(self):
+        pass
+
+
+class Test_FileRepo(unittest.TestCase):
+
+    @unittest.skip('TODO: test attributes of all repo types')
+    def test_directory_is_available_on_file_repo(self):
+        pass
+
+
+class Test_HttpRepo(unittest.TestCase):
+
+    @unittest.skip('TODO: test attributes of all repo types')
+    def test_http_repo_attribute_download_url(self):
+        pass
 
 
 class Test_Paix_write_file(unittest.TestCase):

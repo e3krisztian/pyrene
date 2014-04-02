@@ -9,6 +9,8 @@ import abc
 
 import pip
 import os
+import shutil
+from ConfigParser import RawConfigParser
 import contextlib
 
 
@@ -32,6 +34,11 @@ def pip_install(*args):
     # FIXME: UNTESTED
     with set_env('PIP_CONFIG_FILE', os.devnull):
         return pip.main(['install'] + args)
+
+
+def twine_upload(filename, upload_url, username, password):
+    # TODO
+    pass
 
 
 def write_file(path, content):
@@ -59,6 +66,10 @@ class Directory(object):
 class Repo(object):
     __metaclass__ = abc.ABCMeta
 
+    def __init__(self, attributes):
+        super(Repo, self).__init__()
+        self._attributes = attributes
+
     @abc.abstractmethod
     def get_as_pip_conf(self):
         pass
@@ -72,30 +83,171 @@ class Repo(object):
         pass
 
 
-# TODO:
-# concrete implementations:
-# class FileRepo
-# class HttpRepo
-# class PythonRepo(HttpRepo)
+REPOTYPE_FILE = 'file'
+REPOTYPE_HTTP = 'http'
+REPOTYPE_PYPI = 'PyPI'
+REPOTYPE_PIPLOCAL = 'piplocal'
+
+
+PIPCONF_FILEREPO = '''\
+[global]
+no-index = true
+find-links = {directory}
+'''
+
+
+class FileRepo(Repo):
+
+    @property
+    def directory(self):
+        return self._attributes[KEY_DIRECTORY]
+
+    def get_as_pip_conf(self):
+        return PIPCONF_FILEREPO.format(directory=self.directory)
+
+    def download_packages(self, package_spec, directory):
+        pip_install(
+            [
+                '--find-links', self.directory,
+                '--no-index',
+                '--download', directory.path,
+                package_spec,
+            ]
+        )
+
+    def upload_packages(self, package_files):
+        destination = self.directory
+        for source in package_files:
+            shutil.copy2(source, destination)
+
+
+class PipLocalRepo(FileRepo):
+
+    @property
+    def directory(self):
+        return os.path.expanduser('~/.pip/local')
+
+
+PIPCONF_HTTPREPO = '''\
+[global]
+index-url = {download_url}
+extra-index-url =
+process-dependency-links = false
+'''
+
+
+class HttpRepo(Repo):
+
+    @property
+    def username(self):
+        return self[KEY_USERNAME]
+
+    @property
+    def password(self):
+        return self[KEY_PASSWORD]
+
+    @property
+    def download_url(self):
+        return self[KEY_DOWNLOAD_URL]
+
+    @property
+    def upload_url(self):
+        return self[KEY_UPLOAD_URL]
+
+    def get_as_pip_conf(self):
+        return PIPCONF_HTTPREPO.format(download_url=self.download_url)
+
+    def download_packages(self, package_spec, directory):
+        pip_install(
+            [
+                '--index-url', self.download_url,
+                '--download', directory.path,
+                package_spec,
+            ]
+        )
+
+    def upload_packages(self, package_files):
+        for source in package_files:
+            twine_upload(source, self.upload_url, self.username, self.password)
+
+
+class PyPIRepo(HttpRepo):
+
+    @property
+    def download_url(self):
+        return 'https://pypi.python.org/simple'
+
+    @property
+    def upload_url(self):
+        return 'https://pypi.python.org/'
+
+
+class UnknownRepoError(NameError):
+    '''Repo is not defined at all'''
+
+
+class UndefinedRepoType(ValueError):
+    '''type was not defined for repo'''
+
+
+class UnknownRepoType(ValueError):
+    '''type was given, but it is unknown'''
+
+KEY_TYPE = 'type'
+KEY_DIRECTORY = 'directory'
+KEY_USERNAME = 'username'
+KEY_PASSWORD = 'password'
+KEY_DOWNLOAD_URL = 'download_url'
+KEY_UPLOAD_URL = 'upload_url'
+
+
+TYPE_TO_CLASS = {
+    REPOTYPE_FILE: FileRepo,
+    REPOTYPE_PIPLOCAL: PipLocalRepo,
+    REPOTYPE_HTTP: HttpRepo,
+    REPOTYPE_PYPI: PyPIRepo
+}
 
 
 class RepoManager(object):
 
-    def get_repo(self):
+    def __init__(self, filename):
+        self._repo_store_filename = filename
+        self._config = RawConfigParser()
+
+    def _save(self):
+        with open(self._repo_store_filename, 'wt') as f:
+            self._config.write(f)
+
+    def get_repo(self, repo_name):
+        if not self._config.has_option(repo_name, KEY_TYPE):
+            if self._config.has_section(repo_name):
+                raise UndefinedRepoType(repo_name)
+            raise UnknownRepoError(repo_name)
+
+        repo_type = self._config.get(repo_name, KEY_TYPE)
+
+        attributes = {
+            option: self._config.get(repo_name, option)
+            for option in self._config.options(repo_name)
+        }
+
+        try:
+            return TYPE_TO_CLASS[repo_type](attributes)
+        except KeyError:
+            raise UnknownRepoType(repo_type)
+
+    def define(self, repo_name):
+        self._config.add_section(repo_name)
+        self._save()
+
+    def drop(self, repo_name):
         # TODO
         pass
 
-    def define(self, repo):
-        # TODO
-        pass
-
-    def drop(self, repo):
-        # TODO
-        pass
-
-    def set(self, repo, key, value):
-        # TODO
-        pass
+    def set(self, repo_name, key, value):
+        self._config.set(repo_name, key, value)
+        # TODO: save
 
 
 class BaseCmd(Cmd, object):
