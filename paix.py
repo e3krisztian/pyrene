@@ -31,9 +31,8 @@ def pip_install(*args):
 
     Explicitly ignores user's config.
     '''
-    # FIXME: UNTESTED
     with set_env('PIP_CONFIG_FILE', os.devnull):
-        return pip.main(['install'] + args)
+        return pip.main(['install'] + list(args))
 
 
 def twine_upload(filename, upload_url, username, password):

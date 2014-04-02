@@ -10,6 +10,7 @@ import unittest
 import mock
 from temp_dir import within_temp_dir
 import tempfile
+import subprocess
 
 import paix as m
 
@@ -46,6 +47,39 @@ write_file = m.write_file
 def read_file(path):
     with open(path, 'rb') as file:
         return file.read()
+
+
+TEST_SETUP_PY = '''\
+from distutils.core import setup
+
+setup(
+    name='foo',
+    version='1.0',
+    py_modules=['foo'],
+)
+'''
+
+
+class Test_pip_install(unittest.TestCase):
+
+    @within_temp_dir
+    def test_copy_package(self):
+        write_file('setup.py', TEST_SETUP_PY)
+        write_file('foo.py', '')
+        subprocess.check_output(
+            'python setup.py sdist'.split(),
+            stderr=subprocess.STDOUT
+        )
+        os.mkdir('destination')
+
+        m.pip_install(
+            '-d', 'destination',
+            '-f', 'dist',
+            '--no-index',
+            'foo',
+        )
+
+        self.assertTrue(os.path.exists('destination/foo-1.0.tar.gz'))
 
 
 class Test_RepoManager_create(unittest.TestCase):
