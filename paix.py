@@ -34,6 +34,15 @@ def pip_install(*args):
         return pip.main(['install'] + args)
 
 
+def write_file(path, content):
+    try:
+        os.makedirs(os.path.dirname(path))
+    except OSError:
+        pass
+    with open(path, 'wb') as file:
+        file.write(content)
+
+
 class Directory(object):
 
     def __init__(self, path):
@@ -134,8 +143,7 @@ class Paix(BaseCmd):
         self.__directory = directory
 
     def write_file(self, filename, content):
-        # TODO
-        pass
+        write_file(filename, content)
 
     def do_use(self, repo):
         '''
@@ -144,7 +152,8 @@ class Paix(BaseCmd):
         use REPO
         '''
         repo = self.repo_manager.get_repo(repo)
-        self.write_file('~/.pip/pip.conf', repo.get_as_pip_conf())
+        pip_conf = os.path.expanduser('~/.pip/pip.conf')
+        self.write_file(pip_conf, repo.get_as_pip_conf())
 
     def do_copy(self, line):
         '''

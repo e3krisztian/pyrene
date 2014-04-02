@@ -39,14 +39,35 @@ def rmtree(dir):
             sys.stderr.write('could not remove {}'.format(dir))
 
 
-def write_file(path, content):
-    with open(path, 'wb') as file:
-        file.write(content)
+write_file = m.write_file
 
 
 def read_file(path):
     with open(path, 'rb') as file:
         return file.read()
+
+
+class Test_Paix_write_file(unittest.TestCase):
+
+    def setUp(self):
+        self.repo_manager = mock.Mock(spec_set=m.RepoManager)
+        self.directory = mock.Mock(spec_set=m.Directory)
+        self.paix = m.Paix(
+            repo_manager=self.repo_manager,
+            directory=self.directory
+        )
+
+    @within_temp_dir
+    def test_creates_subdirectories(self):
+        self.paix.write_file('subdir/test-file', b'somecontent')
+        with open('subdir/test-file', 'rb') as f:
+            self.assertEqual(b'somecontent', f.read())
+
+    @within_temp_dir
+    def test_does_not_resolve_tilde(self):
+        self.paix.write_file('~', b'somecontent')
+        with open('~', 'rb') as f:
+            self.assertEqual(b'somecontent', f.read())
 
 
 class Test_Paix(unittest.TestCase):
@@ -81,7 +102,7 @@ class Test_Paix(unittest.TestCase):
 
         self.somerepo.get_as_pip_conf.assert_called_once_with()
         self.paix.write_file.assert_called_once_with(
-            '~/.pip/pip.conf',
+            os.path.expanduser('~/.pip/pip.conf'),
             mock.sentinel.pip_conf
         )
 
