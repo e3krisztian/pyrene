@@ -123,27 +123,26 @@ class Test_RepoManager(unittest.TestCase):
         with self.assertRaises(m.UnknownRepoType):
             self.repo_manager.get_repo('repo')
 
-    def test_directory_is_available_on_file_repo(self):
+    def make_file_repo(self, directory):
         self.repo_manager.define('repo')
         self.repo_manager.set('repo', 'type', m.REPOTYPE_FILE)
-        self.repo_manager.set('repo', 'directory', '/a/repo/dir')
+        self.repo_manager.set('repo', 'directory', directory)
+
+    def test_directory_is_available_on_file_repo(self):
+        self.make_file_repo('/a/repo/dir')
 
         repo = self.repo_manager.get_repo('repo')
         self.assertEqual('/a/repo/dir', repo.directory)
 
     def test_set_is_persistent(self):
-        self.repo_manager.define('repo')
-        self.repo_manager.set('repo', 'type', m.REPOTYPE_FILE)
-        self.repo_manager.set('repo', 'directory', '/a/repo/dir')
+        self.make_file_repo('/a/repo/dir')
 
         other_repo_manager = m.RepoManager(self.repo_store)
         repo = other_repo_manager.get_repo('repo')
         self.assertEqual('/a/repo/dir', repo.directory)
 
     def test_drop_is_persistent(self):
-        self.repo_manager.define('repo')
-        self.repo_manager.set('repo', 'type', m.REPOTYPE_FILE)
-        self.repo_manager.set('repo', 'directory', '/a/repo/dir')
+        self.make_file_repo('/a/repo/dir')
         self.repo_manager.drop('repo')
 
         other_repo_manager = m.RepoManager(self.repo_store)
