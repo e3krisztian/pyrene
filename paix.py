@@ -85,7 +85,7 @@ class RepoManager(object):
         # TODO
         pass
 
-    def define(self):
+    def define(self, repo):
         # TODO
         pass
 
