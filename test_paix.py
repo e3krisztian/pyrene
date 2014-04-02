@@ -8,7 +8,7 @@ import sys
 import unittest
 import mock
 import paix as m
-
+import os
 
 # START: unique_justseen
 # https://docs.python.org/2.7/library/itertools.html#itertools-recipes
@@ -170,27 +170,47 @@ class Test_Paix(unittest.TestCase):
             list(package_files)
         )
 
-    @unittest.skip('TODO')
     def test_define(self):
         self.paix.onecmd('define new-repo')
 
-    @unittest.skip('TODO')
+        self.repo_manager.define.assert_called_once_with('new-repo')
+
     def test_drop(self):
-        self.paix.onecmd('drop repo1')
+        self.paix.onecmd('drop somerepo')
 
-    @unittest.skip('TODO')
-    def test_configure(self):
-        # file repos:
-        self.paix.onecmd('configure repo1 type file')
-        self.paix.onecmd('configure repo1 directory ')
+        self.repo_manager.drop.assert_called_once_with('somerepo')
 
-        # http repos:
-        self.paix.onecmd('configure repo1 type http')
-        self.paix.onecmd('configure repo1 download-url http://...')
-        self.paix.onecmd('configure repo1 upload-url http://...')
-        self.paix.onecmd('configure repo1 username user')
-        self.paix.onecmd('configure repo1 password pass')
+    def test_set(self):
+        self.paix.onecmd('set repo1 key=value')
 
-        # specials:
-        self.paix.onecmd('configure repo1 type python')
-        self.paix.onecmd('configure repo1 type piplocal')
+        self.repo_manager.set.assert_called_once_with('repo1', 'key', 'value')
+
+
+class Test_set_env(unittest.TestCase):
+
+    def setUp(self):
+        self.original_environ = os.environ.copy()
+
+    def tearDown(self):
+        for key in set(os.environ):
+            if key not in self.original_environ:
+                del os.environ[key]
+        for key in self.original_environ:
+            os.environ[key] = self.original_environ[key]
+
+    def test_overwrite_existing_key(self):
+        os.environ['existing'] = '1'
+
+        with m.set_env('existing', '2'):
+            self.assertEqual('2', os.environ['existing'])
+
+        self.assertEqual('1', os.environ['existing'])
+
+    def test_make_new_key(self):
+        if 'new' in os.environ:
+            del os.environ['new']
+
+        with m.set_env('new', '2'):
+            self.assertEqual('2', os.environ['new'])
+
+        self.assertNotIn('new', os.environ)

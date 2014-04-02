@@ -7,6 +7,31 @@ from cmd import Cmd
 import traceback
 import abc
 
+import pip
+import os
+import contextlib
+
+
+@contextlib.contextmanager
+def set_env(key, value):
+    exists = key in os.environ
+    original_value = os.environ.get(key, '')
+    os.environ[key] = value
+    yield
+    os.environ[key] = original_value
+    if not exists:
+        del os.environ[key]
+
+
+def pip_install(*args):
+    '''
+    Run pip install ...
+
+    Explicitly ignores user's config.
+    '''
+    with set_env('PIP_CONFIG_FILE', os.devnull):
+        return pip.main(['install'] + args)
+
 
 class Directory(object):
 
@@ -31,6 +56,7 @@ class Repo(object):
     def upload_packages(self, package_files):
         pass
 
+
 # TODO:
 # concrete implementations:
 # class FileRepo
@@ -41,6 +67,18 @@ class Repo(object):
 class RepoManager(object):
 
     def get_repo(self):
+        # TODO
+        pass
+
+    def define(self):
+        # TODO
+        pass
+
+    def drop(self, repo):
+        # TODO
+        pass
+
+    def set(self, repo, key, value):
         # TODO
         pass
 
@@ -95,13 +133,17 @@ class Paix(BaseCmd):
 
     def do_use(self, repo):
         '''
-        Set up pip to use REPO
+        Set up pip to use REPO (write ~/.pip/pip.conf)
+
+        use REPO
         '''
         repo = self.repo_manager.get_repo(repo)
         self.write_file('~/.pip/pip.conf', repo.get_as_pip_conf())
 
     def do_copy(self, line):
         '''
+        Copy packages between repos
+
         copy [REPO:]PACKAGE-SPEC [...] REPO:
         '''
         words = line.split()
@@ -122,3 +164,45 @@ class Paix(BaseCmd):
             repo.download_packages(package_spec, self.__directory)
 
         destination_repo.upload_packages(self.__directory.files)
+
+    def do_define(self, repo):
+        '''
+        Define a new package repository.
+
+        define REPO
+        '''
+        self.repo_manager.define(repo)
+
+    def do_drop(self, repo):
+        '''
+        Drop definition of a repo.
+
+        drop REPO
+        '''
+        self.repo_manager.drop(repo)
+
+    def do_set(self, line):
+        '''
+        Set repository parameters.
+
+        set repo key=value
+
+        # intended use:
+        # file repos:
+        set developer-repo type=file
+        set developer-repo directory=package-directory
+
+        # http repos:
+        set company-private-repo type=http
+        set company-private-repo download-url=http://...
+        set company-private-repo upload-url=http://...
+        set company-private-repo username=user
+        set company-private-repo password=pass
+
+        # specials - predefined types:
+        set python type=python
+        set developer-repo type=piplocal
+        '''
+        repo, key_value = line.split()
+        key, _, value = key_value.partition('=')
+        self.repo_manager.set(repo, key, value)
