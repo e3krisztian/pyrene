@@ -384,11 +384,8 @@ class Test_set_env(unittest.TestCase):
         self.original_environ = os.environ.copy()
 
     def tearDown(self):
-        for key in set(os.environ):
-            if key not in self.original_environ:
-                del os.environ[key]
-        for key in self.original_environ:
-            os.environ[key] = self.original_environ[key]
+        os.environ.clear()
+        os.environ.update(self.original_environ)
 
     def test_overwrite_existing_key(self):
         os.environ['existing'] = '1'
