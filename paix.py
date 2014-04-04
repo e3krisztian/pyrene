@@ -7,10 +7,10 @@ from cmd import Cmd
 import traceback
 import abc
 
-import pip
 import os
 import sys
 import shutil
+import subprocess
 from ConfigParser import RawConfigParser
 import contextlib
 
@@ -32,8 +32,13 @@ def pip_install(*args):
 
     Explicitly ignores user's config.
     '''
+    pip_cmd = os.path.join(os.path.dirname(sys.executable), 'pip')
     with set_env('PIP_CONFIG_FILE', os.devnull):
-        return pip.main(['install'] + list(args))
+        cmd = [pip_cmd, 'install'] + list(args)
+        print(' '.join(cmd))
+        output = subprocess.check_output(cmd)
+        print(output)
+        return output
 
 
 def twine_upload(filename, upload_url, username, password):

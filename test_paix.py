@@ -73,8 +73,8 @@ class Test_pip_install(unittest.TestCase):
         os.mkdir('destination')
 
         m.pip_install(
-            '-d', 'destination',
-            '-f', 'dist',
+            '--download', 'destination',
+            '--find-links', 'dist',
             '--no-index',
             'foo',
         )
