@@ -13,6 +13,7 @@ import shutil
 import subprocess
 from ConfigParser import RawConfigParser
 import contextlib
+from upload import upload
 
 
 @contextlib.contextmanager
@@ -36,14 +37,7 @@ def pip_install(*args):
     with set_env('PIP_CONFIG_FILE', os.devnull):
         cmd = [pip_cmd, 'install'] + list(args)
         print(' '.join(cmd))
-        output = subprocess.check_output(cmd)
-        print(output)
-        return output
-
-
-def twine_upload(filename, upload_url, username, password):
-    # TODO
-    pass
+        subprocess.call(cmd)
 
 
 def write_file(path, content):
@@ -151,7 +145,14 @@ class HttpRepo(Repo):
 
     def upload_packages(self, package_files):
         for source in package_files:
-            twine_upload(source, self.upload_url, self.username, self.password)
+            upload(
+                source,
+                signature=None,
+                repository=self.upload_url,
+                username=self.username,
+                password=self.password,
+                comment='Uploaded with reponet tool',
+            )
 
 
 class PyPIRepo(HttpRepo):
