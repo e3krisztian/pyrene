@@ -237,7 +237,7 @@ class RepoManager(object):
         self._config.add_section(repo_name)
         self._save()
 
-    def drop(self, repo_name):
+    def forget(self, repo_name):
         self._config.remove_section(repo_name)
         self._save()
 
@@ -340,13 +340,13 @@ class Paix(BaseCmd):
         '''
         self.repo_manager.define(repo)
 
-    def do_drop(self, repo):
+    def do_forget(self, repo):
         '''
         Drop definition of a repo.
 
-        drop REPO
+        forget REPO
         '''
-        self.repo_manager.drop(repo)
+        self.repo_manager.forget(repo)
 
     def do_set(self, line):
         '''

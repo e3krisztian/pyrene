@@ -141,9 +141,9 @@ class Test_RepoManager(unittest.TestCase):
         repo = other_repo_manager.get_repo('repo')
         self.assertEqual('/a/repo/dir', repo.directory)
 
-    def test_drop_is_persistent(self):
+    def test_forget_is_persistent(self):
         self.make_file_repo('/a/repo/dir')
-        self.repo_manager.drop('repo')
+        self.repo_manager.forget('repo')
 
         other_repo_manager = m.RepoManager(self.repo_store)
         with self.assertRaises(m.UnknownRepoError):
@@ -327,10 +327,10 @@ class Test_Paix(unittest.TestCase):
 
         self.repo_manager.define.assert_called_once_with('new-repo')
 
-    def test_drop(self):
-        self.paix.onecmd('drop somerepo')
+    def test_forget(self):
+        self.paix.onecmd('forget somerepo')
 
-        self.repo_manager.drop.assert_called_once_with('somerepo')
+        self.repo_manager.forget.assert_called_once_with('somerepo')
 
     def test_set(self):
         self.paix.onecmd('set repo1 key=value')
