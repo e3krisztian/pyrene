@@ -275,6 +275,8 @@ class BaseCmd(Cmd, object):
     do_bye = do_EOF
 
 
+# TODO: rename
+# TODO: make package
 class Paix(BaseCmd):
 
     intro = '''
@@ -331,6 +333,8 @@ class Paix(BaseCmd):
             repo.download_packages(package_spec, self.__directory)
 
         destination_repo.upload_packages(self.__directory.files)
+        # FIXME: packages should be cleared after uploading from directory
+        # TODO: implement Directory.clear()
 
     def do_define(self, repo):
         '''
@@ -389,8 +393,12 @@ class Paix(BaseCmd):
             completions = REPO_ATTRIBUTE_COMPLETIONS
         return sorted(c for c in completions if c.startswith(text))
 
+    # TODO: list known repos
+    # TODO: list repo attributes
+
 
 def main():
+    # FIXME: hard wired paths for testing
     cmd = Paix(
         RepoManager('/tmp/paix/repo-store.ini'),
         Directory('/tmp/paix/tempdir'),
