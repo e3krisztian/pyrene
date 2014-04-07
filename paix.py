@@ -407,7 +407,18 @@ class Paix(BaseCmd):
         print('Known repos:')
         print('    ' + '\n    '.join(repo_names))
 
-    # TODO: list repo attributes
+    def do_show(self, repo):
+        '''
+        List repo attributes - as could be specified in pip.conf
+        '''
+        attributes = self.repo_manager.get_attributes(repo)
+        print(
+            '  '
+            + '\n  '.join(
+                '{}: {}'.format(key, value)
+                for key, value in attributes.iteritems()
+            )
+        )
 
 
 def main():

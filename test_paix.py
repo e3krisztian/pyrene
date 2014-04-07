@@ -376,6 +376,21 @@ class Test_Paix(unittest.TestCase):
             self.assertIn('S1', stdout.getvalue())
             self.assertIn('#@!', stdout.getvalue())
 
+    def test_show(self):
+        self.repo_manager.get_attributes.configure_mock(
+            return_value={'name': 'SHRP1', m.KEY_TYPE: '??'}
+        )
+        with mock.patch('sys.stdout', new_callable=StringIO) as stdout:
+            self.paix.onecmd('show repo1')
+
+            self.assertEqual(
+                [mock.call.get_attributes('repo1')],
+                self.repo_manager.mock_calls
+            )
+            output = stdout.getvalue()
+            self.assertRegexpMatches(output, '.*name.*SHRP1.*')
+            self.assertRegexpMatches(output, '.*type.*[?][?].*')
+
     def test_complete_set_before_repo(self):
         self.repo_manager.repo_names = ('repo', 'repo2')
         completion = self.paix.complete_set('', 'set re key=value', 4, 4)
