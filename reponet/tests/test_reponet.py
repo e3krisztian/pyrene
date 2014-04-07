@@ -9,7 +9,8 @@ import unittest
 import mock
 from temp_dir import within_temp_dir
 
-import reponet.main as m
+import reponet.shell as m
+from reponet.util import Directory
 from reponet.repos import Repo
 from reponet.repomanager import KEY_TYPE
 
@@ -39,7 +40,7 @@ class Test_RepoNetCmd_write_file(unittest.TestCase):
 
     def setUp(self):
         self.repo_manager = mock.Mock(spec_set=m.RepoManager)
-        self.directory = mock.Mock(spec_set=m.Directory)
+        self.directory = mock.Mock(spec_set=Directory)
         self.cmd = m.RepoNetCmd(
             repo_manager=self.repo_manager,
             directory=self.directory
@@ -66,7 +67,7 @@ class Test_RepoNetCmd(unittest.TestCase):
         self.somerepo = mock.Mock(spec_set=Repo)
         self.repo_manager = mock.Mock(spec_set=m.RepoManager)
         self.repo_manager.get_repo.configure_mock(side_effect=self.get_repo)
-        self.directory = mock.Mock(spec_set=m.Directory)
+        self.directory = mock.Mock(spec_set=Directory)
         self.cmd = m.RepoNetCmd(
             repo_manager=self.repo_manager,
             directory=self.directory

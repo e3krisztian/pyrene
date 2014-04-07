@@ -1,3 +1,7 @@
+# Py3 compatibility
+from __future__ import print_function
+from __future__ import unicode_literals
+
 import reponet.util as m
 import unittest
 
