@@ -337,7 +337,7 @@ class Paix(BaseCmd):
             repo.download_packages(package_spec, self.__temp_dir)
 
         destination_repo.upload_packages(self.__temp_dir.files)
-        # FIXME: packages should be cleared after uploading from directory
+        self.__temp_dir.clear()
 
     def do_define(self, repo):
         '''

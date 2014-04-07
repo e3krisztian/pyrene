@@ -322,6 +322,19 @@ class Test_Paix(unittest.TestCase):
             list(package_files)
         )
 
+    def test_copy_clears_directory_after_upload(self):
+        package_files = ('pkg-1.0.0.tar.gz', 'dep-0.3.1.zip')
+        files = mock.PropertyMock(return_value=list(package_files))
+        type(self.directory).files = files
+
+        self.paix.onecmd('copy repo1:pkg repo2:')
+
+        files.assert_called_once_with()
+        self.assertEqual(
+            [mock.call.clear()],
+            self.directory.mock_calls
+        )
+
     def test_define(self):
         self.paix.onecmd('define new-repo')
 
