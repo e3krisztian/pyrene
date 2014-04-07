@@ -35,3 +35,20 @@ def write_file(path, content):
         pass
     with open(path, 'wb') as file:
         file.write(content)
+
+
+class Directory(object):
+
+    def __init__(self, path):
+        self.path = os.path.normpath(path)
+
+    @property
+    def files(self):
+        candidates = (
+            os.path.join(self.path, f) for f in os.listdir(self.path)
+        )
+        return sorted(f for f in candidates if os.path.isfile(f))
+
+    def clear(self):
+        for path in self.files:
+            os.remove(path)

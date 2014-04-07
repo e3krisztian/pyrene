@@ -64,3 +64,28 @@ class Test_pip_install(unittest.TestCase):
         )
 
         self.assertTrue(os.path.exists('destination/foo-1.0.tar.gz'))
+
+
+class Test_Directory(unittest.TestCase):
+
+    @within_temp_dir
+    def test_files(self):
+        os.makedirs('a/directory')
+        d = m.Directory('a')
+        m.write_file('a/file1', '')
+        m.write_file('a/file2', '')
+
+        f1 = os.path.join('a', 'file1')
+        f2 = os.path.join('a', 'file2')
+        self.assertEqual([f1, f2], d.files)
+
+    @within_temp_dir
+    def test_clear(self):
+        os.makedirs('a/directory')
+        d = m.Directory('a')
+        m.write_file('a/file1', '')
+        m.write_file('a/file2', '')
+
+        d.clear()
+
+        self.assertEqual([], d.files)
