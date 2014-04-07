@@ -13,6 +13,7 @@ from temp_dir import within_temp_dir
 import tempfile
 
 import reponet.main as m
+from reponet.repos import Repo
 
 # START: unique_justseen
 # https://docs.python.org/2.7/library/itertools.html#itertools-recipes
@@ -82,7 +83,7 @@ class Test_RepoManager(unittest.TestCase):
         self.repo_manager.define('repo')
         self.repo_manager.set('repo', 'type', 'pypi')
         repo = self.repo_manager.get_repo('repo')
-        self.assertIsInstance(repo, m.Repo)
+        self.assertIsInstance(repo, Repo)
 
     def test_get_repo_fails_on_unknown_repo_type(self):
         self.repo_manager.define('repo')
@@ -138,27 +139,6 @@ class Test_RepoManager(unittest.TestCase):
         )
 
 
-class Test_FileRepo(unittest.TestCase):
-
-    def test_attributes(self):
-        repo = m.FileRepo({'directory': 'dir@', 'type': 'file'})
-        self.assertEqual('file', repo.type)
-        self.assertEqual('dir@', repo.directory)
-
-
-class Test_HttpRepo(unittest.TestCase):
-
-    def test_attributes(self):
-        repo = m.FileRepo(
-            {
-                'download_url': 'https://priv.repos.org/simple',
-                'type': 'http'
-            }
-        )
-        self.assertEqual('http', repo.type)
-        self.assertEqual('https://priv.repos.org/simple', repo.download_url)
-
-
 class Test_RepoNet_write_file(unittest.TestCase):
 
     def setUp(self):
@@ -185,9 +165,9 @@ class Test_RepoNet_write_file(unittest.TestCase):
 class Test_RepoNet(unittest.TestCase):
 
     def setUp(self):
-        self.repo1 = mock.Mock(spec_set=m.Repo)
-        self.repo2 = mock.Mock(spec_set=m.Repo)
-        self.somerepo = mock.Mock(spec_set=m.Repo)
+        self.repo1 = mock.Mock(spec_set=Repo)
+        self.repo2 = mock.Mock(spec_set=Repo)
+        self.somerepo = mock.Mock(spec_set=Repo)
         self.repo_manager = mock.Mock(spec_set=m.RepoManager)
         self.repo_manager.get_repo.configure_mock(side_effect=self.get_repo)
         self.directory = mock.Mock(spec_set=m.Directory)
