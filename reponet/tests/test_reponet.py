@@ -139,12 +139,12 @@ class Test_RepoManager(unittest.TestCase):
         )
 
 
-class Test_RepoNet_write_file(unittest.TestCase):
+class Test_RepoNetCmd_write_file(unittest.TestCase):
 
     def setUp(self):
         self.repo_manager = mock.Mock(spec_set=m.RepoManager)
         self.directory = mock.Mock(spec_set=m.Directory)
-        self.cmd = m.RepoNet(
+        self.cmd = m.RepoNetCmd(
             repo_manager=self.repo_manager,
             directory=self.directory
         )
@@ -162,7 +162,7 @@ class Test_RepoNet_write_file(unittest.TestCase):
             self.assertEqual(b'somecontent', f.read())
 
 
-class Test_RepoNet(unittest.TestCase):
+class Test_RepoNetCmd(unittest.TestCase):
 
     def setUp(self):
         self.repo1 = mock.Mock(spec_set=Repo)
@@ -171,7 +171,7 @@ class Test_RepoNet(unittest.TestCase):
         self.repo_manager = mock.Mock(spec_set=m.RepoManager)
         self.repo_manager.get_repo.configure_mock(side_effect=self.get_repo)
         self.directory = mock.Mock(spec_set=m.Directory)
-        self.cmd = m.RepoNet(
+        self.cmd = m.RepoNetCmd(
             repo_manager=self.repo_manager,
             directory=self.directory
         )

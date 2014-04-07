@@ -141,7 +141,7 @@ class BaseCmd(Cmd, object):
     do_bye = do_EOF
 
 
-class RepoNet(BaseCmd):
+class RepoNetCmd(BaseCmd):
 
     intro = '''
     RepoNet provides tools to work with different repos of python packages.
@@ -156,7 +156,7 @@ class RepoNet(BaseCmd):
     prompt = 'RepoNet: '
 
     def __init__(self, repo_manager, directory):
-        super(RepoNet, self).__init__()
+        super(RepoNetCmd, self).__init__()
         self.repo_manager = repo_manager
         self.__temp_dir = directory
 
@@ -282,7 +282,7 @@ class RepoNet(BaseCmd):
 
 def main():
     tempdir = tempfile.mkdtemp(suffix='.pypkgs')
-    cmd = RepoNet(
+    cmd = RepoNetCmd(
         RepoManager(os.path.expanduser('~/.python.reponet')),
         Directory(tempdir),
     )
