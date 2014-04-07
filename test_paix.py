@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import os
 import shutil
 import sys
+from io import StringIO
 
 import unittest
 import mock
@@ -349,6 +350,15 @@ class Test_Paix(unittest.TestCase):
         self.paix.onecmd('set repo1 key=value')
 
         self.repo_manager.set.assert_called_once_with('repo1', 'key', 'value')
+
+    def test_list(self):
+        self.repo_manager.repo_names = ['S1', '#@!']
+
+        with mock.patch('sys.stdout', new_callable=StringIO) as stdout:
+            self.paix.onecmd('list')
+
+            self.assertIn('S1', stdout.getvalue())
+            self.assertIn('#@!', stdout.getvalue())
 
     def test_complete_set_before_repo(self):
         self.repo_manager.repo_names = ('repo', 'repo2')

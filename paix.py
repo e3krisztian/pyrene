@@ -396,7 +396,14 @@ class Paix(BaseCmd):
             completions = REPO_ATTRIBUTE_COMPLETIONS
         return sorted(c for c in completions if c.startswith(text))
 
-    # TODO: list known repos
+    def do_list(self, line):
+        '''
+        List known repos
+        '''
+        repo_names = self.repo_manager.repo_names
+        print('Known repos:')
+        print('    ' + '\n    '.join(repo_names))
+
     # TODO: list repo attributes
 
 
