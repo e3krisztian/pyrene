@@ -193,30 +193,30 @@ class Test_HttpRepo(unittest.TestCase):
         self.assertEqual('https://priv.repos.org/simple', repo.download_url)
 
 
-class Test_Paix_write_file(unittest.TestCase):
+class Test_RepoNet_write_file(unittest.TestCase):
 
     def setUp(self):
         self.repo_manager = mock.Mock(spec_set=m.RepoManager)
         self.directory = mock.Mock(spec_set=m.Directory)
-        self.paix = m.Paix(
+        self.cmd = m.RepoNet(
             repo_manager=self.repo_manager,
             directory=self.directory
         )
 
     @within_temp_dir
     def test_creates_subdirectories(self):
-        self.paix.write_file('subdir/test-file', b'somecontent')
+        self.cmd.write_file('subdir/test-file', b'somecontent')
         with open('subdir/test-file', 'rb') as f:
             self.assertEqual(b'somecontent', f.read())
 
     @within_temp_dir
     def test_does_not_resolve_tilde(self):
-        self.paix.write_file('~', b'somecontent')
+        self.cmd.write_file('~', b'somecontent')
         with open('~', 'rb') as f:
             self.assertEqual(b'somecontent', f.read())
 
 
-class Test_Paix(unittest.TestCase):
+class Test_RepoNet(unittest.TestCase):
 
     def setUp(self):
         self.repo1 = mock.Mock(spec_set=m.Repo)
@@ -225,11 +225,11 @@ class Test_Paix(unittest.TestCase):
         self.repo_manager = mock.Mock(spec_set=m.RepoManager)
         self.repo_manager.get_repo.configure_mock(side_effect=self.get_repo)
         self.directory = mock.Mock(spec_set=m.Directory)
-        self.paix = m.Paix(
+        self.cmd = m.RepoNet(
             repo_manager=self.repo_manager,
             directory=self.directory
         )
-        self.paix.write_file = mock.Mock()
+        self.cmd.write_file = mock.Mock()
 
     def get_repo(self, repo_name):
         if repo_name == 'repo1':
@@ -244,10 +244,10 @@ class Test_Paix(unittest.TestCase):
             return_value=mock.sentinel.pip_conf
         )
 
-        self.paix.onecmd('use somerepo')
+        self.cmd.onecmd('use somerepo')
 
         self.somerepo.get_as_pip_conf.assert_called_once_with()
-        self.paix.write_file.assert_called_once_with(
+        self.cmd.write_file.assert_called_once_with(
             os.path.expanduser('~/.pip/pip.conf'),
             mock.sentinel.pip_conf
         )
@@ -255,7 +255,7 @@ class Test_Paix(unittest.TestCase):
     def test_copy_single_package(self):
         self.directory.files = ['roman-2.0.0.zip']
 
-        self.paix.onecmd('copy repo1:roman==2.0.0 repo2:')
+        self.cmd.onecmd('copy repo1:roman==2.0.0 repo2:')
 
         self.assertEqual(
             unique_justseen(
@@ -278,7 +278,7 @@ class Test_Paix(unittest.TestCase):
     def test_copy_uses_repo_manager(self):
         self.directory.files = ['roman-2.0.0.zip']
 
-        self.paix.onecmd('copy repo1:roman==2.0.0 repo2:')
+        self.cmd.onecmd('copy repo1:roman==2.0.0 repo2:')
 
         self.assertEqual(
             unique_justseen(
@@ -295,7 +295,7 @@ class Test_Paix(unittest.TestCase):
     def test_copy_uses_repo_to_download_packages(self):
         self.directory.files = ['roman-2.0.0.zip']
 
-        self.paix.onecmd('copy repo1:roman==2.0.0 repo2:')
+        self.cmd.onecmd('copy repo1:roman==2.0.0 repo2:')
 
         self.repo1.download_packages.assert_called_once_with(
             'roman==2.0.0',
@@ -305,7 +305,7 @@ class Test_Paix(unittest.TestCase):
     def test_copy_uses_repo_to_upload_packages(self):
         self.directory.files = ['roman-2.0.0.zip']
 
-        self.paix.onecmd('copy repo1:roman==2.0.0 repo2:')
+        self.cmd.onecmd('copy repo1:roman==2.0.0 repo2:')
 
         self.repo2.upload_packages.assert_called_once_with(['roman-2.0.0.zip'])
 
@@ -313,7 +313,7 @@ class Test_Paix(unittest.TestCase):
         package_files = ('pkg-1.0.0.tar.gz', 'dep-0.3.1.zip')
         self.directory.files = list(package_files)
 
-        self.paix.onecmd('copy repo1:pkg repo2:')
+        self.cmd.onecmd('copy repo1:pkg repo2:')
 
         self.repo1.download_packages.assert_called_once_with(
             'pkg',
@@ -325,7 +325,7 @@ class Test_Paix(unittest.TestCase):
         package_files = ('a-1.egg', 'b-2.tar.gz')
         self.directory.files = list(package_files)
 
-        self.paix.onecmd('copy repo1:a repo2:b somerepo:')
+        self.cmd.onecmd('copy repo1:a repo2:b somerepo:')
 
         self.repo1.download_packages.assert_called_once_with(
             'a',
@@ -344,7 +344,7 @@ class Test_Paix(unittest.TestCase):
         files = mock.PropertyMock(return_value=list(package_files))
         type(self.directory).files = files
 
-        self.paix.onecmd('copy repo1:pkg repo2:')
+        self.cmd.onecmd('copy repo1:pkg repo2:')
 
         files.assert_called_once_with()
         self.assertEqual(
@@ -353,17 +353,17 @@ class Test_Paix(unittest.TestCase):
         )
 
     def test_define(self):
-        self.paix.onecmd('define new-repo')
+        self.cmd.onecmd('define new-repo')
 
         self.repo_manager.define.assert_called_once_with('new-repo')
 
     def test_forget(self):
-        self.paix.onecmd('forget somerepo')
+        self.cmd.onecmd('forget somerepo')
 
         self.repo_manager.forget.assert_called_once_with('somerepo')
 
     def test_set(self):
-        self.paix.onecmd('set repo1 key=value')
+        self.cmd.onecmd('set repo1 key=value')
 
         self.repo_manager.set.assert_called_once_with('repo1', 'key', 'value')
 
@@ -371,7 +371,7 @@ class Test_Paix(unittest.TestCase):
         self.repo_manager.repo_names = ['S1', '#@!']
 
         with mock.patch('sys.stdout', new_callable=StringIO) as stdout:
-            self.paix.onecmd('list')
+            self.cmd.onecmd('list')
 
             self.assertIn('S1', stdout.getvalue())
             self.assertIn('#@!', stdout.getvalue())
@@ -381,7 +381,7 @@ class Test_Paix(unittest.TestCase):
             return_value={'name': 'SHRP1', m.KEY_TYPE: '??'}
         )
         with mock.patch('sys.stdout', new_callable=StringIO) as stdout:
-            self.paix.onecmd('show repo1')
+            self.cmd.onecmd('show repo1')
 
             self.assertEqual(
                 [mock.call.get_attributes('repo1')],
@@ -393,24 +393,24 @@ class Test_Paix(unittest.TestCase):
 
     def test_complete_set_before_repo(self):
         self.repo_manager.repo_names = ('repo', 'repo2')
-        completion = self.paix.complete_set('', 'set re key=value', 4, 4)
+        completion = self.cmd.complete_set('', 'set re key=value', 4, 4)
         self.assertEqual({'repo ', 'repo2 '}, set(completion))
 
     def test_complete_set_on_repo(self):
         self.repo_manager.repo_names = ('repo', 'repo2')
-        completion = self.paix.complete_set('re', 'set re key=value', 4, 5)
+        completion = self.cmd.complete_set('re', 'set re key=value', 4, 5)
         self.assertEqual({'repo ', 'repo2 '}, set(completion))
 
     def test_complete_set_on_key(self):
-        completion = self.paix.complete_set('', 'set re key=value', 7, 7)
+        completion = self.cmd.complete_set('', 'set re key=value', 7, 7)
         self.assertEqual(set(m.REPO_ATTRIBUTE_COMPLETIONS), set(completion))
 
     def test_complete_set_on_key_ty(self):
-        completion = self.paix.complete_set('ty', 'set re ty=value', 7, 9)
+        completion = self.cmd.complete_set('ty', 'set re ty=value', 7, 9)
         self.assertEqual({'type='}, set(completion))
 
     def test_complete_set_on_type_value_fi(self):
-        completion = self.paix.complete_set(
+        completion = self.cmd.complete_set(
             'fi',
             'set re type=fi',
             12,
@@ -419,7 +419,7 @@ class Test_Paix(unittest.TestCase):
         self.assertEqual(['file'], completion)
 
     def test_complete_set_on_empty_type_value(self):
-        completion = self.paix.complete_set(
+        completion = self.cmd.complete_set(
             '',
             'set re type=',
             12,
@@ -428,7 +428,7 @@ class Test_Paix(unittest.TestCase):
         self.assertEqual(set(m.TYPE_TO_CLASS), set(completion))
 
     def test_complete_set_on_value(self):
-        completion = self.paix.complete_set('key=', 'set re key=value', 7, 11)
+        completion = self.cmd.complete_set('key=', 'set re key=value', 7, 11)
         self.assertEqual(set(), set(completion))
 
 
