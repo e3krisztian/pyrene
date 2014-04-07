@@ -2,6 +2,16 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 
+# TODO: rename paix to reponet (Paix -> RepoNet)
+# TODO: make package
+# TODO: split up this & its test file
+# TODO: complete repo names
+# FIXME: starting up with invalid config file causes exception
+# TODO: prefix ini section names for repos with "repo:"
+# TODO: implicit repos for local directories - both as source and destination!
+# TODO: support some pip switches (-r requirements.txt, --pre, --no-use-wheel)
+# TODO: support copying all package versions
+# FIXME: 'use repo', where repo does not have attributes set causes exception
 
 from cmd import Cmd
 import traceback
@@ -282,8 +292,6 @@ class BaseCmd(Cmd, object):
     do_bye = do_EOF
 
 
-# TODO: rename
-# TODO: make package
 class Paix(BaseCmd):
 
     intro = '''
