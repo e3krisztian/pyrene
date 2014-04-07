@@ -3,8 +3,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import os
-import shutil
-import sys
 from io import StringIO
 
 import unittest
@@ -34,20 +32,7 @@ assert unique_justseen('ABBCcAD', unicode.lower) == list('ABCAD')
 # END: unique_justseen
 
 
-def rmtree(dir):
-    if dir:
-        try:
-            shutil.rmtree(dir)
-        except:
-            sys.stderr.write('could not remove {}'.format(dir))
-
-
 write_file = m.write_file
-
-
-def read_file(path):
-    with open(path, 'rb') as file:
-        return file.read()
 
 
 class Test_RepoManager_create(unittest.TestCase):
