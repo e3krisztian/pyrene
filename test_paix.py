@@ -394,12 +394,12 @@ class Test_Paix(unittest.TestCase):
     def test_complete_set_before_repo(self):
         self.repo_manager.repo_names = ('repo', 'repo2')
         completion = self.paix.complete_set('', 'set re key=value', 4, 4)
-        self.assertEqual({'repo', 'repo2'}, set(completion))
+        self.assertEqual({'repo ', 'repo2 '}, set(completion))
 
     def test_complete_set_on_repo(self):
         self.repo_manager.repo_names = ('repo', 'repo2')
         completion = self.paix.complete_set('re', 'set re key=value', 4, 5)
-        self.assertEqual({'repo', 'repo2'}, set(completion))
+        self.assertEqual({'repo ', 'repo2 '}, set(completion))
 
     def test_complete_set_on_key(self):
         completion = self.paix.complete_set('', 'set re key=value', 7, 7)

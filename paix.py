@@ -391,7 +391,9 @@ class Paix(BaseCmd):
         complete_index = len(words) + (0 if text else 1)
         assert complete_index > 1, "complete on command not done???"
         if complete_index == 2:
-            completions = self.repo_manager.repo_names
+            completions = (
+                '{} '.format(name) for name in self.repo_manager.repo_names
+            )
         elif '=' in words[-1]:
             if words[-1].startswith('type='):
                 completions = tuple(TYPE_TO_CLASS)
