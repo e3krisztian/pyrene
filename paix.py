@@ -61,6 +61,10 @@ class Directory(object):
         )
         return sorted(f for f in candidates if os.path.isfile(f))
 
+    def clear(self):
+        for path in self.files:
+            os.remove(path)
+
 
 class Repo(object):
     __metaclass__ = abc.ABCMeta
@@ -334,7 +338,6 @@ class Paix(BaseCmd):
 
         destination_repo.upload_packages(self.__temp_dir.files)
         # FIXME: packages should be cleared after uploading from directory
-        # TODO: implement Directory.clear()
 
     def do_define(self, repo):
         '''
