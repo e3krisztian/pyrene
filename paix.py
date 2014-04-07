@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 from cmd import Cmd
 import traceback
 import abc
-
+import tempfile
 import os
 import sys
 import shutil
@@ -294,7 +294,7 @@ class Paix(BaseCmd):
     def __init__(self, repo_manager, directory):
         super(Paix, self).__init__()
         self.repo_manager = repo_manager
-        self.__directory = directory
+        self.__temp_dir = directory
 
     def write_file(self, filename, content):
         write_file(filename, content)
@@ -330,9 +330,9 @@ class Paix(BaseCmd):
                     raise AssertionError(
                         'No repo specified for package'.format(package_spec)
                     )
-            repo.download_packages(package_spec, self.__directory)
+            repo.download_packages(package_spec, self.__temp_dir)
 
-        destination_repo.upload_packages(self.__directory.files)
+        destination_repo.upload_packages(self.__temp_dir.files)
         # FIXME: packages should be cleared after uploading from directory
         # TODO: implement Directory.clear()
 
@@ -398,16 +398,20 @@ class Paix(BaseCmd):
 
 
 def main():
-    # FIXME: hard wired paths for testing
+    tempdir = tempfile.mkdtemp(suffix='.pypkgs')
     cmd = Paix(
-        RepoManager('/tmp/paix/repo-store.ini'),
-        Directory('/tmp/paix/tempdir'),
+        RepoManager(os.path.expanduser('~/.python.reponet')),
+        Directory(tempdir),
     )
     line = ' '.join(sys.argv[1:])
-    if line:
-        cmd.onecmd(line)
-    else:
-        cmd.cmdloop()
+    try:
+        if line:
+            cmd.onecmd(line)
+        else:
+            cmd.cmdloop()
+    finally:
+        shutil.rmtree(tempdir)
+
 
 if __name__ == '__main__':
     main()
