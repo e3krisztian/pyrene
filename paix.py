@@ -225,12 +225,8 @@ class RepoManager(object):
                 raise UndefinedRepoType(repo_name)
             raise UnknownRepoError(repo_name)
 
-        repo_type = self._config.get(repo_name, KEY_TYPE)
-
-        attributes = {
-            option: self._config.get(repo_name, option)
-            for option in self._config.options(repo_name)
-        }
+        attributes = self.get_attributes(repo_name)
+        repo_type = attributes[KEY_TYPE]
 
         try:
             return TYPE_TO_CLASS[repo_type](attributes)
@@ -252,6 +248,13 @@ class RepoManager(object):
     @property
     def repo_names(self):
         return self._config.sections()
+
+    def get_attributes(self, repo_name):
+        attributes = {
+            option: self._config.get(repo_name, option)
+            for option in self._config.options(repo_name)
+        }
+        return attributes
 
 
 class BaseCmd(Cmd, object):

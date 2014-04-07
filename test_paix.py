@@ -155,6 +155,22 @@ class Test_RepoManager(unittest.TestCase):
         self.repo_manager.define('r4')
         self.assertEqual({'r1', 'r4'}, set(self.repo_manager.repo_names))
 
+    def test_get_attributes(self):
+        self.repo_manager.define('r1')
+        self.repo_manager.set('r1', 'ame', '2')
+        self.repo_manager.set('r1', 'nme', '22')
+        self.repo_manager.define('r2')
+        self.repo_manager.set('r2', 'name', 'fixed')
+
+        self.assertDictEqual(
+            {'ame': '2', 'nme': '22'},
+            self.repo_manager.get_attributes('r1')
+        )
+        self.assertDictEqual(
+            {'name': 'fixed'},
+            self.repo_manager.get_attributes('r2')
+        )
+
 
 class Test_FileRepo(unittest.TestCase):
 
