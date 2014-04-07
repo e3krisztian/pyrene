@@ -2,7 +2,6 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 
-# TODO: make package
 # TODO: split up this & its test file
 # TODO: complete repo names
 # FIXME: starting up with invalid config file causes exception
