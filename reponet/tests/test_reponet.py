@@ -13,7 +13,7 @@ from temp_dir import within_temp_dir
 import tempfile
 import subprocess
 
-import reponet as m
+import reponet.main as m
 
 # START: unique_justseen
 # https://docs.python.org/2.7/library/itertools.html#itertools-recipes
