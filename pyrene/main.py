@@ -16,13 +16,13 @@ import sys
 import shutil
 from .repomanager import RepoManager
 from .util import Directory
-from .shell import RepoNetCmd
+from .shell import PyreneCmd
 
 
 def main():
     tempdir = tempfile.mkdtemp(suffix='.pypkgs')
-    cmd = RepoNetCmd(
-        RepoManager(os.path.expanduser('~/.python.reponet')),
+    cmd = PyreneCmd(
+        RepoManager(os.path.expanduser('~/.pyrene')),
         Directory(tempdir),
     )
     line = ' '.join(sys.argv[1:])

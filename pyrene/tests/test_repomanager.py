@@ -2,14 +2,14 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import reponet.repomanager as m
+import pyrene.repomanager as m
 import unittest
 
 import os
 import tempfile
 from temp_dir import within_temp_dir
 
-from reponet.repos import Repo
+from pyrene.repos import Repo
 
 
 class Test_RepoManager_create(unittest.TestCase):

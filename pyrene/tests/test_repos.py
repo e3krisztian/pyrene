@@ -3,7 +3,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import unittest
-import reponet.repos as m
+import pyrene.repos as m
 
 
 class Test_FileRepo(unittest.TestCase):

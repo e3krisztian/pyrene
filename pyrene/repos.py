@@ -92,7 +92,7 @@ class HttpRepo(Repo):
                 repository=self.upload_url,
                 username=self.username,
                 password=self.password,
-                comment='Uploaded with reponet tool',
+                comment='Uploaded with Pyrene',
             )
 
 

@@ -40,10 +40,10 @@ REPO_ATTRIBUTE_COMPLETIONS = tuple(
 )
 
 
-class RepoNetCmd(BaseCmd):
+class PyreneCmd(BaseCmd):
 
     intro = '''
-    RepoNet provides tools to work with different repos of python packages.
+    Pyrene provides tools to work with different repos of python packages.
 
     e.g. one might use three different repos:
 
@@ -52,10 +52,10 @@ class RepoNetCmd(BaseCmd):
                               pip needs to be configured to fetch from here)
      - developer cache       (~/.pip/local)
     '''
-    prompt = 'RepoNet: '
+    prompt = 'Pyrene: '
 
     def __init__(self, repo_manager, directory):
-        super(RepoNetCmd, self).__init__()
+        super(PyreneCmd, self).__init__()
         self.repo_manager = repo_manager
         self.__temp_dir = directory
 

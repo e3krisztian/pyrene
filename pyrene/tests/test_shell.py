@@ -9,10 +9,10 @@ import unittest
 import mock
 from temp_dir import within_temp_dir
 
-import reponet.shell as m
-from reponet.util import Directory
-from reponet.repos import Repo
-from reponet.repomanager import KEY_TYPE
+import pyrene.shell as m
+from pyrene.util import Directory
+from pyrene.repos import Repo
+from pyrene.repomanager import KEY_TYPE
 
 # START: unique_justseen
 # https://docs.python.org/2.7/library/itertools.html#itertools-recipes
@@ -36,12 +36,12 @@ assert unique_justseen('ABBCcAD', unicode.lower) == list('ABCAD')
 write_file = m.write_file
 
 
-class Test_RepoNetCmd_write_file(unittest.TestCase):
+class Test_PyreneCmd_write_file(unittest.TestCase):
 
     def setUp(self):
         self.repo_manager = mock.Mock(spec_set=m.RepoManager)
         self.directory = mock.Mock(spec_set=Directory)
-        self.cmd = m.RepoNetCmd(
+        self.cmd = m.PyreneCmd(
             repo_manager=self.repo_manager,
             directory=self.directory
         )
@@ -59,7 +59,7 @@ class Test_RepoNetCmd_write_file(unittest.TestCase):
             self.assertEqual(b'somecontent', f.read())
 
 
-class Test_RepoNetCmd(unittest.TestCase):
+class Test_PyreneCmd(unittest.TestCase):
 
     def setUp(self):
         self.repo1 = mock.Mock(spec_set=Repo)
@@ -68,7 +68,7 @@ class Test_RepoNetCmd(unittest.TestCase):
         self.repo_manager = mock.Mock(spec_set=m.RepoManager)
         self.repo_manager.get_repo.configure_mock(side_effect=self.get_repo)
         self.directory = mock.Mock(spec_set=Directory)
-        self.cmd = m.RepoNetCmd(
+        self.cmd = m.PyreneCmd(
             repo_manager=self.repo_manager,
             directory=self.directory
         )

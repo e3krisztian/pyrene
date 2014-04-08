@@ -2,7 +2,7 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import reponet.util as m
+import pyrene.util as m
 import unittest
 
 import os
