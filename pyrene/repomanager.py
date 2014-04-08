@@ -57,6 +57,8 @@ class RepoManager(object):
         KEY_PASSWORD,
     }
 
+    REPO_SECTION_PREFIX = 'repo:'
+
     def __init__(self, filename):
         self._repo_store_filename = filename
         self._config = RawConfigParser()
@@ -68,8 +70,9 @@ class RepoManager(object):
             self._config.write(f)
 
     def get_repo(self, repo_name):
-        if not self._config.has_option(repo_name, KEY_TYPE):
-            if self._config.has_section(repo_name):
+        repokey = self.REPO_SECTION_PREFIX + repo_name
+        if not self._config.has_option(repokey, KEY_TYPE):
+            if self._config.has_section(repokey):
                 raise UndefinedRepoType(repo_name)
             raise UnknownRepoError(repo_name)
 
@@ -82,24 +85,32 @@ class RepoManager(object):
             raise UnknownRepoType(repo_type)
 
     def define(self, repo_name):
-        self._config.add_section(repo_name)
+        repokey = self.REPO_SECTION_PREFIX + repo_name
+        self._config.add_section(repokey)
         self._save()
 
     def forget(self, repo_name):
-        self._config.remove_section(repo_name)
+        repokey = self.REPO_SECTION_PREFIX + repo_name
+        self._config.remove_section(repokey)
         self._save()
 
     def set(self, repo_name, key, value):
-        self._config.set(repo_name, key, value)
+        repokey = self.REPO_SECTION_PREFIX + repo_name
+        self._config.set(repokey, key, value)
         self._save()
 
     @property
     def repo_names(self):
-        return self._config.sections()
+        return [
+            section[len(self.REPO_SECTION_PREFIX):]
+            for section in self._config.sections()
+            if section.startswith(self.REPO_SECTION_PREFIX)
+        ]
 
     def get_attributes(self, repo_name):
+        repokey = self.REPO_SECTION_PREFIX + repo_name
         attributes = {
-            option: self._config.get(repo_name, option)
-            for option in self._config.options(repo_name)
+            option: self._config.get(repokey, option)
+            for option in self._config.options(repokey)
         }
         return attributes

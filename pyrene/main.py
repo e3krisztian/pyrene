@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 
 # TODO: complete repo names
 # FIXME: starting up with invalid config file causes exception
-# TODO: prefix ini section names for repos with "repo:"
 # TODO: implicit repos for local directories - both as source and destination!
 # TODO: support some pip switches (-r requirements.txt, --pre, --no-use-wheel)
 # TODO: support copying all package versions
