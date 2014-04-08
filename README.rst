@@ -1,5 +1,5 @@
-RepoNet
-=======
+Pyrene - Python Repository Network tool
+=======================================
 
 I am a tool to help your interactions with Python package repositories.
 I can copy packages between repos for you without modifying any config files.
