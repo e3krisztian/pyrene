@@ -30,10 +30,13 @@ copy
 Copy packages like files with `cp`.
 
 ```
-copy [local-file [...]] [repo:package [...]] repo:
+copy [LOCAL-FILE [...]] [REPO:PACKAGE [...]] DESTINATION
 ```
 
-It is important, that `local-file`s to be uploaded should come before any `repo` specification!
+It is important, that `LOCAL-FILE`s to be uploaded should come before any `REPO` specification!
+
+`DESTINATION` can be either a `REPO:` or a `LOCAL-DIRECTORY`
+
 
 define
 ------

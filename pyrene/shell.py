@@ -84,11 +84,13 @@ class PyreneCmd(BaseCmd):
         '''
         Copy packages between repos
 
-        copy [LOCAL-FILE [...]] [REPO:PACKAGE-SPEC [...]] DESTINATION-REPO:
+        copy [LOCAL-FILE [...]] [REPO:PACKAGE-SPEC [...]] DESTINATION
 
         The order of parameters is important:
         LOCAL-FILEs should come first if there are any,
-        then packages from defined REPOs, then DESTINATION-REPO spec
+        then packages from defined REPOs, then DESTINATION specification.
+        DESTINATION can be either a REPO: or a directory.
+
         '''
         words = line.split()
         destination_repo = self._get_destination_repo(words[-1])
