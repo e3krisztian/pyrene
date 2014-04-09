@@ -30,9 +30,10 @@ copy
 Copy packages like files with `cp`.
 
 ```
-copy package[s] repo:
+copy [local-file [...]] [repo:package [...]] repo:
 ```
 
+It is important, that `local-file`s to be uploaded should come before any `repo` specification!
 
 define
 ------

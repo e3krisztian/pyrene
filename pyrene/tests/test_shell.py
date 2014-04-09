@@ -182,6 +182,22 @@ class Test_PyreneCmd(unittest.TestCase):
             list(package_files)
         )
 
+    def test_copy_uploads_files(self):
+        self.directory.files = []
+        self.cmd.onecmd('copy /a/file somerepo:')
+
+        self.somerepo.upload_packages.assert_called_once_with(
+            ['/a/file']
+        )
+
+    def test_copy_uploads_both_files_and_packages(self):
+        self.directory.files = ['/tmp/downloaded-package-file']
+        self.cmd.onecmd('copy /a/file somerepo:')
+
+        self.somerepo.upload_packages.assert_called_once_with(
+            ['/a/file', '/tmp/downloaded-package-file']
+        )
+
     def test_copy_clears_directory_after_upload(self):
         package_files = ('pkg-1.0.0.tar.gz', 'dep-0.3.1.zip')
         files = mock.PropertyMock(return_value=list(package_files))

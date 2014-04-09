@@ -76,26 +76,36 @@ class PyreneCmd(BaseCmd):
         '''
         Copy packages between repos
 
-        copy [REPO:]PACKAGE-SPEC [...] REPO:
+        copy [LOCAL-FILE [...]] [REPO:PACKAGE-SPEC [...]] DESTINATION-REPO:
+
+        The order of parameters is important:
+        LOCAL-FILEs should come first if there are any,
+        then packages from defined REPOs, then DESTINATION-REPO spec
         '''
         words = line.split()
         destination = words[-1]
         assert destination.endswith(':')
         destination_repo = self.repo_manager.get_repo(destination.rstrip(':'))
 
+        distribution_files = []
         repo = None
-        for package_spec in words[:-1]:
-            if ':' in package_spec:
-                repo_name, _, package_spec = package_spec.partition(':')
+        for word in words[:-1]:
+            if ':' in word:
+                repo_name, _, package_spec = word.partition(':')
                 repo = self.repo_manager.get_repo(repo_name)
+            else:
+                package_spec = word
+
+            assert ':' not in package_spec
+
             if package_spec:
                 if not repo:
-                    raise AssertionError(
-                        'No repo specified for package'.format(package_spec)
-                    )
-            repo.download_packages(package_spec, self.__temp_dir)
+                    distribution_files.append(package_spec)
+                else:
+                    repo.download_packages(package_spec, self.__temp_dir)
 
-        destination_repo.upload_packages(self.__temp_dir.files)
+        distribution_files.extend(self.__temp_dir.files)
+        destination_repo.upload_packages(distribution_files)
         self.__temp_dir.clear()
 
     def do_define(self, repo):
