@@ -19,7 +19,7 @@ from .shell import PyreneCmd
 
 
 def main():
-    tempdir = tempfile.mkdtemp(suffix='.pypkgs')
+    tempdir = tempfile.mkdtemp(suffix='.pyrene')
     cmd = PyreneCmd(
         RepoManager(os.path.expanduser('~/.pyrene')),
         Directory(tempdir),
