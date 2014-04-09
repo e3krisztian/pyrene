@@ -198,6 +198,14 @@ class Test_PyreneCmd(unittest.TestCase):
             ['/a/file', '/tmp/downloaded-package-file']
         )
 
+    def test_get_destination_repo_on_repo1(self):
+        repo = self.cmd._get_destination_repo('repo1:')
+        self.assertIs(self.repo1, repo)
+
+    def test_get_destination_repo_on_directory(self):
+        repo = self.cmd._get_destination_repo('/path/to/directory')
+        self.assertEqual('/path/to/directory', repo.directory)
+
     def test_copy_clears_directory_after_upload(self):
         package_files = ('pkg-1.0.0.tar.gz', 'dep-0.3.1.zip')
         files = mock.PropertyMock(return_value=list(package_files))

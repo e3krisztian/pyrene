@@ -6,7 +6,7 @@ import os
 from cmd import Cmd
 import traceback
 from .util import write_file
-from .repomanager import RepoManager
+from .repomanager import RepoManager, FileRepo
 
 
 class BaseCmd(Cmd, object):
@@ -72,6 +72,14 @@ class PyreneCmd(BaseCmd):
         pip_conf = os.path.expanduser('~/.pip/pip.conf')
         self.write_file(pip_conf, repo.get_as_pip_conf())
 
+    def _get_destination_repo(self, word):
+        if word.endswith(':'):
+            repo_name = word[:-1]
+            return self.repo_manager.get_repo(repo_name)
+
+        attributes = {'directory': word}
+        return FileRepo(attributes)
+
     def do_copy(self, line):
         '''
         Copy packages between repos
@@ -83,9 +91,7 @@ class PyreneCmd(BaseCmd):
         then packages from defined REPOs, then DESTINATION-REPO spec
         '''
         words = line.split()
-        destination = words[-1]
-        assert destination.endswith(':')
-        destination_repo = self.repo_manager.get_repo(destination.rstrip(':'))
+        destination_repo = self._get_destination_repo(words[-1])
 
         distribution_files = []
         repo = None
