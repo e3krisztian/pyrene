@@ -165,8 +165,8 @@ class PyreneCmd(BaseCmd):
         complete_index = len(words) + (0 if text else 1)
         assert complete_index > 1, "complete on command not done???"
         if complete_index == 2:
-            completions = (
-                '{} '.format(name) for name in self.repo_manager.repo_names
+            completions = self.complete_repo_name(
+                text, line, begidx, endidx, suffix=' '
             )
         elif '=' in words[-1]:
             if words[-1].startswith('type='):
@@ -195,3 +195,14 @@ class PyreneCmd(BaseCmd):
                 for key, value in attributes.iteritems()
             )
         )
+
+    def complete_repo_name(self, text, line, begidx, endidx, suffix=''):
+        return sorted(
+            '{}{}'.format(name, suffix)
+            for name in self.repo_manager.repo_names
+            if name.startswith(text)
+        )
+
+    complete_forget = complete_repo_name
+    complete_show = complete_repo_name
+    complete_use = complete_repo_name

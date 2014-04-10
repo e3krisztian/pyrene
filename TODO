@@ -1,5 +1,4 @@
 TODO
- ☐ complete repo names - forget, show, use
  ☐ complete repo/file/directory names for copy command
  ☐ support some pip switches
    candidates: -r requirements.txt, --pre, --no-use-wheel
@@ -23,3 +22,8 @@ TODO
 FIXME
  ☐ robustness: 'use repo', where repo does not have attributes set causes exception
  ☐ file created in place of directory when directory does not exists for file repos
+
+
+＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
+Archive:
+ ✔ complete repo names - forget, show, use @done (14-04-10 14:37)
