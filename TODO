@@ -1,7 +1,7 @@
 TODO
  ☐ support some pip switches
    candidates: -r requirements.txt, --pre, --no-use-wheel
- ☐ setup_as_pypi command
+ ☐ setup_for_pypi command
     replaces repo type pypi, PyPIRepo
  ☐ setup_as_piplocal command
     replaces repo type piplocal, PipLocalRepo

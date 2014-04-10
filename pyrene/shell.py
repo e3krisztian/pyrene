@@ -258,3 +258,5 @@ class PyreneCmd(BaseCmd):
             repomanager.KEY_UPLOAD_URL,
             'https://pypi.python.org/'
         )
+
+    complete_setup_for_pypi_python_org = complete_repo_name
