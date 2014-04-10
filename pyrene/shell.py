@@ -206,3 +206,35 @@ class PyreneCmd(BaseCmd):
     complete_forget = complete_repo_name
     complete_show = complete_repo_name
     complete_use = complete_repo_name
+
+    def _is_new_word_after_space(self, line, begidx):
+        return line[begidx - 1:begidx].isspace()
+
+    def complete_filenames(self, text, line, begidx, endidx):
+        dir_prefix = '.'
+
+        if not self._is_new_word_after_space(line, begidx):
+            words = line[:begidx].split()
+            if len(words) > 1:
+                dir_prefix = os.path.dirname(words[-1]) or '.'
+
+        dir_prefix = os.path.abspath(dir_prefix)
+
+        return sorted(
+            (f + '/') if os.path.isdir(os.path.join(dir_prefix, f)) else f
+            for f in os.listdir(dir_prefix)
+            if f.startswith(text)
+        )
+
+    def complete_copy(self, text, line, begidx, endidx):
+        repos = []
+
+        if self._is_new_word_after_space(line, begidx):
+            repos = self.complete_repo_name(
+                text, line, begidx, endidx, suffix=':'
+            )
+
+        completions = list(repos) + list(
+            self.complete_filenames(text, line, begidx, endidx)
+        )
+        return completions
