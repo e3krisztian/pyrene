@@ -4,11 +4,10 @@ from __future__ import unicode_literals
 
 import os
 from ConfigParser import RawConfigParser
-from .repos import FileRepo, PipLocalRepo, HttpRepo, PyPIRepo
+from .repos import FileRepo, PipLocalRepo, HttpRepo
 
 REPOTYPE_FILE = 'file'
 REPOTYPE_HTTP = 'http'
-REPOTYPE_PYPI = 'pypi'
 REPOTYPE_PIPLOCAL = 'piplocal'
 
 
@@ -35,7 +34,6 @@ TYPE_TO_CLASS = {
     REPOTYPE_FILE: FileRepo,
     REPOTYPE_PIPLOCAL: PipLocalRepo,
     REPOTYPE_HTTP: HttpRepo,
-    REPOTYPE_PYPI: PyPIRepo
 }
 
 
@@ -45,7 +43,6 @@ class RepoManager(object):
         REPOTYPE_FILE,
         REPOTYPE_PIPLOCAL,
         REPOTYPE_HTTP,
-        REPOTYPE_PYPI,
     }
 
     REPO_ATTRIBUTES = {

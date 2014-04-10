@@ -386,3 +386,7 @@ class Test_PyreneCmd(unittest.TestCase):
         completion = self.cmd.complete_copy('', 'copy repo:', 10, 10)
 
         self.assertEqual([], completion)
+
+    def test_setup_for_pypi_python_org(self):
+        self.cmd.onecmd('setup_for_pypi_python_org repo')
+        self.repo_manager.set.assert_has_calls([mock.call.set('repo', mock.ANY, mock.ANY)])

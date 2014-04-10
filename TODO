@@ -1,8 +1,6 @@
 TODO
  ☐ support some pip switches
    candidates: -r requirements.txt, --pre, --no-use-wheel
- ☐ setup_as_pypi command
-    replaces repo type pypi, PyPIRepo
  ☐ setup_as_piplocal command
     replaces repo type piplocal, PipLocalRepo
  ☐ rename use command to make_pip_use
@@ -26,5 +24,7 @@ FIXME
 
 ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
 Archive:
+ ✔ setup_for_pypi command @done (14-04-10 22:00)
+  replaces repo type pypi, PyPIRepo
  ✔ complete repo/file/directory names for copy command @done (14-04-10 18:55)
  ✔ complete repo names - forget, show, use @done (14-04-10 14:37)

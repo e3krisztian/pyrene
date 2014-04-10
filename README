@@ -58,6 +58,12 @@ set repo key=value
 ```
 
 
+setup_for_pypi_python_org
+-------------------------
+
+Sets both the download and the upload urls to https://pypi.python.org.
+
+
 forget
 ------
 

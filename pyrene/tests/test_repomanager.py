@@ -43,7 +43,7 @@ class Test_RepoManager(unittest.TestCase):
 
     def test_get_repo_returns_repo(self):
         self.repo_manager.define('repo')
-        self.repo_manager.set('repo', 'type', 'pypi')
+        self.repo_manager.set('repo', 'type', 'http')
         repo = self.repo_manager.get_repo('repo')
         self.assertIsInstance(repo, Repo)
 

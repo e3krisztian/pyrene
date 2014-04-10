@@ -94,14 +94,3 @@ class HttpRepo(Repo):
                 password=self.password,
                 comment='Uploaded with Pyrene',
             )
-
-
-class PyPIRepo(HttpRepo):
-
-    @property
-    def download_url(self):
-        return 'https://pypi.python.org/simple'
-
-    @property
-    def upload_url(self):
-        return 'https://pypi.python.org/'
