@@ -61,13 +61,30 @@ set repo key=value
 setup_for_pypi_python_org
 -------------------------
 
-Sets both the download and the upload urls to https://pypi.python.org.
+Configures repo to point to the default package index https://pypi.python.org.
+
+```
+Pyrene: setup_for_pip_local pypi
+Pyrene: show pypi
+  upload_url: https://pypi.python.org/
+  type: http
+  download_url: https://pypi.python.org/simple/
+```
 
 
 setup_for_pip_local
 -------------------
 
-Sets directory to `~/.pip/local` and makes that directory if needed.
+Configures repo to be directory based and sets directory to `~/.pip/local`.
+Also makes that directory if needed.
+
+```
+Pyrene: setup_for_pip_local local
+Pyrene: show local
+  directory: /home/user/.pip/local
+  type: file
+
+```
 
 
 forget

@@ -243,6 +243,10 @@ class PyreneCmd(BaseCmd):
         return repos + filenames
 
     def do_setup_for_pypi_python_org(self, repo):
+        '''
+        Configure repo to point to the default package index
+        https://pypi.python.org.
+        '''
         self.repo_manager.set(
             repo,
             repomanager.KEY_TYPE,
@@ -262,6 +266,10 @@ class PyreneCmd(BaseCmd):
     complete_setup_for_pypi_python_org = complete_repo_name
 
     def do_setup_for_pip_local(self, repo):
+        '''
+        Configure repo to be directory based with directory `~/.pip/local`.
+        Also makes that directory if needed.
+        '''
         piplocal = os.path.expanduser('~/.pip/local')
         if not os.path.exists(piplocal):
             os.makedirs(piplocal)
