@@ -11,6 +11,7 @@ TODO
      serve_port
    like this:
    set repo serve_username=testuser
+   for http repos this command just prints the download url
  ☐ support copying all package versions
    it is hard to do with dependencies, maybe per-package?
 
@@ -19,6 +20,9 @@ FIXME
  ☐ file created in place of directory when directory does not exists for file repos
  ☐ robustness: check user supplied repo names and give human feedback instead of exception
  ☐ tests should not write to stdout/stderr directly from subprocesses?!
+ ☐ remove order restriction from copy
+    after we have a repo any package spec containing a / is treated as a local file
+    all others are handled with pip
 
 ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
 Archive:
