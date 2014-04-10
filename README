@@ -20,7 +20,7 @@ use
 Creates/overwrites a `pip.conf` config file, for use by the outer environment: installing packages with `pip` can be greatly influenced by the `~/.pip/pip.conf` configuration file: it defines which repo is used to download from (`index-url` or `find-links`) and how (`no-use-wheels`, etc.)
 
 ```
-use repo
+Pyrene: use repo
 ```
 
 
@@ -30,7 +30,7 @@ copy
 Copy packages like files with `cp`.
 
 ```
-copy [LOCAL-FILE [...]] [REPO:PACKAGE [...]] DESTINATION
+Pyrene: copy [LOCAL-FILE [...]] [REPO:PACKAGE [...]] DESTINATION
 ```
 
 It is important, that `LOCAL-FILE`s to be uploaded should come before any `REPO` specification!
@@ -44,7 +44,9 @@ define
 Introduces a new repository.
 
 ```
-define repo download-url [upload-url username password]
+Pyrene: define repo
+Pyrene: list
+  repo
 ```
 
 
@@ -54,7 +56,9 @@ set
 Sets a repository parameter.
 
 ```
-set repo key=value
+Pyrene: set repo key=value
+Pyrene: show repo
+  key: value
 ```
 
 
@@ -83,7 +87,6 @@ Pyrene: setup_for_pip_local local
 Pyrene: show local
   directory: /home/user/.pip/local
   type: file
-
 ```
 
 
@@ -93,7 +96,8 @@ forget
 Makes a known repository unknown.
 
 ```
-forget repo
+Pyrene: forget repo
+Pyrene: list
 ```
 
 
@@ -109,7 +113,7 @@ show
 Shows repository attributes
 
 ```
-show repo
+Pyrene: show repo
 ```
 
 
