@@ -322,3 +322,67 @@ class Test_PyreneCmd(unittest.TestCase):
         self.repo_manager.repo_names = ('c-repo', 'repo-b', 'repo-a')
         completion = self.cmd.complete_repo_name('re', 'cmd re', 4, 6)
         self.assertEqual(['repo-a', 'repo-b'], completion)
+
+    def test_complete_copy_completes_repos(self):
+        self.repo_manager.repo_names = ('repo', 'repo2')
+        completion = self.cmd.complete_copy('', 'copy ', 5, 5)
+        self.assertTrue({'repo:', 'repo2:'}.issubset(set(completion)))
+
+    @within_temp_dir
+    def test_complete_filenames(self):
+        os.makedirs('a')
+        os.makedirs('c')
+        write_file('ef', '')
+
+        completion = self.cmd.complete_filenames('', 'cmd ', 4, 4)
+
+        self.assertEqual(['a/', 'c/', 'ef'], completion)
+
+    @within_temp_dir
+    def test_complete_filenames_with_prefix(self):
+        os.makedirs('aa')
+
+        completion = self.cmd.complete_filenames('a', 'cmd a', 4, 5)
+
+        self.assertEqual(['aa/'], completion)
+
+    @within_temp_dir
+    def test_complete_filenames_with_nonexistent_prefix(self):
+        completion = self.cmd.complete_filenames('a', 'cmd a/b/', 4, 8)
+
+        self.assertEqual([], completion)
+
+    @within_temp_dir
+    def test_complete_filenames_with_subpaths(self):
+        write_file('a/b/c', '')
+
+        completion = self.cmd.complete_filenames('', 'cmd a/b/', 6, 6)
+
+        self.assertEqual(['b/'], completion)
+
+    @within_temp_dir
+    def test_complete_copy_completes_directories(self):
+        os.makedirs('dir3/dir2/dir1')
+        self.repo_manager.repo_names = ('repo', 'repo2')
+
+        completion = self.cmd.complete_copy('', 'copy ', 4, 4)
+
+        self.assertTrue({'dir3/'}.issubset(set(completion)))
+
+    @within_temp_dir
+    def test_complete_copy_does_not_complete_repos_after_slash(self):
+        os.makedirs('dir')
+        self.repo_manager.repo_names = ('repo', 'repo2')
+
+        completion = self.cmd.complete_copy('', 'copy ./', 7, 7)
+
+        self.assertEqual(['dir/'], completion)
+
+    @within_temp_dir
+    def test_complete_copy_does_not_complete_filenames_after_a_repo(self):
+        os.makedirs('dir')
+        self.repo_manager.repo_names = ('repo', 'repo2')
+
+        completion = self.cmd.complete_copy('', 'copy repo:', 10, 10)
+
+        self.assertEqual([], completion)
