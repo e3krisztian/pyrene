@@ -7,6 +7,7 @@ from cmd import Cmd
 import traceback
 from .util import write_file
 from .repomanager import RepoManager, FileRepo
+from pyrene import repomanager
 
 
 class BaseCmd(Cmd, object):
@@ -240,3 +241,20 @@ class PyreneCmd(BaseCmd):
 
         filenames = self.complete_filenames(text, line, begidx, endidx)
         return repos + filenames
+
+    def do_setup_for_pypi_python_org(self, repo):
+        self.repo_manager.set(
+            repo,
+            repomanager.KEY_TYPE,
+            repomanager.REPOTYPE_HTTP
+        )
+        self.repo_manager.set(
+            repo,
+            repomanager.KEY_DOWNLOAD_URL,
+            'https://pypi.python.org/simple/'
+        )
+        self.repo_manager.set(
+            repo,
+            repomanager.KEY_UPLOAD_URL,
+            'https://pypi.python.org/'
+        )
