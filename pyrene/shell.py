@@ -202,3 +202,7 @@ class PyreneCmd(BaseCmd):
             for name in self.repo_manager.repo_names
             if name.startswith(text)
         )
+
+    complete_forget = complete_repo_name
+    complete_show = complete_repo_name
+    complete_use = complete_repo_name
