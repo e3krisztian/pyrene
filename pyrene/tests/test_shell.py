@@ -377,3 +377,12 @@ class Test_PyreneCmd(unittest.TestCase):
         completion = self.cmd.complete_copy('', 'copy ./', 7, 7)
 
         self.assertEqual(['dir/'], completion)
+
+    @within_temp_dir
+    def test_complete_copy_does_not_complete_filenames_after_a_repo(self):
+        os.makedirs('dir')
+        self.repo_manager.repo_names = ('repo', 'repo2')
+
+        completion = self.cmd.complete_copy('', 'copy repo:', 10, 10)
+
+        self.assertEqual([], completion)

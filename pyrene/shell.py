@@ -207,14 +207,12 @@ class PyreneCmd(BaseCmd):
     complete_show = complete_repo_name
     complete_use = complete_repo_name
 
-    def _is_new_word_after_space(self, line, begidx):
-        return line[begidx - 1:begidx].isspace()
-
     def complete_filenames(self, text, line, begidx, endidx):
         dir_prefix = '.'
 
-        if not self._is_new_word_after_space(line, begidx):
-            words = line[:begidx].split()
+        line_before = line[:begidx]
+        if not line_before.endswith(' '):
+            words = line_before.split()
             if len(words) > 1:
                 dir_prefix = os.path.dirname(words[-1]) or '.'
 
@@ -227,14 +225,18 @@ class PyreneCmd(BaseCmd):
         )
 
     def complete_copy(self, text, line, begidx, endidx):
+        line_before = line[:begidx]
+
+        if line_before.endswith(':'):
+            # no completion after "repo:"
+            return []
+
         repos = []
 
-        if self._is_new_word_after_space(line, begidx):
+        if line_before.endswith(' '):
             repos = self.complete_repo_name(
                 text, line, begidx, endidx, suffix=':'
             )
 
-        completions = list(repos) + list(
-            self.complete_filenames(text, line, begidx, endidx)
-        )
-        return completions
+        filenames = self.complete_filenames(text, line, begidx, endidx)
+        return repos + filenames
