@@ -21,6 +21,7 @@ TODO
 FIXME
  ☐ robustness: 'use repo', where repo does not have attributes set causes exception
  ☐ file created in place of directory when directory does not exists for file repos
+ ☐ robustness: check user supplied repo names and give human feedback instead of exception
 
 
 ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
