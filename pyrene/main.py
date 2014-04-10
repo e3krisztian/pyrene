@@ -2,12 +2,6 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 
-# TODO: complete repo names
-# TODO: support some pip switches (-r requirements.txt, --pre, --no-use-wheel)
-# TODO: support copying all package versions
-# FIXME: 'use repo', where repo does not have attributes set causes exception
-# FIXME: file created in place of directory when directory does not exists for file repos
-
 import tempfile
 import os
 import sys

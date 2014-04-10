@@ -1,0 +1,25 @@
+TODO
+ ☐ complete repo names - forget, show, use
+ ☐ complete repo/file/directory names for copy command
+ ☐ support some pip switches
+   candidates: -r requirements.txt, --pre, --no-use-wheel
+ ☐ setup_as_pypi command
+    replaces repo type pypi, PyPIRepo
+ ☐ setup_as_piplocal command
+    replaces repo type piplocal, PipLocalRepo
+ ☐ rename use command to make_pip_use
+   or write_pip_conf_for?
+ ☐ command serve to serve a repo with pypi-server(?)
+   using per repo parameters:
+     serve_username
+     serve_password
+     serve_interface
+     serve_port
+   like this:
+   set repo serve_username=testuser
+ ☐ support copying all package versions
+   it is hard to do with dependencies, maybe per-package?
+
+FIXME
+ ☐ robustness: 'use repo', where repo does not have attributes set causes exception
+ ☐ file created in place of directory when directory does not exists for file repos
