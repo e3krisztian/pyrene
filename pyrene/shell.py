@@ -260,3 +260,20 @@ class PyreneCmd(BaseCmd):
         )
 
     complete_setup_for_pypi_python_org = complete_repo_name
+
+    def do_setup_for_pip_local(self, repo):
+        piplocal = os.path.expanduser('~/.pip/local')
+        if not os.path.exists(piplocal):
+            os.makedirs(piplocal)
+        self.repo_manager.set(
+            repo,
+            repomanager.KEY_TYPE,
+            repomanager.REPOTYPE_FILE
+        )
+        self.repo_manager.set(
+            repo,
+            repomanager.KEY_DIRECTORY,
+            piplocal
+        )
+
+    complete_setup_for_pip_local = complete_repo_name

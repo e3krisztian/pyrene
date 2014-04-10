@@ -64,6 +64,12 @@ setup_for_pypi_python_org
 Sets both the download and the upload urls to https://pypi.python.org.
 
 
+setup_for_pip_local
+-------------------
+
+Sets directory to `~/.pip/local` and makes that directory if needed.
+
+
 forget
 ------
 

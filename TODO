@@ -1,7 +1,7 @@
 TODO
  ☐ support some pip switches
    candidates: -r requirements.txt, --pre, --no-use-wheel
- ☐ setup_as_piplocal command
+ ☐ setup_for_pip_local command
     replaces repo type piplocal, PipLocalRepo
  ☐ rename use command to make_pip_use
    or write_pip_conf_for?
