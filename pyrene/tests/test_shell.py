@@ -307,3 +307,13 @@ class Test_PyreneCmd(unittest.TestCase):
     def test_complete_set_on_value(self):
         completion = self.cmd.complete_set('key=', 'set re key=value', 7, 11)
         self.assertEqual(set(), set(completion))
+
+    def test_complete_repo_name(self):
+        self.repo_manager.repo_names = ('repo', 'repo2')
+        completion = self.cmd.complete_repo_name('', 'cmd ', 4, 4)
+        self.assertEqual({'repo', 'repo2'}, set(completion))
+
+    def test_complete_repo_name_with_suffix(self):
+        self.repo_manager.repo_names = ('repo', 'repo2')
+        completion = self.cmd.complete_repo_name('', 'cmd ', 4, 4, suffix=':')
+        self.assertEqual({'repo:', 'repo2:'}, set(completion))
