@@ -3,7 +3,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import abc
-import os
 import shutil
 from upload import upload
 from .util import pip_install
@@ -56,13 +55,6 @@ class FileRepo(Repo):
         destination = self.directory
         for source in package_files:
             shutil.copy2(source, destination)
-
-
-class PipLocalRepo(FileRepo):
-
-    @property
-    def directory(self):
-        return os.path.expanduser('~/.pip/local')
 
 
 PIPCONF_HTTPREPO = '''\

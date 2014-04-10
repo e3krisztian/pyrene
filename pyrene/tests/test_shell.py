@@ -389,4 +389,10 @@ class Test_PyreneCmd(unittest.TestCase):
 
     def test_setup_for_pypi_python_org(self):
         self.cmd.onecmd('setup_for_pypi_python_org repo')
-        self.repo_manager.set.assert_has_calls([mock.call.set('repo', mock.ANY, mock.ANY)])
+        calls = [mock.call.set('repo', mock.ANY, mock.ANY)]
+        self.repo_manager.set.assert_has_calls(calls)
+
+    def test_setup_for_pip_local(self):
+        self.cmd.onecmd('setup_for_pip_local repo')
+        calls = [mock.call.set('repo', mock.ANY, mock.ANY)]
+        self.repo_manager.set.assert_has_calls(calls)

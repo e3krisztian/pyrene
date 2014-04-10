@@ -1,8 +1,6 @@
 TODO
  ☐ support some pip switches
    candidates: -r requirements.txt, --pre, --no-use-wheel
- ☐ setup_as_piplocal command
-    replaces repo type piplocal, PipLocalRepo
  ☐ rename use command to make_pip_use
    or write_pip_conf_for?
  ☐ command serve to serve a repo with pypi-server(?)
@@ -24,6 +22,8 @@ FIXME
 
 ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
 Archive:
+ ✔ setup_for_pip_local command @done (14-04-10 22:50)
+  replaces repo type piplocal, PipLocalRepo
  ✔ setup_for_pypi command @done (14-04-10 22:00)
   replaces repo type pypi, PyPIRepo
  ✔ complete repo/file/directory names for copy command @done (14-04-10 18:55)

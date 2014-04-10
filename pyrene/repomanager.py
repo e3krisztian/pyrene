@@ -4,11 +4,10 @@ from __future__ import unicode_literals
 
 import os
 from ConfigParser import RawConfigParser
-from .repos import FileRepo, PipLocalRepo, HttpRepo
+from .repos import FileRepo, HttpRepo
 
 REPOTYPE_FILE = 'file'
 REPOTYPE_HTTP = 'http'
-REPOTYPE_PIPLOCAL = 'piplocal'
 
 
 class UnknownRepoError(NameError):
@@ -32,7 +31,6 @@ KEY_UPLOAD_URL = 'upload_url'
 
 TYPE_TO_CLASS = {
     REPOTYPE_FILE: FileRepo,
-    REPOTYPE_PIPLOCAL: PipLocalRepo,
     REPOTYPE_HTTP: HttpRepo,
 }
 
@@ -41,7 +39,6 @@ class RepoManager(object):
 
     REPO_TYPES = {
         REPOTYPE_FILE,
-        REPOTYPE_PIPLOCAL,
         REPOTYPE_HTTP,
     }
 
