@@ -1,4 +1,5 @@
 TODO
+ ☐ rename FileRepo to DirectoryRepo and type file to type directory
  ☐ support some pip switches
    candidates: -r requirements.txt, --pre, --no-use-wheel
  ☐ rename use command to make_pip_use
@@ -23,6 +24,7 @@ FIXME
  ☐ remove order restriction from copy
     after we have a repo any package spec containing a / is treated as a local file
     all others are handled with pip
+
 
 ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
 Archive:
