@@ -317,3 +317,8 @@ class Test_PyreneCmd(unittest.TestCase):
         self.repo_manager.repo_names = ('repo', 'repo2')
         completion = self.cmd.complete_repo_name('', 'cmd ', 4, 4, suffix=':')
         self.assertEqual({'repo:', 'repo2:'}, set(completion))
+
+    def test_complete_repo_name_returns_sorted_output(self):
+        self.repo_manager.repo_names = ('c-repo', 'repo-b', 'repo-a')
+        completion = self.cmd.complete_repo_name('re', 'cmd re', 4, 6)
+        self.assertEqual(['repo-a', 'repo-b'], completion)

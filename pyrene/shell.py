@@ -197,8 +197,8 @@ class PyreneCmd(BaseCmd):
         )
 
     def complete_repo_name(self, text, line, begidx, endidx, suffix=''):
-        return [
+        return sorted(
             '{}{}'.format(name, suffix)
             for name in self.repo_manager.repo_names
             if name.startswith(text)
-        ]
+        )
