@@ -140,8 +140,9 @@ class PyreneCmd(BaseCmd):
         set repo key=value
 
         # intended use:
-        # file repos:
-        set developer-repo type=file
+
+        # directory repos:
+        set developer-repo type=directory
         set developer-repo directory=package-directory
 
         # http repos:
@@ -150,10 +151,6 @@ class PyreneCmd(BaseCmd):
         set company-private-repo upload-url=http://...
         set company-private-repo username=user
         set company-private-repo password=pass
-
-        # specials - predefined types:
-        set python type=python
-        set developer-repo type=piplocal
         '''
         repo, key_value = line.split()
         key, _, value = key_value.partition('=')

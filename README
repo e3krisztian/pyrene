@@ -86,7 +86,7 @@ Also makes that directory if needed.
 Pyrene: setup_for_pip_local local
 Pyrene: show local
   directory: /home/user/.pip/local
-  type: file
+  type: directory
 ```
 
 
