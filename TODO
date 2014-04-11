@@ -12,6 +12,7 @@ TODO
    for http repos this command just prints the download url
  ☐ support copying all package versions
    it is hard to do with dependencies, maybe per-package?
+ ☐ decide on what to do when the .pyrene file changes - possibly due to another Pyrene instance
 
 FIXME
  ☐ robustness: 'use repo', where repo does not have attributes set causes exception
