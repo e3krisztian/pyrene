@@ -45,7 +45,7 @@ def pypi_server(
     username,
     password,
     interface='0.0.0.0',  # all interfaces
-    port=8080,
+    port='8080',
     volatile=False,       # allow package overwrites?
 ):
     '''
@@ -65,7 +65,11 @@ def pypi_server(
             ['--overwrite'] if volatile else []
         ) + [directory]
 
-        subprocess.call(cmd)
+        try:
+            retval = subprocess.call(cmd)
+            print(retval)
+        except KeyboardInterrupt:
+            pass
 
 
 def write_file(path, content):

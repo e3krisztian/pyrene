@@ -5,12 +5,13 @@ from __future__ import unicode_literals
 import abc
 import shutil
 from upload import upload
-from .util import pip_install
+from .util import pip_install, pypi_server
 
 
 KEY_TYPE = 'type'
 
 KEY_DIRECTORY = 'directory'
+KEY_VOLATILE = 'volatile'
 KEY_SERVE_INTERFACE = 'interface'
 KEY_SERVE_PORT = 'port'
 KEY_SERVE_USERNAME = 'username'
@@ -66,6 +67,7 @@ class DirectoryRepo(Repo):
     ATTRIBUTES = {
         KEY_TYPE,
         KEY_DIRECTORY,
+        KEY_VOLATILE,
         KEY_SERVE_INTERFACE,
         KEY_SERVE_PORT,
         KEY_SERVE_USERNAME,
@@ -89,8 +91,14 @@ class DirectoryRepo(Repo):
             shutil.copy2(source, destination)
 
     def serve(self):
-        # TODO
-        pass
+        directory = self.directory
+        username = getattr(self, KEY_SERVE_USERNAME, 'anyone')
+        password = getattr(self, KEY_SERVE_PASSWORD, 'secret')
+        interface = getattr(self, KEY_SERVE_INTERFACE, '0.0.0.0')
+        port = getattr(self, KEY_SERVE_PORT, '8080')
+        true = {'y', 'yes', 't', 'true'}
+        volatile = getattr(self, KEY_VOLATILE, 'no').lower() in true
+        pypi_server(directory, username, password, interface, port, volatile)
 
 
 PIPCONF_HTTPREPO = '''\
