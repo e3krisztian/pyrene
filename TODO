@@ -1,8 +1,12 @@
 TODO
  ☐ support some pip switches
    candidates: -r requirements.txt, --pre, --no-use-wheel
- ☐ rename use command to make_pip_use
-   or write_pip_conf_for?
+ ☐ rename use command write_pip_conf_for
+   ✔ rename test_use @done (14-04-11 11:34)
+   ✔ rename do_use @done (14-04-11 11:34)
+   ✔ rename complete_use @done (14-04-11 11:34)
+   ✔ fix README @done (14-04-11 11:34)
+   ✔ mark task completed @done (14-04-11 11:35)
  ☐ command serve to serve a repo with pypi-server(?)
    using per repo parameters:
      serve_username

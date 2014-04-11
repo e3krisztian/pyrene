@@ -82,12 +82,12 @@ class Test_PyreneCmd(unittest.TestCase):
         if repo_name == 'somerepo':
             return self.somerepo
 
-    def test_use(self):
+    def test_write_pip_conf_for(self):
         self.somerepo.get_as_pip_conf.configure_mock(
             return_value=mock.sentinel.pip_conf
         )
 
-        self.cmd.onecmd('use somerepo')
+        self.cmd.onecmd('write_pip_conf_for somerepo')
 
         self.somerepo.get_as_pip_conf.assert_called_once_with()
         self.cmd.write_file.assert_called_once_with(

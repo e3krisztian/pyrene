@@ -14,13 +14,15 @@ I provide a shell-like environment as primary interface - with completion for co
 
 I support the following commands:
 
-use
----
+write_pip_conf_for
+------------------
 
-Creates/overwrites a `pip.conf` config file, for use by the outer environment: installing packages with `pip` can be greatly influenced by the `~/.pip/pip.conf` configuration file: it defines which repo is used to download from (`index-url` or `find-links`) and how (`no-use-wheels`, etc.)
+The working of `pip` can be greatly influenced by the `~/.pip/pip.conf` configuration file: it defines which repo is used to download from (`index-url` or `find-links`) and how (`no-use-wheels`, etc.)
+
+I'll create a minimal `pip.conf` config file (or overwrite silently the existing one) so that pip will use the named Pyrene defined repo outside of `Pyrene` for downloads: 
 
 ```
-Pyrene: use repo
+Pyrene: write_pip_conf_for repo
 ```
 
 
