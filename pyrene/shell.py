@@ -63,11 +63,11 @@ class PyreneCmd(BaseCmd):
     def write_file(self, filename, content):
         write_file(filename, content)
 
-    def do_use(self, repo):
+    def do_write_pip_conf_for(self, repo):
         '''
-        Set up pip to use REPO (write ~/.pip/pip.conf)
+        Set up pip to use REPO by default (write ~/.pip/pip.conf)
 
-        use REPO
+        write_pip_conf_for REPO
         '''
         repo = self.repo_manager.get_repo(repo)
         pip_conf = os.path.expanduser('~/.pip/pip.conf')
@@ -203,7 +203,7 @@ class PyreneCmd(BaseCmd):
 
     complete_forget = complete_repo_name
     complete_show = complete_repo_name
-    complete_use = complete_repo_name
+    complete_write_pip_conf_for = complete_repo_name
 
     def complete_filenames(self, text, line, begidx, endidx):
         dir_prefix = '.'
