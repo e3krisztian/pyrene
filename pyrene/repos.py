@@ -30,6 +30,10 @@ class Repo(object):
     def upload_packages(self, package_files):
         pass
 
+    @abc.abstractmethod
+    def serve(self):
+        pass
+
 
 PIPCONF_DIRECTORYREPO = '''\
 [global]
@@ -55,6 +59,10 @@ class DirectoryRepo(Repo):
         destination = self.directory
         for source in package_files:
             shutil.copy2(source, destination)
+
+    def serve(self):
+        # TODO
+        pass
 
 
 PIPCONF_HTTPREPO = '''\
@@ -86,3 +94,7 @@ class HttpRepo(Repo):
                 password=self.password,
                 comment='Uploaded with Pyrene',
             )
+
+    def serve(self):
+        # TODO
+        pass

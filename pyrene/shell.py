@@ -282,3 +282,10 @@ class PyreneCmd(BaseCmd):
         )
 
     complete_setup_for_pip_local = complete_repo_name
+
+    def do_serve(self, repo_name):
+        # TODO
+        repo = self.repo_manager.get_repo(repo_name)
+        repo.serve()
+
+    complete_serve = complete_repo_name

@@ -396,3 +396,7 @@ class Test_PyreneCmd(unittest.TestCase):
         self.cmd.onecmd('setup_for_pip_local repo')
         calls = [mock.call.set('repo', mock.ANY, mock.ANY)]
         self.repo_manager.set.assert_has_calls(calls)
+
+    def test_serve(self):
+        self.cmd.onecmd('serve repo1')
+        self.repo1.serve.assert_called_once_with()
