@@ -7,6 +7,7 @@ from cmd import Cmd
 import traceback
 from .util import write_file
 from .repomanager import RepoManager, DirectoryRepo
+from .repos import KEY_TYPE, KEY_DIRECTORY, KEY_DOWNLOAD_URL, KEY_UPLOAD_URL
 from pyrene import repomanager
 
 
@@ -246,17 +247,17 @@ class PyreneCmd(BaseCmd):
         '''
         self.repo_manager.set(
             repo,
-            repomanager.KEY_TYPE,
+            KEY_TYPE,
             repomanager.REPOTYPE_HTTP
         )
         self.repo_manager.set(
             repo,
-            repomanager.KEY_DOWNLOAD_URL,
+            KEY_DOWNLOAD_URL,
             'https://pypi.python.org/simple/'
         )
         self.repo_manager.set(
             repo,
-            repomanager.KEY_UPLOAD_URL,
+            KEY_UPLOAD_URL,
             'https://pypi.python.org/'
         )
 
@@ -277,7 +278,7 @@ class PyreneCmd(BaseCmd):
         )
         self.repo_manager.set(
             repo,
-            repomanager.KEY_DIRECTORY,
+            KEY_DIRECTORY,
             piplocal
         )
 

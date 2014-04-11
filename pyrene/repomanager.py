@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 
 import os
 from ConfigParser import RawConfigParser
-from .repos import DirectoryRepo, HttpRepo
+from .repos import DirectoryRepo, HttpRepo, KEY_TYPE
 
 REPOTYPE_DIRECTORY = 'directory'
 REPOTYPE_HTTP = 'http'
@@ -22,13 +22,6 @@ class UnknownRepoType(ValueError):
     '''type was given, but it is unknown'''
 
 
-KEY_TYPE = 'type'
-KEY_DIRECTORY = 'directory'
-KEY_USERNAME = 'username'
-KEY_PASSWORD = 'password'
-KEY_DOWNLOAD_URL = 'download_url'
-KEY_UPLOAD_URL = 'upload_url'
-
 TYPE_TO_CLASS = {
     REPOTYPE_DIRECTORY: DirectoryRepo,
     REPOTYPE_HTTP: HttpRepo,
@@ -42,14 +35,7 @@ class RepoManager(object):
         REPOTYPE_HTTP,
     }
 
-    REPO_ATTRIBUTES = {
-        KEY_TYPE,
-        KEY_DIRECTORY,
-        KEY_DOWNLOAD_URL,
-        KEY_UPLOAD_URL,
-        KEY_USERNAME,
-        KEY_PASSWORD,
-    }
+    REPO_ATTRIBUTES = DirectoryRepo.ATTRIBUTES.union(HttpRepo.ATTRIBUTES)
 
     REPO_SECTION_PREFIX = 'repo:'
 

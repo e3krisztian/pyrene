@@ -8,15 +8,34 @@ from upload import upload
 from .util import pip_install
 
 
+KEY_TYPE = 'type'
+
+KEY_DIRECTORY = 'directory'
+KEY_SERVE_INTERFACE = 'interface'
+KEY_SERVE_PORT = 'port'
+KEY_SERVE_USERNAME = 'username'
+KEY_SERVE_PASSWORD = 'password'
+
+KEY_USERNAME = 'username'
+KEY_PASSWORD = 'password'
+KEY_DOWNLOAD_URL = 'download_url'
+KEY_UPLOAD_URL = 'upload_url'
+
+
 class Repo(object):
     __metaclass__ = abc.ABCMeta
+
+    ATTRIBUTES = {KEY_TYPE}
 
     def __init__(self, attributes):
         super(Repo, self).__init__()
         self._attributes = attributes
 
     def __getattr__(self, key):
-        return self._attributes[key]
+        try:
+            return self._attributes[key]
+        except KeyError:
+            raise AttributeError(key)
 
     @abc.abstractmethod
     def get_as_pip_conf(self):
@@ -43,6 +62,15 @@ find-links = {directory}
 
 
 class DirectoryRepo(Repo):
+
+    ATTRIBUTES = {
+        KEY_TYPE,
+        KEY_DIRECTORY,
+        KEY_SERVE_INTERFACE,
+        KEY_SERVE_PORT,
+        KEY_SERVE_USERNAME,
+        KEY_SERVE_PASSWORD,
+    }
 
     def get_as_pip_conf(self):
         return PIPCONF_DIRECTORYREPO.format(directory=self.directory)
@@ -74,6 +102,14 @@ extra-index-url =
 
 class HttpRepo(Repo):
 
+    ATTRIBUTES = {
+        KEY_TYPE,
+        KEY_UPLOAD_URL,
+        KEY_DOWNLOAD_URL,
+        KEY_USERNAME,
+        KEY_PASSWORD,
+    }
+
     def get_as_pip_conf(self):
         return PIPCONF_HTTPREPO.format(download_url=self.download_url)
 
@@ -96,5 +132,7 @@ class HttpRepo(Repo):
             )
 
     def serve(self):
-        # TODO
-        pass
+        print(
+            'Externally served at url {}'
+            .format(getattr(self, KEY_DOWNLOAD_URL, 'UNSPECIFIED???'))
+        )
