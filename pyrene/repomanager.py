@@ -4,9 +4,9 @@ from __future__ import unicode_literals
 
 import os
 from ConfigParser import RawConfigParser
-from .repos import FileRepo, HttpRepo
+from .repos import DirectoryRepo, HttpRepo
 
-REPOTYPE_FILE = 'file'
+REPOTYPE_DIRECTORY = 'directory'
 REPOTYPE_HTTP = 'http'
 
 
@@ -30,7 +30,7 @@ KEY_DOWNLOAD_URL = 'download_url'
 KEY_UPLOAD_URL = 'upload_url'
 
 TYPE_TO_CLASS = {
-    REPOTYPE_FILE: FileRepo,
+    REPOTYPE_DIRECTORY: DirectoryRepo,
     REPOTYPE_HTTP: HttpRepo,
 }
 
@@ -38,7 +38,7 @@ TYPE_TO_CLASS = {
 class RepoManager(object):
 
     REPO_TYPES = {
-        REPOTYPE_FILE,
+        REPOTYPE_DIRECTORY,
         REPOTYPE_HTTP,
     }
 

@@ -1,5 +1,4 @@
 TODO
- ☐ rename FileRepo to DirectoryRepo and type file to type directory
  ☐ support some pip switches
    candidates: -r requirements.txt, --pre, --no-use-wheel
  ☐ rename use command to make_pip_use
@@ -28,6 +27,7 @@ FIXME
 
 ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
 Archive:
+ ✔ rename FileRepo to DirectoryRepo and type file to type directory @done (14-04-11 11:05)
  ✔ setup_for_pip_local command @done (14-04-10 22:50)
   replaces repo type piplocal, PipLocalRepo
  ✔ setup_for_pypi command @done (14-04-10 22:00)

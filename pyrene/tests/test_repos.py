@@ -6,10 +6,10 @@ import unittest
 import pyrene.repos as m
 
 
-class Test_FileRepo(unittest.TestCase):
+class Test_DirectoryRepo(unittest.TestCase):
 
     def test_attributes(self):
-        repo = m.FileRepo({'directory': 'dir@', 'type': 'file'})
+        repo = m.DirectoryRepo({'directory': 'dir@', 'type': 'file'})
         self.assertEqual('file', repo.type)
         self.assertEqual('dir@', repo.directory)
 
@@ -17,7 +17,7 @@ class Test_FileRepo(unittest.TestCase):
 class Test_HttpRepo(unittest.TestCase):
 
     def test_attributes(self):
-        repo = m.FileRepo(
+        repo = m.DirectoryRepo(
             {
                 'download_url': 'https://priv.repos.org/simple',
                 'type': 'http'
