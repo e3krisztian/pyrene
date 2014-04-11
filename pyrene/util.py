@@ -6,6 +6,8 @@ import os
 import sys
 import subprocess
 import contextlib
+from tempfile import NamedTemporaryFile
+from passlib.apache import HtpasswdFile
 
 
 @contextlib.contextmanager
@@ -29,6 +31,40 @@ def pip_install(*args):
     with set_env('PIP_CONFIG_FILE', os.devnull):
         cmd = [pip_cmd, 'install'] + list(args)
         print(' '.join(cmd))
+        subprocess.call(cmd)
+
+
+def make_htpasswd(filename, username, password):
+    ht = HtpasswdFile(path=filename, new=True)
+    ht.set_password(username, password)
+    ht.save()
+
+
+def pypi_server(
+    directory,
+    username,
+    password,
+    interface='0.0.0.0',  # all interfaces
+    port=8080,
+    volatile=False,       # allow package overwrites?
+):
+    '''
+    Run pypi-server.
+    '''
+    pypi_srv = os.path.join(os.path.dirname(sys.executable), 'pypi-server')
+    with NamedTemporaryFile() as password_file:
+        make_htpasswd(password_file.name, username, password)
+
+        cmd = [
+            pypi_srv,
+            '--interface', interface,
+            '--port', port,
+            '--passwords', password_file.name,
+            '--disable-fallback',
+        ] + (
+            ['--overwrite'] if volatile else []
+        ) + [directory]
+
         subprocess.call(cmd)
 
 

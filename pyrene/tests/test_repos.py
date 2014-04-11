@@ -9,8 +9,8 @@ import pyrene.repos as m
 class Test_DirectoryRepo(unittest.TestCase):
 
     def test_attributes(self):
-        repo = m.DirectoryRepo({'directory': 'dir@', 'type': 'file'})
-        self.assertEqual('file', repo.type)
+        repo = m.DirectoryRepo({'directory': 'dir@', 'type': 'directory'})
+        self.assertEqual('directory', repo.type)
         self.assertEqual('dir@', repo.directory)
 
 

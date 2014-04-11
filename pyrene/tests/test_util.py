@@ -9,6 +9,9 @@ import os
 import subprocess
 from temp_dir import within_temp_dir
 
+from tempfile import NamedTemporaryFile
+from passlib.apache import HtpasswdFile
+
 
 class Test_set_env(unittest.TestCase):
 
@@ -93,3 +96,14 @@ class Test_Directory(unittest.TestCase):
         d.clear()
 
         self.assertEqual([], d.files)
+
+
+class Test_make_htpasswd(unittest.TestCase):
+
+    def test(self):
+        with NamedTemporaryFile() as file:
+            m.make_htpasswd(file.name, 'testuser', 'testpass')
+
+            ht = HtpasswdFile(file.name)
+            self.assertEqual(['testuser'], ht.users())
+            self.assertTrue(ht.check_password('testuser', 'testpass'))
