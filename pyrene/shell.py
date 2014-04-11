@@ -6,7 +6,7 @@ import os
 from cmd import Cmd
 import traceback
 from .util import write_file
-from .repomanager import RepoManager, FileRepo
+from .repomanager import RepoManager, DirectoryRepo
 from pyrene import repomanager
 
 
@@ -79,7 +79,7 @@ class PyreneCmd(BaseCmd):
             return self.repo_manager.get_repo(repo_name)
 
         attributes = {'directory': word}
-        return FileRepo(attributes)
+        return DirectoryRepo(attributes)
 
     def do_copy(self, line):
         '''
@@ -276,7 +276,7 @@ class PyreneCmd(BaseCmd):
         self.repo_manager.set(
             repo,
             repomanager.KEY_TYPE,
-            repomanager.REPOTYPE_FILE
+            repomanager.REPOTYPE_DIRECTORY
         )
         self.repo_manager.set(
             repo,

@@ -288,12 +288,12 @@ class Test_PyreneCmd(unittest.TestCase):
 
     def test_complete_set_on_type_value_fi(self):
         completion = self.cmd.complete_set(
-            'fi',
-            'set re type=fi',
+            'di',
+            'set re type=di',
             12,
             14,
         )
-        self.assertEqual(['file'], completion)
+        self.assertEqual(['directory'], completion)
 
     def test_complete_set_on_empty_type_value(self):
         completion = self.cmd.complete_set(

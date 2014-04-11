@@ -55,7 +55,7 @@ class Test_RepoManager(unittest.TestCase):
 
     def make_file_repo(self, directory):
         self.repo_manager.define('repo')
-        self.repo_manager.set('repo', 'type', m.REPOTYPE_FILE)
+        self.repo_manager.set('repo', 'type', m.REPOTYPE_DIRECTORY)
         self.repo_manager.set('repo', 'directory', directory)
 
     def test_directory_is_available_on_file_repo(self):
