@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 
 import os
 from ConfigParser import RawConfigParser
-from .repos import FileRepo as DirectoryRepo, HttpRepo
+from .repos import DirectoryRepo, HttpRepo
 
 REPOTYPE_DIRECTORY = 'directory'
 REPOTYPE_HTTP = 'http'

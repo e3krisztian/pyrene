@@ -31,17 +31,17 @@ class Repo(object):
         pass
 
 
-PIPCONF_FILEREPO = '''\
+PIPCONF_DIRECTORYREPO = '''\
 [global]
 no-index = true
 find-links = {directory}
 '''
 
 
-class FileRepo(Repo):
+class DirectoryRepo(Repo):
 
     def get_as_pip_conf(self):
-        return PIPCONF_FILEREPO.format(directory=self.directory)
+        return PIPCONF_DIRECTORYREPO.format(directory=self.directory)
 
     def download_packages(self, package_spec, directory):
         pip_install(
