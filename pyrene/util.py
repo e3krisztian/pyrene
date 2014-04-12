@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import os
 import sys
 import subprocess
+import signal
 import contextlib
 from tempfile import NamedTemporaryFile
 from passlib.apache import HtpasswdFile
@@ -65,11 +66,13 @@ def pypi_server(
             ['--overwrite'] if volatile else []
         ) + [directory]
 
+        process = subprocess.Popen(cmd)
         try:
-            retval = subprocess.call(cmd)
-            print(retval)
+            process.wait()
         except KeyboardInterrupt:
-            pass
+            os.kill(process.pid, signal.SIGHUP)
+            process.wait()
+        print()
 
 
 def write_file(path, content):
