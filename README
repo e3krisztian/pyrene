@@ -4,32 +4,38 @@ Python Repository Network tool
 I am a tool to help your interactions with Python package repositories.
 I can copy packages between repos for you without modifying any config files.
 
-There are three types of repos I support, probably this covers all you might need:
+There are two types of repos I support, probably this covers with their variants all you might need:
 
-- https://pypi.python.org - the global python public package repo
-- ~/.pip/local - a directory with package files, for fast/offline development
-- project specific PyPI server - defined by you or your company, for deployment
+- http repos
+    - https://pypi.python.org - the global python public package repo
+    - project specific PyPI server - defined by you or your company, for deployment
+- directory repos
+    - a directory with package files, for fast/offline development
+    - `~/.pip/local` - one such directory
 
-I provide a shell-like environment as primary interface - with completion for commands and parameters, but can be used as a command-line tool as well.
+I provide a shell-like environment as primary interface - with completion for commands and parameters, but I can be used as a command-line tool as well.
+
+
+Installation
+============
+
+`master` branch is always the latest release, so it is safe to install with
+
+```shell
+mkvirtualenv pyrene
+pip install git+https://github.com/krisztianfekete/pyrene.git
+```
+
+
+Usage
+=====
 
 I support the following commands:
-
-write_pip_conf_for
-------------------
-
-The working of `pip` can be greatly influenced by the `~/.pip/pip.conf` configuration file: it defines which repo is used to download from (`index-url` or `find-links`) and how (`no-use-wheels`, etc.)
-
-I'll create a minimal `pip.conf` config file (or overwrite silently the existing one) so that pip will use the named Pyrene defined repo outside of `Pyrene` for downloads: 
-
-```
-Pyrene: write_pip_conf_for repo
-```
-
 
 copy
 ----
 
-Copy packages like files with `cp`.
+Copy packages with the same ease like local files with `cp` (or remote with `rsync`!).
 
 ```
 Pyrene: copy [LOCAL-FILE [...]] [REPO:PACKAGE [...]] DESTINATION
@@ -39,6 +45,19 @@ It is important, that `LOCAL-FILE`s to be uploaded should come before any `REPO`
 
 `DESTINATION` can be either a `REPO:` or a `LOCAL-DIRECTORY`
 
+list
+----
+
+Lists known repositories.
+
+show
+----
+
+Shows repository attributes
+
+```
+Pyrene: show repo
+```
 
 define
 ------
@@ -51,7 +70,6 @@ Pyrene: list
   repo
 ```
 
-
 set
 ---
 
@@ -63,6 +81,15 @@ Pyrene: show repo
   key: value
 ```
 
+forget
+------
+
+Makes a known repository unknown.
+
+```
+Pyrene: forget repo
+Pyrene: list
+```
 
 setup_for_pypi_python_org
 -------------------------
@@ -77,7 +104,6 @@ Pyrene: show pypi
   download_url: https://pypi.python.org/simple/
 ```
 
-
 setup_for_pip_local
 -------------------
 
@@ -91,41 +117,28 @@ Pyrene: show local
   type: directory
 ```
 
+write_pip_conf_for
+------------------
 
-forget
-------
+The working of `pip` can be greatly influenced by the `~/.pip/pip.conf` configuration file: it defines which repo is used to download from (`index-url` or `find-links`) and how (`no-use-wheels`, etc.)
 
-Makes a known repository unknown.
-
-```
-Pyrene: forget repo
-Pyrene: list
-```
-
-
-list
-----
-
-Lists known repositories.
-
-
-show
-----
-
-Shows repository attributes
+I'll create a minimal `pip.conf` config file (or overwrite silently the existing one) so that pip will use the named Pyrene defined repo outside of `Pyrene` for downloads: 
 
 ```
-Pyrene: show repo
+Pyrene: write_pip_conf_for repo
 ```
 
 
 Developers
 ==========
 
+Development is done using `git flow` on branch `develop`, `master` is the release branch.
+
 Internals:
 
 - packages are downloaded with [pip](http://www.pip-installer.org).
-- packages are uploaded with code adopted from [twine](https://pypi.python.org/pypi/twine).
+- packages are uploaded with code adopted from [twine](https://pypi.python.org/pypi/twine), though unfortunately `twine` is not used directly.
+- local packages are served with [pypi-server](https://pypi.python.org/pypi/pypiserver)
 
 Guidelines:
 
