@@ -3,12 +3,16 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import abc
+import os
 import shutil
 from upload import upload
 from .util import pip_install, pypi_server
 
 
 KEY_TYPE = 'type'
+
+REPOTYPE_DIRECTORY = 'directory'
+REPOTYPE_HTTP = 'http'
 
 KEY_DIRECTORY = 'directory'
 KEY_VOLATILE = 'volatile'
@@ -27,10 +31,12 @@ class Repo(object):
     __metaclass__ = abc.ABCMeta
 
     ATTRIBUTES = {KEY_TYPE}
+    DEFAULT_ATTRIBUTES = dict()
 
     def __init__(self, attributes):
         super(Repo, self).__init__()
-        self._attributes = attributes
+        self._attributes = dict(self.DEFAULT_ATTRIBUTES)
+        self._attributes.update(attributes)
 
     def __getattr__(self, key):
         try:
@@ -72,6 +78,11 @@ class DirectoryRepo(Repo):
         KEY_SERVE_PORT,
         KEY_SERVE_USERNAME,
         KEY_SERVE_PASSWORD,
+    }
+
+    DEFAULT_ATTRIBUTES = {
+        KEY_TYPE: REPOTYPE_DIRECTORY,
+        KEY_DIRECTORY: os.path.abspath('.'),
     }
 
     def get_as_pip_conf(self):
@@ -118,6 +129,10 @@ class HttpRepo(Repo):
         KEY_PASSWORD,
     }
 
+    DEFAULT_ATTRIBUTES = {
+        KEY_DOWNLOAD_URL: 'http://localhost:8080/simple',
+    }
+
     def get_as_pip_conf(self):
         return PIPCONF_HTTPREPO.format(download_url=self.download_url)
 
@@ -140,7 +155,4 @@ class HttpRepo(Repo):
             )
 
     def serve(self):
-        print(
-            'Externally served at url {}'
-            .format(getattr(self, KEY_DOWNLOAD_URL, 'UNSPECIFIED???'))
-        )
+        print('Externally served at url {}'.format(self.download_url))

@@ -15,6 +15,12 @@ class Test_DirectoryRepo(unittest.TestCase):
         self.assertEqual('directory', repo.type)
         self.assertEqual('dir@', repo.directory)
 
+    def test_incomplete_repo_get_as_pip_conf(self):
+        repo = m.DirectoryRepo({})
+        pip_conf = repo.get_as_pip_conf()
+
+        self.assertIn('find-links', pip_conf)
+
 
 class Test_HttpRepo(unittest.TestCase):
 
@@ -39,9 +45,8 @@ class Test_HttpRepo(unittest.TestCase):
 
             self.assertIn('https://priv.repos.org/simple', stdout.getvalue())
 
-    def test_serve_without_download_url(self):
+    def test_incomplete_repo_get_as_pip_conf(self):
         repo = m.HttpRepo({})
-        with mock.patch('sys.stdout', new_callable=StringIO) as stdout:
-            repo.serve()
+        pip_conf = repo.get_as_pip_conf()
 
-            self.assertIn('UNSPECIFIED', stdout.getvalue())
+        self.assertIn('localhost', pip_conf)

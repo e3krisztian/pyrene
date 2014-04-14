@@ -4,10 +4,8 @@ from __future__ import unicode_literals
 
 import os
 from ConfigParser import RawConfigParser
-from .repos import DirectoryRepo, HttpRepo, KEY_TYPE
-
-REPOTYPE_DIRECTORY = 'directory'
-REPOTYPE_HTTP = 'http'
+from .repos import DirectoryRepo, HttpRepo
+from .repos import KEY_TYPE, REPOTYPE_DIRECTORY, REPOTYPE_HTTP
 
 
 class UnknownRepoError(NameError):
