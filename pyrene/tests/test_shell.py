@@ -36,6 +36,18 @@ assert unique_justseen('ABBCcAD', unicode.lower) == list('ABCAD')
 write_file = m.write_file
 
 
+def capture_stdout():
+    '''
+    To be used as
+    with capture_stdout() as stdout:
+        ...
+        stdout.getvalue()
+    TODO: rewrite without mock and StringIO: use real file
+    TODO: generalize for stderr, like capture_output(stdout=True, stderr=True)
+    '''
+    return mock.patch('sys.stdout', new_callable=StringIO)
+
+
 class Test_PyreneCmd_write_file(unittest.TestCase):
 
     def setUp(self):
@@ -247,7 +259,7 @@ class Test_PyreneCmd(unittest.TestCase):
     def test_list(self):
         self.repo_manager.repo_names = ['S1', '#@!']
 
-        with mock.patch('sys.stdout', new_callable=StringIO) as stdout:
+        with capture_stdout() as stdout:
             self.cmd.onecmd('list')
 
             self.assertIn('S1', stdout.getvalue())
@@ -257,7 +269,7 @@ class Test_PyreneCmd(unittest.TestCase):
         self.repo_manager.get_attributes.configure_mock(
             return_value={'name': 'SHRP1', KEY_TYPE: '??'}
         )
-        with mock.patch('sys.stdout', new_callable=StringIO) as stdout:
+        with capture_stdout() as stdout:
             self.cmd.onecmd('show repo1')
 
             self.assertEqual(
