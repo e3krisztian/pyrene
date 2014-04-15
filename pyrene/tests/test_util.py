@@ -3,6 +3,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import pyrene.util as m
+from .util import capture_stdout
 import unittest
 
 import os
@@ -63,12 +64,17 @@ class Test_pip_install(unittest.TestCase):
         )
         os.mkdir('destination')
 
-        m.pip_install(
-            '--download', 'destination',
-            '--find-links', 'dist',
-            '--no-index',
-            'foo',
-        )
+        with capture_stdout() as stdout:
+            m.pip_install(
+                '--download', 'destination',
+                '--find-links', 'dist',
+                '--no-index',
+                'foo',
+            )
+            output = stdout.content
+
+        # diagnostic - in case pip has failed
+        print(output)
 
         self.assertTrue(os.path.exists('destination/foo-1.0.tar.gz'))
 

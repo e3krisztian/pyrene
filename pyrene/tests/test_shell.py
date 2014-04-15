@@ -3,7 +3,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import os
-from io import StringIO
 
 import unittest
 import mock
@@ -13,6 +12,7 @@ import pyrene.shell as m
 from pyrene.util import Directory
 from pyrene.repos import Repo
 from pyrene.repomanager import KEY_TYPE
+from .util import capture_stdout
 
 # START: unique_justseen
 # https://docs.python.org/2.7/library/itertools.html#itertools-recipes
@@ -34,18 +34,6 @@ assert unique_justseen('ABBCcAD', unicode.lower) == list('ABCAD')
 
 
 write_file = m.write_file
-
-
-def capture_stdout():
-    '''
-    To be used as
-    with capture_stdout() as stdout:
-        ...
-        stdout.getvalue()
-    TODO: rewrite without mock and StringIO: use real file
-    TODO: generalize for stderr, like capture_output(stdout=True, stderr=True)
-    '''
-    return mock.patch('sys.stdout', new_callable=StringIO)
 
 
 class Test_PyreneCmd_write_file(unittest.TestCase):

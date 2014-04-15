@@ -32,7 +32,7 @@ def pip_install(*args):
     with set_env('PIP_CONFIG_FILE', os.devnull):
         cmd = [pip_cmd, 'install'] + list(args)
         print(' '.join(cmd))
-        subprocess.call(cmd)
+        subprocess.call(cmd, stdout=sys.stdout, stderr=sys.stderr)
 
 
 def make_htpasswd(filename, username, password):
