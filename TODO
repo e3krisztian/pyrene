@@ -18,7 +18,6 @@ FIXME
  ☐ robustness: 'use repo', where repo does not have attributes set causes exception
  ☐ file created in place of directory when directory does not exists for file repos
  ☐ robustness: check user supplied repo names and give human feedback instead of exception
- ☐ tests should not write to stdout/stderr directly from subprocesses?!
  ☐ remove order restriction from copy
     after we have a repo any package spec containing a / is treated as a local file
     all others are handled with pip
@@ -26,6 +25,7 @@ FIXME
 
 ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
 Archive:
+ ✔ tests should not write to stdout/stderr directly from subprocesses?! @done (14-04-15 02:23)
  ✔ rename use command write_pip_conf_for @done (14-04-11 11:35)
    ✔ rename test_use @done (14-04-11 11:34)
    ✔ rename do_use @done (14-04-11 11:34)
