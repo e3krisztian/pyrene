@@ -1,15 +1,6 @@
 TODO
  ☐ support some pip switches
    candidates: -r requirements.txt, --pre, --no-use-wheel
- ☐ command serve to serve a repo with pypi-server(?)
-   using per repo parameters:
-     serve_username
-     serve_password
-     serve_interface
-     serve_port
-   like this:
-   set repo serve_username=testuser
-   for http repos this command just prints the download url
  ☐ support copying all package versions
    it is hard to do with dependencies, maybe per-package?
  ☐ decide on what to do when the .pyrene file changes - possibly due to another Pyrene instance
@@ -18,7 +9,6 @@ FIXME
  ☐ robustness: 'use repo', where repo does not have attributes set causes exception
  ☐ file created in place of directory when directory does not exists for file repos
  ☐ robustness: check user supplied repo names and give human feedback instead of exception
- ☐ tests should not write to stdout/stderr directly from subprocesses?!
  ☐ remove order restriction from copy
     after we have a repo any package spec containing a / is treated as a local file
     all others are handled with pip
@@ -26,6 +16,16 @@ FIXME
 
 ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
 Archive:
+ ✔ command serve to serve a repo with pypi-server(?) @done (14-04-16 15:23)
+   using per repo parameters:
+     serve_username
+     serve_password
+     serve_interface
+     serve_port
+   like this:
+   set repo serve_username=testuser
+   for http repos this command just prints the download url
+ ✔ tests should not write to stdout/stderr directly from subprocesses?! @done (14-04-15 02:23)
  ✔ rename use command write_pip_conf_for @done (14-04-11 11:35)
    ✔ rename test_use @done (14-04-11 11:34)
    ✔ rename do_use @done (14-04-11 11:34)

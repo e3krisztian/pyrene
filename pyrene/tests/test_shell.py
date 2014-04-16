@@ -3,7 +3,6 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import os
-from io import StringIO
 
 import unittest
 import mock
@@ -13,6 +12,7 @@ import pyrene.shell as m
 from pyrene.util import Directory
 from pyrene.repos import Repo
 from pyrene.repomanager import KEY_TYPE
+from .util import capture_stdout
 
 # START: unique_justseen
 # https://docs.python.org/2.7/library/itertools.html#itertools-recipes
@@ -247,24 +247,24 @@ class Test_PyreneCmd(unittest.TestCase):
     def test_list(self):
         self.repo_manager.repo_names = ['S1', '#@!']
 
-        with mock.patch('sys.stdout', new_callable=StringIO) as stdout:
+        with capture_stdout() as stdout:
             self.cmd.onecmd('list')
 
-            self.assertIn('S1', stdout.getvalue())
-            self.assertIn('#@!', stdout.getvalue())
+            self.assertIn('S1', stdout.content)
+            self.assertIn('#@!', stdout.content)
 
     def test_show(self):
         self.repo_manager.get_attributes.configure_mock(
             return_value={'name': 'SHRP1', KEY_TYPE: '??'}
         )
-        with mock.patch('sys.stdout', new_callable=StringIO) as stdout:
+        with capture_stdout() as stdout:
             self.cmd.onecmd('show repo1')
 
             self.assertEqual(
                 [mock.call.get_attributes('repo1')],
                 self.repo_manager.mock_calls
             )
-            output = stdout.getvalue()
+            output = stdout.content
             self.assertRegexpMatches(output, '.*name.*SHRP1.*')
             self.assertRegexpMatches(output, '.*type.*[?][?].*')
 
@@ -396,3 +396,7 @@ class Test_PyreneCmd(unittest.TestCase):
         self.cmd.onecmd('setup_for_pip_local repo')
         calls = [mock.call.set('repo', mock.ANY, mock.ANY)]
         self.repo_manager.set.assert_has_calls(calls)
+
+    def test_serve(self):
+        self.cmd.onecmd('serve repo1')
+        self.repo1.serve.assert_called_once_with()
