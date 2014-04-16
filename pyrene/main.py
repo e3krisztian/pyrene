@@ -6,7 +6,7 @@ import tempfile
 import os
 import sys
 import shutil
-from .repomanager import RepoManager
+from .network import Network
 from .util import Directory
 from .shell import PyreneCmd
 
@@ -14,7 +14,7 @@ from .shell import PyreneCmd
 def main():
     tempdir = tempfile.mkdtemp(suffix='.pyrene')
     cmd = PyreneCmd(
-        RepoManager(os.path.expanduser('~/.pyrene')),
+        Network(os.path.expanduser('~/.pyrene')),
         Directory(tempdir),
     )
     line = ' '.join(sys.argv[1:])

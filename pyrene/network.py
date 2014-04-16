@@ -26,7 +26,7 @@ TYPE_TO_CLASS = {
 }
 
 
-class RepoManager(object):
+class Network(object):
 
     REPO_TYPES = {
         REPOTYPE_DIRECTORY,

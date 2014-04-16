@@ -6,9 +6,9 @@ import os
 from cmd import Cmd
 import traceback
 from .util import write_file
-from .repomanager import RepoManager, DirectoryRepo
+from .network import Network, DirectoryRepo
 from .repos import KEY_TYPE, KEY_DIRECTORY, KEY_DOWNLOAD_URL, KEY_UPLOAD_URL
-from pyrene import repomanager
+from pyrene import network
 
 
 class BaseCmd(Cmd, object):
@@ -38,7 +38,7 @@ class BaseCmd(Cmd, object):
 
 REPO_ATTRIBUTE_COMPLETIONS = tuple(
     '{}='.format(a)
-    for a in RepoManager.REPO_ATTRIBUTES
+    for a in Network.REPO_ATTRIBUTES
 )
 
 
@@ -56,9 +56,9 @@ class PyreneCmd(BaseCmd):
     '''
     prompt = 'Pyrene: '
 
-    def __init__(self, repo_manager, directory):
+    def __init__(self, network, directory):
         super(PyreneCmd, self).__init__()
-        self.repo_manager = repo_manager
+        self.network = network
         self.__temp_dir = directory
 
     def write_file(self, filename, content):
@@ -70,14 +70,14 @@ class PyreneCmd(BaseCmd):
 
         write_pip_conf_for REPO
         '''
-        repo = self.repo_manager.get_repo(repo)
+        repo = self.network.get_repo(repo)
         pip_conf = os.path.expanduser('~/.pip/pip.conf')
         self.write_file(pip_conf, repo.get_as_pip_conf())
 
     def _get_destination_repo(self, word):
         if word.endswith(':'):
             repo_name = word[:-1]
-            return self.repo_manager.get_repo(repo_name)
+            return self.network.get_repo(repo_name)
 
         attributes = {'directory': word}
         return DirectoryRepo(attributes)
@@ -102,7 +102,7 @@ class PyreneCmd(BaseCmd):
         for word in words[:-1]:
             if ':' in word:
                 repo_name, _, package_spec = word.partition(':')
-                repo = self.repo_manager.get_repo(repo_name)
+                repo = self.network.get_repo(repo_name)
             else:
                 package_spec = word
 
@@ -124,7 +124,7 @@ class PyreneCmd(BaseCmd):
 
         define REPO
         '''
-        self.repo_manager.define(repo)
+        self.network.define(repo)
 
     def do_forget(self, repo):
         '''
@@ -132,7 +132,7 @@ class PyreneCmd(BaseCmd):
 
         forget REPO
         '''
-        self.repo_manager.forget(repo)
+        self.network.forget(repo)
 
     def do_set(self, line):
         '''
@@ -155,7 +155,7 @@ class PyreneCmd(BaseCmd):
         '''
         repo, key_value = line.split()
         key, _, value = key_value.partition('=')
-        self.repo_manager.set(repo, key, value)
+        self.network.set(repo, key, value)
 
     def complete_set(self, text, line, begidx, endidx):
         completions = ()
@@ -169,7 +169,7 @@ class PyreneCmd(BaseCmd):
             )
         elif '=' in words[-1]:
             if words[-1].startswith('type='):
-                completions = tuple(RepoManager.REPO_TYPES)
+                completions = tuple(Network.REPO_TYPES)
         else:
             completions = REPO_ATTRIBUTE_COMPLETIONS
         return sorted(c for c in completions if c.startswith(text))
@@ -178,7 +178,7 @@ class PyreneCmd(BaseCmd):
         '''
         List known repos
         '''
-        repo_names = self.repo_manager.repo_names
+        repo_names = self.network.repo_names
         print('Known repos:')
         print('    ' + '\n    '.join(repo_names))
 
@@ -186,7 +186,7 @@ class PyreneCmd(BaseCmd):
         '''
         List repo attributes - as could be specified in pip.conf
         '''
-        attributes = self.repo_manager.get_attributes(repo)
+        attributes = self.network.get_attributes(repo)
         print(
             '  '
             + '\n  '.join(
@@ -198,7 +198,7 @@ class PyreneCmd(BaseCmd):
     def complete_repo_name(self, text, line, begidx, endidx, suffix=''):
         return sorted(
             '{}{}'.format(name, suffix)
-            for name in self.repo_manager.repo_names
+            for name in self.network.repo_names
             if name.startswith(text)
         )
 
@@ -245,17 +245,17 @@ class PyreneCmd(BaseCmd):
         Configure repo to point to the default package index
         https://pypi.python.org.
         '''
-        self.repo_manager.set(
+        self.network.set(
             repo,
             KEY_TYPE,
-            repomanager.REPOTYPE_HTTP
+            network.REPOTYPE_HTTP
         )
-        self.repo_manager.set(
+        self.network.set(
             repo,
             KEY_DOWNLOAD_URL,
             'https://pypi.python.org/simple/'
         )
-        self.repo_manager.set(
+        self.network.set(
             repo,
             KEY_UPLOAD_URL,
             'https://pypi.python.org/'
@@ -271,12 +271,12 @@ class PyreneCmd(BaseCmd):
         piplocal = os.path.expanduser('~/.pip/local')
         if not os.path.exists(piplocal):
             os.makedirs(piplocal)
-        self.repo_manager.set(
+        self.network.set(
             repo,
-            repomanager.KEY_TYPE,
-            repomanager.REPOTYPE_DIRECTORY
+            network.KEY_TYPE,
+            network.REPOTYPE_DIRECTORY
         )
-        self.repo_manager.set(
+        self.network.set(
             repo,
             KEY_DIRECTORY,
             piplocal
@@ -286,7 +286,7 @@ class PyreneCmd(BaseCmd):
 
     def do_serve(self, repo_name):
         # TODO
-        repo = self.repo_manager.get_repo(repo_name)
+        repo = self.network.get_repo(repo_name)
         repo.serve()
 
     complete_serve = complete_repo_name
