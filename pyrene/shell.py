@@ -35,6 +35,13 @@ class BaseCmd(Cmd, object):
         return True
     do_bye = do_EOF
 
+    def completenames(self, *args):
+        # when there is only one completions, add an extra space
+        completions = super(BaseCmd, self).completenames(*args)
+        if len(completions) == 1:
+            return [completions[0].rstrip() + ' ']
+        return completions
+
 
 REPO_ATTRIBUTE_COMPLETIONS = tuple(
     '{}='.format(a)
