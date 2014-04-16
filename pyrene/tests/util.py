@@ -4,25 +4,25 @@ import contextlib
 
 
 class External(object):
-    def __init__(self, temp):
-        self.temp = temp
+    # TODO: use real external
+    def __init__(self, file):
+        self._file = file
 
     def getvalue(self):
         return self.content
 
     @property
     def content(self):
-        self.temp.file.flush()
-        with open(self.temp.name, 'rb') as f:
-            return f.read()
+        self._file.seek(0)
+        return self._file.read()
 
 
 @contextlib.contextmanager
 def capture_stdout():
     orig = sys.stdout
-    temp = tempfile.NamedTemporaryFile()
+    temp = tempfile.SpooledTemporaryFile()
 
     with temp:
-        sys.stdout = temp.file
+        sys.stdout = temp
         yield External(temp)
         sys.stdout = orig

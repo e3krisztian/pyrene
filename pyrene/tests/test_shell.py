@@ -250,8 +250,8 @@ class Test_PyreneCmd(unittest.TestCase):
         with capture_stdout() as stdout:
             self.cmd.onecmd('list')
 
-            self.assertIn('S1', stdout.getvalue())
-            self.assertIn('#@!', stdout.getvalue())
+            self.assertIn('S1', stdout.content)
+            self.assertIn('#@!', stdout.content)
 
     def test_show(self):
         self.repo_manager.get_attributes.configure_mock(
@@ -264,7 +264,7 @@ class Test_PyreneCmd(unittest.TestCase):
                 [mock.call.get_attributes('repo1')],
                 self.repo_manager.mock_calls
             )
-            output = stdout.getvalue()
+            output = stdout.content
             self.assertRegexpMatches(output, '.*name.*SHRP1.*')
             self.assertRegexpMatches(output, '.*type.*[?][?].*')
 
