@@ -12,7 +12,7 @@ import pyrene.shell as m
 from pyrene.util import Directory
 from pyrene.repos import Repo
 from pyrene.network import KEY_TYPE
-from .util import capture_stdout
+from .util import capture_stdout, fake_stdin
 
 # START: unique_justseen
 # https://docs.python.org/2.7/library/itertools.html#itertools-recipes
@@ -400,3 +400,16 @@ class Test_PyreneCmd(unittest.TestCase):
     def test_serve(self):
         self.cmd.onecmd('serve repo1')
         self.repo1.serve.assert_called_once_with()
+
+    def test_network_reload_called_before_every_command_in_the_loop(self):
+        self.network.repo_names = ['repo-a']
+        with fake_stdin('\nlist\n'):
+            self.cmd.cmdloop()
+
+        self.assertEqual(
+            [
+                mock.call.reload(),  # empty line
+                mock.call.reload(),  # list
+                mock.call.reload(),  # EOF
+            ], self.network.mock_calls
+        )
