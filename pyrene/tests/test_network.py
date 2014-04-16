@@ -12,22 +12,22 @@ from temp_dir import within_temp_dir
 from pyrene.repos import Repo
 
 
-class Test_RepoManager_create(unittest.TestCase):
+class Test_Network_create(unittest.TestCase):
 
     @within_temp_dir
     def test_missing_repo_store_define_creates_it(self):
-        repo_manager = m.RepoManager('repo_store')
+        repo_manager = m.Network('repo_store')
         repo_manager.define('repo')
 
         self.assertTrue(os.path.isfile('repo_store'))
 
 
-class Test_RepoManager(unittest.TestCase):
+class Test_Network(unittest.TestCase):
 
     def setUp(self):
         fd, self.repo_store = tempfile.mkstemp()
         os.close(fd)
-        self.repo_manager = m.RepoManager(self.repo_store)
+        self.repo_manager = m.Network(self.repo_store)
 
     def tearDown(self):
         os.remove(self.repo_store)
@@ -67,7 +67,7 @@ class Test_RepoManager(unittest.TestCase):
     def test_set_is_persistent(self):
         self.make_file_repo('/a/repo/dir')
 
-        other_repo_manager = m.RepoManager(self.repo_store)
+        other_repo_manager = m.Network(self.repo_store)
         repo = other_repo_manager.get_repo('repo')
         self.assertEqual('/a/repo/dir', repo.directory)
 
@@ -75,7 +75,7 @@ class Test_RepoManager(unittest.TestCase):
         self.make_file_repo('/a/repo/dir')
         self.repo_manager.forget('repo')
 
-        other_repo_manager = m.RepoManager(self.repo_store)
+        other_repo_manager = m.Network(self.repo_store)
         with self.assertRaises(m.UnknownRepoError):
             other_repo_manager.get_repo('repo')
 

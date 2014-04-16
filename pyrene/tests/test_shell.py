@@ -39,7 +39,7 @@ write_file = m.write_file
 class Test_PyreneCmd_write_file(unittest.TestCase):
 
     def setUp(self):
-        self.repo_manager = mock.Mock(spec_set=m.RepoManager)
+        self.repo_manager = mock.Mock(spec_set=m.Network)
         self.directory = mock.Mock(spec_set=Directory)
         self.cmd = m.PyreneCmd(
             repo_manager=self.repo_manager,
@@ -65,7 +65,7 @@ class Test_PyreneCmd(unittest.TestCase):
         self.repo1 = mock.Mock(spec_set=Repo)
         self.repo2 = mock.Mock(spec_set=Repo)
         self.somerepo = mock.Mock(spec_set=Repo)
-        self.repo_manager = mock.Mock(spec_set=m.RepoManager)
+        self.repo_manager = mock.Mock(spec_set=m.Network)
         self.repo_manager.get_repo.configure_mock(side_effect=self.get_repo)
         self.directory = mock.Mock(spec_set=Directory)
         self.cmd = m.PyreneCmd(
@@ -302,7 +302,7 @@ class Test_PyreneCmd(unittest.TestCase):
             12,
             12,
         )
-        self.assertEqual(set(m.RepoManager.REPO_TYPES), set(completion))
+        self.assertEqual(set(m.Network.REPO_TYPES), set(completion))
 
     def test_complete_set_on_value(self):
         completion = self.cmd.complete_set('key=', 'set re key=value', 7, 11)

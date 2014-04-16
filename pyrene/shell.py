@@ -6,7 +6,7 @@ import os
 from cmd import Cmd
 import traceback
 from .util import write_file
-from .network import RepoManager, DirectoryRepo
+from .network import Network, DirectoryRepo
 from .repos import KEY_TYPE, KEY_DIRECTORY, KEY_DOWNLOAD_URL, KEY_UPLOAD_URL
 from pyrene import network
 
@@ -38,7 +38,7 @@ class BaseCmd(Cmd, object):
 
 REPO_ATTRIBUTE_COMPLETIONS = tuple(
     '{}='.format(a)
-    for a in RepoManager.REPO_ATTRIBUTES
+    for a in Network.REPO_ATTRIBUTES
 )
 
 
@@ -169,7 +169,7 @@ class PyreneCmd(BaseCmd):
             )
         elif '=' in words[-1]:
             if words[-1].startswith('type='):
-                completions = tuple(RepoManager.REPO_TYPES)
+                completions = tuple(Network.REPO_TYPES)
         else:
             completions = REPO_ATTRIBUTE_COMPLETIONS
         return sorted(c for c in completions if c.startswith(text))
