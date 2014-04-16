@@ -11,7 +11,7 @@ from temp_dir import within_temp_dir
 import pyrene.shell as m
 from pyrene.util import Directory
 from pyrene.repos import Repo
-from pyrene.repomanager import KEY_TYPE
+from pyrene.network import KEY_TYPE
 from .util import capture_stdout
 
 # START: unique_justseen

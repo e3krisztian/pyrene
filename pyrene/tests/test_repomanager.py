@@ -2,7 +2,7 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import pyrene.repomanager as m
+import pyrene.network as m
 import unittest
 
 import os

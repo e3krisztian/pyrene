@@ -6,9 +6,9 @@ import os
 from cmd import Cmd
 import traceback
 from .util import write_file
-from .repomanager import RepoManager, DirectoryRepo
+from .network import RepoManager, DirectoryRepo
 from .repos import KEY_TYPE, KEY_DIRECTORY, KEY_DOWNLOAD_URL, KEY_UPLOAD_URL
-from pyrene import repomanager
+from pyrene import network
 
 
 class BaseCmd(Cmd, object):
@@ -248,7 +248,7 @@ class PyreneCmd(BaseCmd):
         self.repo_manager.set(
             repo,
             KEY_TYPE,
-            repomanager.REPOTYPE_HTTP
+            network.REPOTYPE_HTTP
         )
         self.repo_manager.set(
             repo,
@@ -273,8 +273,8 @@ class PyreneCmd(BaseCmd):
             os.makedirs(piplocal)
         self.repo_manager.set(
             repo,
-            repomanager.KEY_TYPE,
-            repomanager.REPOTYPE_DIRECTORY
+            network.KEY_TYPE,
+            network.REPOTYPE_DIRECTORY
         )
         self.repo_manager.set(
             repo,
