@@ -8,6 +8,7 @@ import unittest
 import os
 import tempfile
 from temp_dir import within_temp_dir
+from pyrene.util import write_file
 
 from pyrene.repos import Repo
 
@@ -99,3 +100,29 @@ class Test_Network(unittest.TestCase):
             {'name': 'fixed'},
             self.network.get_attributes('r2')
         )
+
+
+TEST_CONFIG = '''\
+[repo:1]
+type=directory
+directory=/tmp
+'''
+
+
+class Test_Network_dot_pyrene(unittest.TestCase):
+
+    def setUp(self):
+        fd, self.repo_store = tempfile.mkstemp()
+        os.close(fd)
+        self.network = m.Network(self.repo_store)
+
+    def tearDown(self):
+        os.remove(self.repo_store)
+
+    def test_reload(self):
+        self.network.define('repo')
+
+        write_file(self.repo_store, TEST_CONFIG)
+        self.network.reload()
+
+        self.assertEqual(['1'], self.network.repo_names)

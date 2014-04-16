@@ -39,6 +39,10 @@ class Network(object):
 
     def __init__(self, filename):
         self._repo_store_filename = filename
+        self._config = None
+        self.reload()
+
+    def reload(self):
         self._config = RawConfigParser()
         if os.path.exists(self._repo_store_filename):
             self._config.read(self._repo_store_filename)
