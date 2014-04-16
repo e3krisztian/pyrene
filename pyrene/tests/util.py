@@ -1,6 +1,7 @@
 import tempfile
 import sys
 import contextlib
+from io import StringIO
 
 
 class External(object):
@@ -26,3 +27,11 @@ def capture_stdout():
         sys.stdout = temp
         yield External(temp)
         sys.stdout = orig
+
+
+@contextlib.contextmanager
+def fake_stdin(text):
+    stdin = sys.stdin
+    sys.stdin = StringIO(text)
+    yield
+    sys.stdin = stdin

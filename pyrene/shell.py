@@ -61,6 +61,10 @@ class PyreneCmd(BaseCmd):
         self.network = network
         self.__temp_dir = directory
 
+    def precmd(self, line):
+        self.network.reload()
+        return super(PyreneCmd, self).precmd(line)
+
     def write_file(self, filename, content):
         write_file(filename, content)
 
