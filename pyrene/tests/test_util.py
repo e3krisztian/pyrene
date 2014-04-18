@@ -113,3 +113,10 @@ class Test_make_htpasswd(unittest.TestCase):
             ht = HtpasswdFile(file.name)
             self.assertEqual(['testuser'], ht.users())
             self.assertTrue(ht.check_password('testuser', 'testpass'))
+
+
+class Test_generate_password(unittest.TestCase):
+
+    def test_non_repeating(self):
+        passwords = [m.generate_password() for _ in range(1000)]
+        self.assertEqual(len(set(passwords)), len(passwords))

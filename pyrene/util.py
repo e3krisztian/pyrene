@@ -99,3 +99,8 @@ class Directory(object):
     def clear(self):
         for path in self.files:
             os.remove(path)
+
+
+def generate_password():
+    import codecs
+    return codecs.encode(os.urandom(10), 'hex')
