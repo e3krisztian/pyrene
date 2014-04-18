@@ -4,10 +4,10 @@ class REPO:
 
     DIRECTORY = 'directory'
     VOLATILE = 'volatile'
-    SERVE_INTERFACE = 'interface'
-    SERVE_PORT = 'port'
-    SERVE_USERNAME = 'username'
-    SERVE_PASSWORD = 'password'
+    SERVE_INTERFACE = 'serve_interface'
+    SERVE_PORT = 'serve_port'
+    SERVE_USERNAME = 'serve_username'
+    SERVE_PASSWORD = 'serve_password'
 
     USERNAME = 'username'
     PASSWORD = 'password'
