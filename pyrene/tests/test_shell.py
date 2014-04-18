@@ -10,8 +10,8 @@ from temp_dir import within_temp_dir
 
 import pyrene.shell as m
 from pyrene.util import Directory
+from pyrene.constants import REPO
 from pyrene.repos import Repo
-from pyrene.network import KEY_TYPE
 from .util import capture_stdout, fake_stdin
 
 # START: unique_justseen
@@ -255,7 +255,7 @@ class Test_PyreneCmd(unittest.TestCase):
 
     def test_show(self):
         self.network.get_attributes.configure_mock(
-            return_value={'name': 'SHRP1', KEY_TYPE: '??'}
+            return_value={'name': 'SHRP1', REPO.TYPE: '??'}
         )
         with capture_stdout() as stdout:
             self.cmd.onecmd('show repo1')
