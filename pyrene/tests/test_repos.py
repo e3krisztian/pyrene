@@ -6,6 +6,7 @@ import unittest
 import mock
 from io import StringIO
 import pyrene.repos as m
+from pyrene.constants import REPO, REPOTYPE
 
 
 class Test_NullRepo(unittest.TestCase):
@@ -32,6 +33,23 @@ class Test_DirectoryRepo(unittest.TestCase):
         pip_conf = repo.get_as_pip_conf()
 
         self.assertIn('find-links', pip_conf)
+
+    def test_serve_without_upload_user(self):
+        attrs = {REPO.TYPE: REPOTYPE.DIRECTORY, REPO.DIRECTORY: '.'}
+        repo = m.DirectoryRepo(attrs)
+        pypi = mock.Mock()
+        repo.serve(pypi)
+
+    def test_serve_with_upload_user(self):
+        attrs = {
+            REPO.TYPE: REPOTYPE.DIRECTORY,
+            REPO.DIRECTORY: '.',
+            REPO.SERVE_USERNAME: 'tu',
+            REPO.SERVE_PASSWORD: 'tp',
+        }
+        repo = m.DirectoryRepo(attrs)
+        pypi = mock.Mock()
+        repo.serve(pypi)
 
 
 class Test_HttpRepo(unittest.TestCase):

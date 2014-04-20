@@ -105,19 +105,22 @@ class DirectoryRepo(Repo):
         for source in package_files:
             shutil.copy2(source, destination)
 
-    def serve(self):
-        server = PyPI()
+    def serve(self, pypi_server=PyPI):
+        server = pypi_server()
         server.directory = self.directory
-        try:
-            username = self.attributes[REPO.SERVE_USERNAME]
-            password = self.attributes[REPO.SERVE_PASSWORD]
-            server.add_user(username, password)
-        except KeyError:
-            pass
         server.interface = getattr(self, REPO.SERVE_INTERFACE, '0.0.0.0')
         server.port = getattr(self, REPO.SERVE_PORT, '8080')
         true = {'y', 'yes', 't', 'true'}
         server.volatile = getattr(self, REPO.VOLATILE, 'no').lower() in true
+
+        try:
+            username = getattr(self, REPO.SERVE_USERNAME)
+            password = getattr(self, REPO.SERVE_PASSWORD)
+        except AttributeError:
+            pass
+        else:
+            server.add_user(username, password)
+
         server.serve()
 
 
