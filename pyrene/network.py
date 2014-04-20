@@ -91,6 +91,9 @@ class Network(object):
 
     def get_attributes(self, repo_name):
         repokey = self.REPO_SECTION_PREFIX + repo_name
+        if not self._config.has_section(repokey):
+            raise UnknownRepoError(repo_name)
+
         attributes = {
             option: self._config.get(repokey, option)
             for option in self._config.options(repokey)

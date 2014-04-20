@@ -101,6 +101,10 @@ class Test_Network(unittest.TestCase):
             self.network.get_attributes('r2')
         )
 
+    def test_get_attributes_on_undefined_repo(self):
+        with self.assertRaises(m.UnknownRepoError):
+            self.network.get_attributes('undefined-repo')
+
 
 TEST_CONFIG = '''\
 [repo:1]
