@@ -35,37 +35,44 @@ def pip_install(*args):
         subprocess.call(cmd, stdout=sys.stdout, stderr=sys.stderr)
 
 
-def make_htpasswd(filename, username, password):
-    ht = HtpasswdFile(path=filename, new=True)
-    ht.set_password(username, password)
-    ht.save()
+class PyPI(object):
 
+    def __init__(self):
+        self.directory = '.'
+        self.volatile = False
+        self.interface = '0.0.0.0'
+        self.port = '8080'
+        self.users = {}
 
-def pypi_server(
-    directory,
-    username,
-    password,
-    interface='0.0.0.0',  # all interfaces
-    port='8080',
-    volatile=False,       # allow package overwrites?
-):
-    '''
-    Run pypi-server.
-    '''
-    pypi_srv = os.path.join(os.path.dirname(sys.executable), 'pypi-server')
-    with NamedTemporaryFile() as password_file:
-        make_htpasswd(password_file.name, username, password)
+    def add_user(self, username, password):
+        self.users[username] = password
 
-        cmd = [
-            pypi_srv,
-            '--interface', interface,
-            '--port', port,
-            '--passwords', password_file.name,
-            '--disable-fallback',
-        ] + (
-            ['--overwrite'] if volatile else []
-        ) + [directory]
+    def make_htpasswd(self, filename):
+        ht = HtpasswdFile(path=filename, new=True)
+        for username, password in self.users.items():
+            ht.set_password(username, password)
+        ht.save()
 
+    def serve(self):
+        pypi_srv = os.path.join(os.path.dirname(sys.executable), 'pypi-server')
+        with NamedTemporaryFile() as password_file:
+            self.make_htpasswd(password_file.name)
+
+            cmd = [
+                pypi_srv,
+                '--interface', self.interface,
+                '--port', self.port,
+            ] + (
+                ['--passwords', password_file.name] if self.users else []
+            ) + [
+                '--disable-fallback',
+            ] + (
+                ['--overwrite'] if self.volatile else []
+            ) + [self.directory]
+
+            self.execute(cmd)
+
+    def execute(self, cmd):
         process = subprocess.Popen(cmd)
         try:
             process.wait()
