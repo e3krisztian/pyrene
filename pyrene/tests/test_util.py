@@ -8,6 +8,7 @@ import unittest
 
 import os
 import subprocess
+import mock
 from temp_dir import within_temp_dir
 
 from tempfile import NamedTemporaryFile
@@ -104,19 +105,48 @@ class Test_Directory(unittest.TestCase):
         self.assertEqual([], d.files)
 
 
-class Test_make_htpasswd(unittest.TestCase):
-
-    def test(self):
-        with NamedTemporaryFile() as file:
-            m.make_htpasswd(file.name, 'testuser', 'testpass')
-
-            ht = HtpasswdFile(file.name)
-            self.assertEqual(['testuser'], ht.users())
-            self.assertTrue(ht.check_password('testuser', 'testpass'))
-
-
 class Test_generate_password(unittest.TestCase):
 
     def test_non_repeating(self):
         passwords = [m.generate_password() for _ in range(1000)]
         self.assertEqual(len(set(passwords)), len(passwords))
+
+
+class Test_PyPI(unittest.TestCase):
+
+    def setUp(self):
+        self.server = m.PyPI()
+        self.server.execute = mock.Mock()
+
+    @property
+    def executed_cmd(self):
+        ARGS_LIST = 1
+        return self.server.execute.mock_calls[0][ARGS_LIST][0]
+
+    def test_serve_volatile(self):
+        self.server.volatile = True
+        self.server.serve()
+        self.assertIn('--overwrite', self.executed_cmd)
+
+    def test_serve_non_volatile(self):
+        self.server.serve()
+        self.assertNotIn('--overwrite', self.executed_cmd)
+
+    def test_make_htpasswd(self):
+        self.server.add_user('testuser', 'testpass')
+        self.server.add_user('xtestuser', 'xtestpass')
+        with NamedTemporaryFile() as file:
+            self.server.make_htpasswd(file.name)
+
+            ht = HtpasswdFile(file.name)
+            self.assertEqual(['testuser', 'xtestuser'], sorted(ht.users()))
+            self.assertTrue(ht.check_password('testuser', 'testpass'))
+
+    def test_serve_with_credentials(self):
+        self.server.add_user('u', 'p')
+        self.server.serve()
+        self.assertIn('--passwords', self.executed_cmd)
+
+    def test_serve_no_user(self):
+        self.server.serve()
+        self.assertNotIn('--passwords', self.executed_cmd)

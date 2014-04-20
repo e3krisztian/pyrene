@@ -4,13 +4,15 @@ class REPO:
 
     DIRECTORY = 'directory'
     VOLATILE = 'volatile'
-    SERVE_INTERFACE = 'serve_interface'
-    SERVE_PORT = 'serve_port'
-    SERVE_USERNAME = 'serve_username'
-    SERVE_PASSWORD = 'serve_password'
+    SERVE_INTERFACE = 'interface'
+    SERVE_PORT = 'port'
+    SERVE_USERNAME = 'username'
+    SERVE_PASSWORD = 'password'
 
-    USERNAME = 'username'
-    PASSWORD = 'password'
+    # This is intentionally the same as SERVE_USERNAME and SERVE_PASSWORD
+    # so that new users can get .pyrene configs with valid passwords
+    USERNAME = SERVE_USERNAME
+    PASSWORD = SERVE_PASSWORD
     DOWNLOAD_URL = 'download_url'
     UPLOAD_URL = 'upload_url'
 

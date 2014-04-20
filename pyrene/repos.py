@@ -6,7 +6,7 @@ import abc
 import os
 import shutil
 from upload import upload
-from .util import pip_install, pypi_server
+from .util import pip_install, PyPI
 from .constants import REPO, REPOTYPE
 
 
@@ -105,15 +105,23 @@ class DirectoryRepo(Repo):
         for source in package_files:
             shutil.copy2(source, destination)
 
-    def serve(self):
-        directory = self.directory
-        username = getattr(self, REPO.SERVE_USERNAME, 'anyone')
-        password = getattr(self, REPO.SERVE_PASSWORD, 'secret')
-        interface = getattr(self, REPO.SERVE_INTERFACE, '0.0.0.0')
-        port = getattr(self, REPO.SERVE_PORT, '8080')
+    def serve(self, pypi_server=PyPI):
+        server = pypi_server()
+        server.directory = self.directory
+        server.interface = getattr(self, REPO.SERVE_INTERFACE, '0.0.0.0')
+        server.port = getattr(self, REPO.SERVE_PORT, '8080')
         true = {'y', 'yes', 't', 'true'}
-        volatile = getattr(self, REPO.VOLATILE, 'no').lower() in true
-        pypi_server(directory, username, password, interface, port, volatile)
+        server.volatile = getattr(self, REPO.VOLATILE, 'no').lower() in true
+
+        try:
+            username = getattr(self, REPO.SERVE_USERNAME)
+            password = getattr(self, REPO.SERVE_PASSWORD)
+        except AttributeError:
+            pass
+        else:
+            server.add_user(username, password)
+
+        server.serve()
 
 
 PIPCONF_HTTPREPO = '''\

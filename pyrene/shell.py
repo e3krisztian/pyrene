@@ -283,7 +283,10 @@ class PyreneCmd(BaseCmd):
     complete_setup_for_pip_local = complete_repo_name
 
     def do_serve(self, repo_name):
-        # TODO
+        '''
+        Serve a local directory over http as a package index (like pypi).
+        Intended for quick package exchanges.
+        '''
         repo = self.network.get_repo(repo_name)
         repo.serve()
 
