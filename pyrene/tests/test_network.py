@@ -37,10 +37,12 @@ class Test_Network(unittest.TestCase):
         with self.assertRaises(m.UnknownRepoError):
             self.network.get_repo('undefined')
 
-    def test_get_repo_fails_on_missing_repo_type(self):
+    def test_get_repo_returns_nullrepo_on_missing_repo_type(self):
         self.network.define('no-type')
-        with self.assertRaises(m.UndefinedRepoType):
-            self.network.get_repo('no-type')
+        self.network.set('no-type', 'attr', 'attr-value')
+        repo = self.network.get_repo('no-type')
+        self.assertIsInstance(repo, m.NullRepo)
+        self.assertEqual('attr-value', repo.attr)
 
     def test_get_repo_returns_repo(self):
         self.network.define('repo')
@@ -100,6 +102,10 @@ class Test_Network(unittest.TestCase):
             {'name': 'fixed'},
             self.network.get_attributes('r2')
         )
+
+    def test_get_attributes_on_undefined_repo(self):
+        with self.assertRaises(m.UnknownRepoError):
+            self.network.get_attributes('undefined-repo')
 
 
 TEST_CONFIG = '''\

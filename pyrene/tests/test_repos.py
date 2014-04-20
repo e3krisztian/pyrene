@@ -8,6 +8,18 @@ from io import StringIO
 import pyrene.repos as m
 
 
+class Test_NullRepo(unittest.TestCase):
+
+    def setUp(self):
+        self.repo = m.NullRepo({})
+
+    def test_download_package(self):
+        self.repo.download_packages('a', '.')
+
+    def test_upload_packages(self):
+        self.repo.upload_packages(['a'])
+
+
 class Test_DirectoryRepo(unittest.TestCase):
 
     def test_attributes(self):

@@ -4,16 +4,12 @@ from __future__ import unicode_literals
 
 import os
 from ConfigParser import RawConfigParser
-from .repos import DirectoryRepo, HttpRepo
+from .repos import NullRepo, DirectoryRepo, HttpRepo
 from .constants import REPO, REPOTYPE
 
 
 class UnknownRepoError(NameError):
     '''Repo is not defined at all'''
-
-
-class UndefinedRepoType(ValueError):
-    '''type was not defined for repo'''
 
 
 class UnknownRepoType(ValueError):
@@ -53,13 +49,15 @@ class Network(object):
 
     def get_repo(self, repo_name):
         repokey = self.REPO_SECTION_PREFIX + repo_name
-        if not self._config.has_option(repokey, REPO.TYPE):
-            if self._config.has_section(repokey):
-                raise UndefinedRepoType(repo_name)
+        if not self._config.has_section(repokey):
             raise UnknownRepoError(repo_name)
 
         attributes = self.get_attributes(repo_name)
-        repo_type = attributes[REPO.TYPE]
+        try:
+            repo_type = attributes[REPO.TYPE]
+        except KeyError:
+            # no type specified
+            return NullRepo(attributes)
 
         try:
             return TYPE_TO_CLASS[repo_type](attributes)
@@ -91,6 +89,9 @@ class Network(object):
 
     def get_attributes(self, repo_name):
         repokey = self.REPO_SECTION_PREFIX + repo_name
+        if not self._config.has_section(repokey):
+            raise UnknownRepoError(repo_name)
+
         attributes = {
             option: self._config.get(repokey, option)
             for option in self._config.options(repokey)

@@ -44,6 +44,27 @@ class Repo(object):
         pass
 
 
+PIPCONF_NULLREPO = '''\
+[global]
+no-index = true
+'''
+
+
+class NullRepo(Repo):
+
+    def get_as_pip_conf(self):
+        return PIPCONF_NULLREPO
+
+    def download_packages(self, package_spec, directory):
+        print('NullRepo provided packages {}'.format(package_spec))
+
+    def upload_packages(self, package_files):
+        print('NullRepo swallowed packages {}'.format(' '.join(package_files)))
+
+    def serve(self):
+        print('NullRepo is not served')
+
+
 PIPCONF_DIRECTORYREPO = '''\
 [global]
 no-index = true
