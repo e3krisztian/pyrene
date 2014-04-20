@@ -9,7 +9,7 @@ import os
 import tempfile
 from temp_dir import within_temp_dir
 from pyrene.util import write_file
-
+from pyrene.constants import REPO, REPOTYPE
 from pyrene.repos import Repo
 
 
@@ -56,8 +56,8 @@ class Test_Network(unittest.TestCase):
 
     def make_file_repo(self, directory):
         self.network.define('repo')
-        self.network.set('repo', 'type', m.REPOTYPE_DIRECTORY)
-        self.network.set('repo', 'directory', directory)
+        self.network.set('repo', REPO.TYPE, REPOTYPE.DIRECTORY)
+        self.network.set('repo', REPO.DIRECTORY, directory)
 
     def test_directory_is_available_on_file_repo(self):
         self.make_file_repo('/a/repo/dir')

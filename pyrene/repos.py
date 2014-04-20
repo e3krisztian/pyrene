@@ -7,30 +7,13 @@ import os
 import shutil
 from upload import upload
 from .util import pip_install, pypi_server
-
-
-KEY_TYPE = 'type'
-
-REPOTYPE_DIRECTORY = 'directory'
-REPOTYPE_HTTP = 'http'
-
-KEY_DIRECTORY = 'directory'
-KEY_VOLATILE = 'volatile'
-KEY_SERVE_INTERFACE = 'interface'
-KEY_SERVE_PORT = 'port'
-KEY_SERVE_USERNAME = 'username'
-KEY_SERVE_PASSWORD = 'password'
-
-KEY_USERNAME = 'username'
-KEY_PASSWORD = 'password'
-KEY_DOWNLOAD_URL = 'download_url'
-KEY_UPLOAD_URL = 'upload_url'
+from .constants import REPO, REPOTYPE
 
 
 class Repo(object):
     __metaclass__ = abc.ABCMeta
 
-    ATTRIBUTES = {KEY_TYPE}
+    ATTRIBUTES = {REPO.TYPE}
     DEFAULT_ATTRIBUTES = dict()
 
     def __init__(self, attributes):
@@ -71,18 +54,18 @@ find-links = {directory}
 class DirectoryRepo(Repo):
 
     ATTRIBUTES = {
-        KEY_TYPE,
-        KEY_DIRECTORY,
-        KEY_VOLATILE,
-        KEY_SERVE_INTERFACE,
-        KEY_SERVE_PORT,
-        KEY_SERVE_USERNAME,
-        KEY_SERVE_PASSWORD,
+        REPO.TYPE,
+        REPO.DIRECTORY,
+        REPO.VOLATILE,
+        REPO.SERVE_INTERFACE,
+        REPO.SERVE_PORT,
+        REPO.SERVE_USERNAME,
+        REPO.SERVE_PASSWORD,
     }
 
     DEFAULT_ATTRIBUTES = {
-        KEY_TYPE: REPOTYPE_DIRECTORY,
-        KEY_DIRECTORY: os.path.abspath('.'),
+        REPO.TYPE: REPOTYPE.DIRECTORY,
+        REPO.DIRECTORY: os.path.abspath('.'),
     }
 
     def get_as_pip_conf(self):
@@ -103,12 +86,12 @@ class DirectoryRepo(Repo):
 
     def serve(self):
         directory = self.directory
-        username = getattr(self, KEY_SERVE_USERNAME, 'anyone')
-        password = getattr(self, KEY_SERVE_PASSWORD, 'secret')
-        interface = getattr(self, KEY_SERVE_INTERFACE, '0.0.0.0')
-        port = getattr(self, KEY_SERVE_PORT, '8080')
+        username = getattr(self, REPO.SERVE_USERNAME, 'anyone')
+        password = getattr(self, REPO.SERVE_PASSWORD, 'secret')
+        interface = getattr(self, REPO.SERVE_INTERFACE, '0.0.0.0')
+        port = getattr(self, REPO.SERVE_PORT, '8080')
         true = {'y', 'yes', 't', 'true'}
-        volatile = getattr(self, KEY_VOLATILE, 'no').lower() in true
+        volatile = getattr(self, REPO.VOLATILE, 'no').lower() in true
         pypi_server(directory, username, password, interface, port, volatile)
 
 
@@ -122,15 +105,15 @@ extra-index-url =
 class HttpRepo(Repo):
 
     ATTRIBUTES = {
-        KEY_TYPE,
-        KEY_UPLOAD_URL,
-        KEY_DOWNLOAD_URL,
-        KEY_USERNAME,
-        KEY_PASSWORD,
+        REPO.TYPE,
+        REPO.UPLOAD_URL,
+        REPO.DOWNLOAD_URL,
+        REPO.USERNAME,
+        REPO.PASSWORD,
     }
 
     DEFAULT_ATTRIBUTES = {
-        KEY_DOWNLOAD_URL: 'http://localhost:8080/simple',
+        REPO.DOWNLOAD_URL: 'http://localhost:8080/simple',
     }
 
     def get_as_pip_conf(self):

@@ -7,8 +7,7 @@ from cmd import Cmd
 import traceback
 from .util import write_file
 from .network import Network, DirectoryRepo
-from .repos import KEY_TYPE, KEY_DIRECTORY, KEY_DOWNLOAD_URL, KEY_UPLOAD_URL
-from pyrene import network
+from .constants import REPO, REPOTYPE
 
 
 class BaseCmd(Cmd, object):
@@ -256,19 +255,15 @@ class PyreneCmd(BaseCmd):
         Configure repo to point to the default package index
         https://pypi.python.org.
         '''
+        self.network.set(repo, REPO.TYPE, REPOTYPE.HTTP)
         self.network.set(
             repo,
-            KEY_TYPE,
-            network.REPOTYPE_HTTP
-        )
-        self.network.set(
-            repo,
-            KEY_DOWNLOAD_URL,
+            REPO.DOWNLOAD_URL,
             'https://pypi.python.org/simple/'
         )
         self.network.set(
             repo,
-            KEY_UPLOAD_URL,
+            REPO.UPLOAD_URL,
             'https://pypi.python.org/'
         )
 
@@ -282,16 +277,8 @@ class PyreneCmd(BaseCmd):
         piplocal = os.path.expanduser('~/.pip/local')
         if not os.path.exists(piplocal):
             os.makedirs(piplocal)
-        self.network.set(
-            repo,
-            network.KEY_TYPE,
-            network.REPOTYPE_DIRECTORY
-        )
-        self.network.set(
-            repo,
-            KEY_DIRECTORY,
-            piplocal
-        )
+        self.network.set(repo, REPO.TYPE, REPOTYPE.DIRECTORY)
+        self.network.set(repo, REPO.DIRECTORY, piplocal)
 
     complete_setup_for_pip_local = complete_repo_name
 

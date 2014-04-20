@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import os
 from ConfigParser import RawConfigParser
 from .repos import DirectoryRepo, HttpRepo
-from .repos import KEY_TYPE, REPOTYPE_DIRECTORY, REPOTYPE_HTTP
+from .constants import REPO, REPOTYPE
 
 
 class UnknownRepoError(NameError):
@@ -21,16 +21,16 @@ class UnknownRepoType(ValueError):
 
 
 TYPE_TO_CLASS = {
-    REPOTYPE_DIRECTORY: DirectoryRepo,
-    REPOTYPE_HTTP: HttpRepo,
+    REPOTYPE.DIRECTORY: DirectoryRepo,
+    REPOTYPE.HTTP: HttpRepo,
 }
 
 
 class Network(object):
 
     REPO_TYPES = {
-        REPOTYPE_DIRECTORY,
-        REPOTYPE_HTTP,
+        REPOTYPE.DIRECTORY,
+        REPOTYPE.HTTP,
     }
 
     REPO_ATTRIBUTES = DirectoryRepo.ATTRIBUTES.union(HttpRepo.ATTRIBUTES)
@@ -53,13 +53,13 @@ class Network(object):
 
     def get_repo(self, repo_name):
         repokey = self.REPO_SECTION_PREFIX + repo_name
-        if not self._config.has_option(repokey, KEY_TYPE):
+        if not self._config.has_option(repokey, REPO.TYPE):
             if self._config.has_section(repokey):
                 raise UndefinedRepoType(repo_name)
             raise UnknownRepoError(repo_name)
 
         attributes = self.get_attributes(repo_name)
-        repo_type = attributes[KEY_TYPE]
+        repo_type = attributes[REPO.TYPE]
 
         try:
             return TYPE_TO_CLASS[repo_type](attributes)
