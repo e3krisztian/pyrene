@@ -12,7 +12,7 @@ import pyrene.shell as m
 from pyrene.util import Directory
 from pyrene.constants import REPO
 from pyrene.repos import Repo
-from .util import capture_stdout, fake_stdin
+from .util import capture_stdout, fake_stdin, Assertions
 
 # START: unique_justseen
 # https://docs.python.org/2.7/library/itertools.html#itertools-recipes
@@ -59,7 +59,7 @@ class Test_PyreneCmd_write_file(unittest.TestCase):
             self.assertEqual(b'somecontent', f.read())
 
 
-class Test_PyreneCmd(unittest.TestCase):
+class Test_PyreneCmd(Assertions, unittest.TestCase):
 
     def setUp(self):
         self.repo1 = mock.Mock(spec_set=Repo)
@@ -265,8 +265,9 @@ class Test_PyreneCmd(unittest.TestCase):
                 self.network.mock_calls
             )
             output = stdout.content
-            self.assertRegexpMatches(output, '.*name.*SHRP1.*')
-            self.assertRegexpMatches(output, '.*type.*[?][?].*')
+
+        self.assertContainsInOrder(output, ['name', ':', 'SHRP1'])
+        self.assertContainsInOrder(output, ['type', ':', '??'])
 
     def test_complete_set_before_repo(self):
         self.network.repo_names = ('repo', 'repo2')
