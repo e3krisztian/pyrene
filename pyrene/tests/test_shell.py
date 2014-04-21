@@ -257,16 +257,14 @@ class Test_PyreneCmd(unittest.TestCase):
         self.network.get_attributes.configure_mock(
             return_value={'name': 'SHRP1', REPO.TYPE: '??'}
         )
-        with capture_stdout() as stdout:
-            self.cmd.onecmd('show repo1')
 
-            self.assertEqual(
-                [mock.call.get_attributes('repo1')],
-                self.network.mock_calls
-            )
-            output = stdout.content
-            self.assertRegexpMatches(output, '.*name.*SHRP1.*')
-            self.assertRegexpMatches(output, '.*type.*[?][?].*')
+        self.cmd.onecmd('show repo1')
+
+        self.assertEqual(
+            [mock.call.get_repo('repo1')],
+            self.network.mock_calls
+        )
+        self.repo1.print_attributes.assert_called_once_with()
 
     def test_complete_set_before_repo(self):
         self.network.repo_names = ('repo', 'repo2')

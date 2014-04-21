@@ -9,6 +9,19 @@ import signal
 import contextlib
 from tempfile import NamedTemporaryFile
 from passlib.apache import HtpasswdFile
+import termcolor
+
+
+def red(text):
+    return termcolor.colored(text, 'red')
+
+
+def green(text):
+    return termcolor.colored(text, 'green')
+
+
+def bold(text):
+    return termcolor.colored(text, attrs={'bold'})
 
 
 @contextlib.contextmanager

@@ -3,27 +3,25 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import abc
-import os
 import shutil
-from upload import upload
-from .util import pip_install, PyPI
-from .constants import REPO, REPOTYPE
+from .upload import upload
+from .util import pip_install, PyPI, red, green
+from .constants import REPO
 
 
 class Repo(object):
     __metaclass__ = abc.ABCMeta
 
-    ATTRIBUTES = {REPO.TYPE}
-    DEFAULT_ATTRIBUTES = dict()
+    ATTRIBUTES = (REPO.TYPE,)
 
-    def __init__(self, attributes):
+    def __init__(self, name, attributes):
         super(Repo, self).__init__()
-        self._attributes = dict(self.DEFAULT_ATTRIBUTES)
-        self._attributes.update(attributes)
+        self.name = name
+        self.attributes = dict(attributes)
 
     def __getattr__(self, key):
         try:
-            return self._attributes[key]
+            return self.attributes[key]
         except KeyError:
             raise AttributeError(key)
 
@@ -43,26 +41,67 @@ class Repo(object):
     def serve(self):
         pass
 
+    def print_attributes(self):
+        for attribute in self.ATTRIBUTES:
+            if attribute in self.attributes:
+                msg = green(
+                    '   {}: {}'
+                    .format(attribute, self.attributes[attribute])
+                )
+            else:
+                msg = ' - {}'.format(attribute)
+
+            print(msg)
+
+        junk = sorted(set(self.attributes.keys()) - set(self.ATTRIBUTES))
+        if junk:
+            print()
+            print('Junk attributes:')
+            for attribute in junk:
+                msg = red(
+                    ' ? {}: {}'.format(attribute, self.attributes[attribute])
+                )
+
+                print(msg)
+
 
 PIPCONF_NULLREPO = '''\
 [global]
+# no package can be installed from a BadRepo
 no-index = true
 '''
 
 
-class NullRepo(Repo):
+class BadRepo(Repo):
+
+    ATTRIBUTES = {}
 
     def get_as_pip_conf(self):
         return PIPCONF_NULLREPO
 
+    @property
+    def printable_name(self):
+        return red('{} (a misconfigured repo!)'.format(self.name))
+
     def download_packages(self, package_spec, directory):
-        print('NullRepo provided packages {}'.format(package_spec))
+        print(
+            '{}: pretended to provide package "{}"'
+            .format(self.printable_name, package_spec)
+        )
 
     def upload_packages(self, package_files):
-        print('NullRepo swallowed packages {}'.format(' '.join(package_files)))
+        if package_files:
+            print(
+                '{}: pretended to upload package files'
+                .format(self.printable_name)
+            )
+            for file in package_files:
+                print('  {}'.format(file))
+        else:
+            print('{}: nothing to upload'.format(self.printable_name))
 
     def serve(self):
-        print('NullRepo is not served')
+        print('{}: is not served'.format(self.printable_name))
 
 
 PIPCONF_DIRECTORYREPO = '''\
@@ -74,7 +113,7 @@ find-links = {directory}
 
 class DirectoryRepo(Repo):
 
-    ATTRIBUTES = {
+    ATTRIBUTES = (
         REPO.TYPE,
         REPO.DIRECTORY,
         REPO.VOLATILE,
@@ -82,12 +121,7 @@ class DirectoryRepo(Repo):
         REPO.SERVE_PORT,
         REPO.SERVE_USERNAME,
         REPO.SERVE_PASSWORD,
-    }
-
-    DEFAULT_ATTRIBUTES = {
-        REPO.TYPE: REPOTYPE.DIRECTORY,
-        REPO.DIRECTORY: os.path.abspath('.'),
-    }
+    )
 
     def get_as_pip_conf(self):
         return PIPCONF_DIRECTORYREPO.format(directory=self.directory)
@@ -133,17 +167,13 @@ extra-index-url =
 
 class HttpRepo(Repo):
 
-    ATTRIBUTES = {
+    ATTRIBUTES = (
         REPO.TYPE,
         REPO.UPLOAD_URL,
         REPO.DOWNLOAD_URL,
         REPO.USERNAME,
         REPO.PASSWORD,
-    }
-
-    DEFAULT_ATTRIBUTES = {
-        REPO.DOWNLOAD_URL: 'http://localhost:8080/simple',
-    }
+    )
 
     def get_as_pip_conf(self):
         return PIPCONF_HTTPREPO.format(download_url=self.download_url)

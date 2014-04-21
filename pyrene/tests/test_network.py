@@ -41,7 +41,7 @@ class Test_Network(unittest.TestCase):
         self.network.define('no-type')
         self.network.set('no-type', 'attr', 'attr-value')
         repo = self.network.get_repo('no-type')
-        self.assertIsInstance(repo, m.NullRepo)
+        self.assertIsInstance(repo, m.BadRepo)
         self.assertEqual('attr-value', repo.attr)
 
     def test_get_repo_returns_repo(self):
@@ -53,8 +53,13 @@ class Test_Network(unittest.TestCase):
     def test_get_repo_fails_on_unknown_repo_type(self):
         self.network.define('repo')
         self.network.set('repo', 'type', 'unknown!')
-        with self.assertRaises(m.UnknownRepoType):
-            self.network.get_repo('repo')
+        repo = self.network.get_repo('repo')
+        self.assertIsInstance(repo, m.BadRepo)
+
+    def test_get_repo_sets_repo_name(self):
+        self.network.define('r!')
+        repo = self.network.get_repo('r!')
+        self.assertEqual('r!', repo.name)
 
     def make_file_repo(self, directory):
         self.network.define('repo')

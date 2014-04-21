@@ -4,16 +4,12 @@ from __future__ import unicode_literals
 
 import os
 from ConfigParser import RawConfigParser
-from .repos import NullRepo, DirectoryRepo, HttpRepo
+from .repos import BadRepo, DirectoryRepo, HttpRepo
 from .constants import REPO, REPOTYPE
 
 
 class UnknownRepoError(NameError):
     '''Repo is not defined at all'''
-
-
-class UnknownRepoType(ValueError):
-    '''type was given, but it is unknown'''
 
 
 TYPE_TO_CLASS = {
@@ -29,7 +25,11 @@ class Network(object):
         REPOTYPE.HTTP,
     }
 
-    REPO_ATTRIBUTES = DirectoryRepo.ATTRIBUTES.union(HttpRepo.ATTRIBUTES)
+    REPO_ATTRIBUTES = set(
+        DirectoryRepo.ATTRIBUTES
+    ).union(
+        set(HttpRepo.ATTRIBUTES)
+    )
 
     REPO_SECTION_PREFIX = 'repo:'
 
@@ -53,16 +53,9 @@ class Network(object):
             raise UnknownRepoError(repo_name)
 
         attributes = self.get_attributes(repo_name)
-        try:
-            repo_type = attributes[REPO.TYPE]
-        except KeyError:
-            # no type specified
-            return NullRepo(attributes)
+        repo_type = attributes.get(REPO.TYPE)
 
-        try:
-            return TYPE_TO_CLASS[repo_type](attributes)
-        except KeyError:
-            raise UnknownRepoType(repo_type)
+        return TYPE_TO_CLASS.get(repo_type, BadRepo)(repo_name, attributes)
 
     def define(self, repo_name):
         repokey = self.REPO_SECTION_PREFIX + repo_name
