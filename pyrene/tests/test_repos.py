@@ -7,6 +7,7 @@ import mock
 from io import StringIO
 import pyrene.repos as m
 from pyrene.constants import REPO, REPOTYPE
+from .util import capture_stdout, Assertions
 
 
 class Test_NullRepo(unittest.TestCase):
@@ -21,7 +22,7 @@ class Test_NullRepo(unittest.TestCase):
         self.repo.upload_packages(['a'])
 
 
-class Test_DirectoryRepo(unittest.TestCase):
+class Test_DirectoryRepo(Assertions, unittest.TestCase):
 
     def test_attributes(self):
         repo = m.DirectoryRepo({'directory': 'dir@', 'type': 'directory'})
@@ -55,8 +56,16 @@ class Test_DirectoryRepo(unittest.TestCase):
         pypi = mock.Mock()
         repo.serve(pypi)
 
+    def test_print_attributes(self):
+        with capture_stdout() as stdout:
+            m.DirectoryRepo({}).print_attributes()
+            output = stdout.content
 
-class Test_HttpRepo(unittest.TestCase):
+        self.assertContainsInOrder(output, m.DirectoryRepo.ATTRIBUTES)
+        self.assertNotIn(REPO.DOWNLOAD_URL, output)
+
+
+class Test_HttpRepo(Assertions, unittest.TestCase):
 
     def test_attributes(self):
         repo = m.HttpRepo(
@@ -88,3 +97,11 @@ class Test_HttpRepo(unittest.TestCase):
         url = 'http://download/url'
         repo = m.HttpRepo({REPO.DOWNLOAD_URL: url})
         self.assertIn(url, repo.get_as_pip_conf())
+
+    def test_print_attributes(self):
+        with capture_stdout() as stdout:
+            m.HttpRepo({}).print_attributes()
+            output = stdout.content
+
+        self.assertContainsInOrder(output, m.HttpRepo.ATTRIBUTES)
+        self.assertNotIn(REPO.DIRECTORY, output)

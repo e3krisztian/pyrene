@@ -41,13 +41,23 @@ class Repo(object):
         pass
 
     def print_attributes(self):
-        print(
-            '  '
-            + '\n  '.join(
-                '{}: {}'.format(key, value)
-                for key, value in self.attributes.iteritems()
-            )
-        )
+        for attribute in self.ATTRIBUTES:
+            if attribute in self.attributes:
+                print(
+                    '   {}: {}'
+                    .format(attribute, self.attributes[attribute])
+                )
+            else:
+                print(' - {}'.format(attribute))
+        junk = set(self.attributes.keys()) - set(self.ATTRIBUTES)
+        if junk:
+            print()
+            print('Unknown attributes:')
+            for attribute in junk:
+                print(
+                    ' ? {}: {}'
+                    .format(attribute, self.attributes[attribute])
+                )
 
 
 PIPCONF_NULLREPO = '''\
