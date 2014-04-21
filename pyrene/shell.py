@@ -90,7 +90,7 @@ class PyreneCmd(BaseCmd):
             return self.network.get_repo(repo_name)
 
         attributes = {'directory': word}
-        return DirectoryRepo(attributes)
+        return DirectoryRepo('Implicit({})'.format(word), attributes)
 
     def do_copy(self, line):
         '''

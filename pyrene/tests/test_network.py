@@ -56,6 +56,11 @@ class Test_Network(unittest.TestCase):
         repo = self.network.get_repo('repo')
         self.assertIsInstance(repo, m.BadRepo)
 
+    def test_get_repo_sets_repo_name(self):
+        self.network.define('r!')
+        repo = self.network.get_repo('r!')
+        self.assertEqual('r!', repo.name)
+
     def make_file_repo(self, directory):
         self.network.define('repo')
         self.network.set('repo', REPO.TYPE, REPOTYPE.DIRECTORY)

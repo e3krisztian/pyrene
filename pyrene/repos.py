@@ -14,8 +14,9 @@ class Repo(object):
 
     ATTRIBUTES = (REPO.TYPE,)
 
-    def __init__(self, attributes):
+    def __init__(self, name, attributes):
         super(Repo, self).__init__()
+        self.name = name
         self.attributes = dict(attributes)
 
     def __getattr__(self, key):

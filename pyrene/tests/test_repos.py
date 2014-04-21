@@ -13,7 +13,7 @@ from .util import capture_stdout, Assertions
 class Test_BadRepo(unittest.TestCase):
 
     def setUp(self):
-        self.repo = m.BadRepo({})
+        self.repo = m.BadRepo('repo', {})
 
     def test_download_package(self):
         self.repo.download_packages('a', '.')
@@ -24,24 +24,27 @@ class Test_BadRepo(unittest.TestCase):
 
 class Test_DirectoryRepo(Assertions, unittest.TestCase):
 
+    def make_repo(self, attrs, name='repo'):
+        return m.DirectoryRepo(name, attrs)
+
     def test_attributes(self):
-        repo = m.DirectoryRepo({'directory': 'dir@', 'type': 'directory'})
+        repo = self.make_repo({'directory': 'dir@', 'type': 'directory'})
         self.assertEqual('directory', repo.type)
         self.assertEqual('dir@', repo.directory)
 
     def test_incomplete_repo_get_as_pip_conf(self):
-        repo = m.DirectoryRepo({})
+        repo = self.make_repo({})
         with self.assertRaises(AttributeError):
             repo.get_as_pip_conf()
 
     def test_get_as_pip_conf(self):
         directory = '/path/to/repo'
-        repo = m.DirectoryRepo({REPO.DIRECTORY: directory})
+        repo = self.make_repo({REPO.DIRECTORY: directory})
         self.assertIn(directory, repo.get_as_pip_conf())
 
     def test_serve_without_upload_user(self):
         attrs = {REPO.TYPE: REPOTYPE.DIRECTORY, REPO.DIRECTORY: '.'}
-        repo = m.DirectoryRepo(attrs)
+        repo = self.make_repo(attrs)
         pypi = mock.Mock()
         repo.serve(pypi)
 
@@ -52,13 +55,13 @@ class Test_DirectoryRepo(Assertions, unittest.TestCase):
             REPO.SERVE_USERNAME: 'tu',
             REPO.SERVE_PASSWORD: 'tp',
         }
-        repo = m.DirectoryRepo(attrs)
+        repo = self.make_repo(attrs)
         pypi = mock.Mock()
         repo.serve(pypi)
 
     def test_print_attributes(self):
         with capture_stdout() as stdout:
-            m.DirectoryRepo({}).print_attributes()
+            self.make_repo({}).print_attributes()
             output = stdout.content
 
         self.assertContainsInOrder(output, m.DirectoryRepo.ATTRIBUTES)
@@ -67,8 +70,11 @@ class Test_DirectoryRepo(Assertions, unittest.TestCase):
 
 class Test_HttpRepo(Assertions, unittest.TestCase):
 
+    def make_repo(self, attrs, name='repo'):
+        return m.HttpRepo(name, attrs)
+
     def test_attributes(self):
-        repo = m.HttpRepo(
+        repo = self.make_repo(
             {
                 REPO.DOWNLOAD_URL: 'https://priv.repos.org/simple',
                 REPO.TYPE: REPOTYPE.HTTP
@@ -78,7 +84,7 @@ class Test_HttpRepo(Assertions, unittest.TestCase):
         self.assertEqual('https://priv.repos.org/simple', repo.download_url)
 
     def test_serve(self):
-        repo = m.HttpRepo(
+        repo = self.make_repo(
             {
                 REPO.DOWNLOAD_URL: 'https://priv.repos.org/simple',
             }
@@ -89,18 +95,18 @@ class Test_HttpRepo(Assertions, unittest.TestCase):
             self.assertIn('https://priv.repos.org/simple', stdout.getvalue())
 
     def test_incomplete_repo_get_as_pip_conf(self):
-        repo = m.HttpRepo({})
+        repo = self.make_repo({})
         with self.assertRaises(AttributeError):
             repo.get_as_pip_conf()
 
     def test_get_as_pip_conf(self):
         url = 'http://download/url'
-        repo = m.HttpRepo({REPO.DOWNLOAD_URL: url})
+        repo = self.make_repo({REPO.DOWNLOAD_URL: url})
         self.assertIn(url, repo.get_as_pip_conf())
 
     def test_print_attributes(self):
         with capture_stdout() as stdout:
-            m.HttpRepo({}).print_attributes()
+            self.make_repo({}).print_attributes()
             output = stdout.content
 
         self.assertContainsInOrder(output, m.HttpRepo.ATTRIBUTES)

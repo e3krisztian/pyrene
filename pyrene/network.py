@@ -55,7 +55,7 @@ class Network(object):
         attributes = self.get_attributes(repo_name)
         repo_type = attributes.get(REPO.TYPE)
 
-        return TYPE_TO_CLASS.get(repo_type, BadRepo)(attributes)
+        return TYPE_TO_CLASS.get(repo_type, BadRepo)(repo_name, attributes)
 
     def define(self, repo_name):
         repokey = self.REPO_SECTION_PREFIX + repo_name
