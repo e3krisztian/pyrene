@@ -44,25 +44,25 @@ class Repo(object):
     def print_attributes(self):
         for attribute in self.ATTRIBUTES:
             if attribute in self.attributes:
-                print(
-                    green(
-                        '   {}: {}'
-                        .format(attribute, self.attributes[attribute])
-                    )
+                msg = green(
+                    '   {}: {}'
+                    .format(attribute, self.attributes[attribute])
                 )
             else:
-                print(' - {}'.format(attribute))
-        junk = set(self.attributes.keys()) - set(self.ATTRIBUTES)
+                msg = ' - {}'.format(attribute)
+
+            print(msg)
+
+        junk = sorted(set(self.attributes.keys()) - set(self.ATTRIBUTES))
         if junk:
             print()
             print('Junk attributes:')
             for attribute in junk:
-                print(
-                    red(
-                        ' ? {}: {}'
-                        .format(attribute, self.attributes[attribute])
-                    )
+                msg = red(
+                    ' ? {}: {}'.format(attribute, self.attributes[attribute])
                 )
+
+                print(msg)
 
 
 PIPCONF_NULLREPO = '''\
