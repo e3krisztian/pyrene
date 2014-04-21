@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 
 import os
 from ConfigParser import RawConfigParser
-from .repos import NullRepo, DirectoryRepo, HttpRepo
+from .repos import BadRepo, DirectoryRepo, HttpRepo
 from .constants import REPO, REPOTYPE
 
 
@@ -55,7 +55,7 @@ class Network(object):
         attributes = self.get_attributes(repo_name)
         repo_type = attributes.get(REPO.TYPE)
 
-        return TYPE_TO_CLASS.get(repo_type, NullRepo)(attributes)
+        return TYPE_TO_CLASS.get(repo_type, BadRepo)(attributes)
 
     def define(self, repo_name):
         repokey = self.REPO_SECTION_PREFIX + repo_name

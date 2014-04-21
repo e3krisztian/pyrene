@@ -10,10 +10,10 @@ from pyrene.constants import REPO, REPOTYPE
 from .util import capture_stdout, Assertions
 
 
-class Test_NullRepo(unittest.TestCase):
+class Test_BadRepo(unittest.TestCase):
 
     def setUp(self):
-        self.repo = m.NullRepo({})
+        self.repo = m.BadRepo({})
 
     def test_download_package(self):
         self.repo.download_packages('a', '.')

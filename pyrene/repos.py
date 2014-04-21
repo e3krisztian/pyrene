@@ -62,30 +62,30 @@ class Repo(object):
 
 PIPCONF_NULLREPO = '''\
 [global]
-# no package can be installed from a NullRepo
+# no package can be installed from a BadRepo
 no-index = true
 '''
 
 
-class NullRepo(Repo):
+class BadRepo(Repo):
 
     def get_as_pip_conf(self):
         return PIPCONF_NULLREPO
 
     def download_packages(self, package_spec, directory):
         print(
-            'NullRepo pretended to provide package {}'
+            'BadRepo pretended to provide package {}'
             .format(package_spec)
         )
 
     def upload_packages(self, package_files):
         print(
-            'NullRepo pretended to upload package files {}'
+            'BadRepo pretended to upload package files {}'
             .format(' '.join(package_files))
         )
 
     def serve(self):
-        print('NullRepo is not served')
+        print('BadRepo is not served')
 
 
 PIPCONF_DIRECTORYREPO = '''\
