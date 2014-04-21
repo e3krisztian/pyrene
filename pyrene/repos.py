@@ -3,27 +3,24 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import abc
-import os
 import shutil
 from upload import upload
 from .util import pip_install, PyPI
-from .constants import REPO, REPOTYPE
+from .constants import REPO
 
 
 class Repo(object):
     __metaclass__ = abc.ABCMeta
 
     ATTRIBUTES = (REPO.TYPE,)
-    DEFAULT_ATTRIBUTES = dict()
 
     def __init__(self, attributes):
         super(Repo, self).__init__()
-        self._attributes = dict(self.DEFAULT_ATTRIBUTES)
-        self._attributes.update(attributes)
+        self.attributes = dict(attributes)
 
     def __getattr__(self, key):
         try:
-            return self._attributes[key]
+            return self.attributes[key]
         except KeyError:
             raise AttributeError(key)
 
@@ -42,6 +39,15 @@ class Repo(object):
     @abc.abstractmethod
     def serve(self):
         pass
+
+    def print_attributes(self):
+        print(
+            '  '
+            + '\n  '.join(
+                '{}: {}'.format(key, value)
+                for key, value in self.attributes.iteritems()
+            )
+        )
 
 
 PIPCONF_NULLREPO = '''\
@@ -83,11 +89,6 @@ class DirectoryRepo(Repo):
         REPO.SERVE_USERNAME,
         REPO.SERVE_PASSWORD,
     )
-
-    DEFAULT_ATTRIBUTES = {
-        REPO.TYPE: REPOTYPE.DIRECTORY,
-        REPO.DIRECTORY: os.path.abspath('.'),
-    }
 
     def get_as_pip_conf(self):
         return PIPCONF_DIRECTORYREPO.format(directory=self.directory)
@@ -140,10 +141,6 @@ class HttpRepo(Repo):
         REPO.USERNAME,
         REPO.PASSWORD,
     )
-
-    DEFAULT_ATTRIBUTES = {
-        REPO.DOWNLOAD_URL: 'http://localhost:8080/simple',
-    }
 
     def get_as_pip_conf(self):
         return PIPCONF_HTTPREPO.format(download_url=self.download_url)

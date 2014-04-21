@@ -12,7 +12,7 @@ import pyrene.shell as m
 from pyrene.util import Directory
 from pyrene.constants import REPO
 from pyrene.repos import Repo
-from .util import capture_stdout, fake_stdin, Assertions
+from .util import capture_stdout, fake_stdin
 
 # START: unique_justseen
 # https://docs.python.org/2.7/library/itertools.html#itertools-recipes
@@ -59,7 +59,7 @@ class Test_PyreneCmd_write_file(unittest.TestCase):
             self.assertEqual(b'somecontent', f.read())
 
 
-class Test_PyreneCmd(Assertions, unittest.TestCase):
+class Test_PyreneCmd(unittest.TestCase):
 
     def setUp(self):
         self.repo1 = mock.Mock(spec_set=Repo)
@@ -257,17 +257,14 @@ class Test_PyreneCmd(Assertions, unittest.TestCase):
         self.network.get_attributes.configure_mock(
             return_value={'name': 'SHRP1', REPO.TYPE: '??'}
         )
-        with capture_stdout() as stdout:
-            self.cmd.onecmd('show repo1')
 
-            self.assertEqual(
-                [mock.call.get_attributes('repo1')],
-                self.network.mock_calls
-            )
-            output = stdout.content
+        self.cmd.onecmd('show repo1')
 
-        self.assertContainsInOrder(output, ['name', ':', 'SHRP1'])
-        self.assertContainsInOrder(output, ['type', ':', '??'])
+        self.assertEqual(
+            [mock.call.get_repo('repo1')],
+            self.network.mock_calls
+        )
+        self.repo1.print_attributes.assert_called_once_with()
 
     def test_complete_set_before_repo(self):
         self.network.repo_names = ('repo', 'repo2')

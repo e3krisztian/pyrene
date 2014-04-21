@@ -196,14 +196,8 @@ class PyreneCmd(BaseCmd):
         '''
         List repo attributes - as could be specified in pip.conf
         '''
-        attributes = self.network.get_attributes(repo)
-        print(
-            '  '
-            + '\n  '.join(
-                '{}: {}'.format(key, value)
-                for key, value in attributes.iteritems()
-            )
-        )
+        repo = self.network.get_repo(repo)
+        repo.print_attributes()
 
     def complete_repo_name(self, text, line, begidx, endidx, suffix=''):
         return sorted(

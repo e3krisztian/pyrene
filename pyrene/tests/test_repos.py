@@ -30,9 +30,13 @@ class Test_DirectoryRepo(unittest.TestCase):
 
     def test_incomplete_repo_get_as_pip_conf(self):
         repo = m.DirectoryRepo({})
-        pip_conf = repo.get_as_pip_conf()
+        with self.assertRaises(AttributeError):
+            repo.get_as_pip_conf()
 
-        self.assertIn('find-links', pip_conf)
+    def test_get_as_pip_conf(self):
+        directory = '/path/to/repo'
+        repo = m.DirectoryRepo({REPO.DIRECTORY: directory})
+        self.assertIn(directory, repo.get_as_pip_conf())
 
     def test_serve_without_upload_user(self):
         attrs = {REPO.TYPE: REPOTYPE.DIRECTORY, REPO.DIRECTORY: '.'}
@@ -57,8 +61,8 @@ class Test_HttpRepo(unittest.TestCase):
     def test_attributes(self):
         repo = m.HttpRepo(
             {
-                'download_url': 'https://priv.repos.org/simple',
-                'type': 'http'
+                REPO.DOWNLOAD_URL: 'https://priv.repos.org/simple',
+                REPO.TYPE: REPOTYPE.HTTP
             }
         )
         self.assertEqual('http', repo.type)
@@ -67,7 +71,7 @@ class Test_HttpRepo(unittest.TestCase):
     def test_serve(self):
         repo = m.HttpRepo(
             {
-                'download_url': 'https://priv.repos.org/simple',
+                REPO.DOWNLOAD_URL: 'https://priv.repos.org/simple',
             }
         )
         with mock.patch('sys.stdout', new_callable=StringIO) as stdout:
@@ -77,6 +81,10 @@ class Test_HttpRepo(unittest.TestCase):
 
     def test_incomplete_repo_get_as_pip_conf(self):
         repo = m.HttpRepo({})
-        pip_conf = repo.get_as_pip_conf()
+        with self.assertRaises(AttributeError):
+            repo.get_as_pip_conf()
 
-        self.assertIn('localhost', pip_conf)
+    def test_get_as_pip_conf(self):
+        url = 'http://download/url'
+        repo = m.HttpRepo({REPO.DOWNLOAD_URL: url})
+        self.assertIn(url, repo.get_as_pip_conf())
