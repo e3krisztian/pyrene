@@ -1,7 +1,11 @@
 TODO
  ☐ resilience/autohealing:
    ✔ reload .pyrene file before operations - to immediately apply changes made in another Pyrene instance @done (14-04-17 00:42)
-   ☐ setting repo type sets type based attributes to defaults (e.g. generates random password)
+ ☐ show attributes in consistent repo type defined order
+   ☐ colored output with https://pypi.python.org/pypi/termcolor
+ ☐ set_defaults repo - sets all valid attributes to some sensible value
+   ☐ set user's login name as username
+   ☐ generate password for serving directories
  ☐ support some pip switches
    candidates: -r requirements.txt, --pre, --no-use-wheel
  ☐ support copying all package versions
