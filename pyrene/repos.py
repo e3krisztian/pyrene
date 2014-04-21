@@ -73,20 +73,29 @@ class BadRepo(Repo):
     def get_as_pip_conf(self):
         return PIPCONF_NULLREPO
 
+    @property
+    def printable_name(self):
+        return '{} (a misconfigured repo!)'.format(self.name)
+
     def download_packages(self, package_spec, directory):
         print(
-            'BadRepo pretended to provide package {}'
-            .format(package_spec)
+            '{}: pretended to provide package "{}"'
+            .format(self.printable_name, package_spec)
         )
 
     def upload_packages(self, package_files):
-        print(
-            'BadRepo pretended to upload package files {}'
-            .format(' '.join(package_files))
-        )
+        if package_files:
+            print(
+                '{}: pretended to upload package files'
+                .format(self.printable_name)
+            )
+            for file in package_files:
+                print('  {}'.format(file))
+        else:
+            print('{}: nothing to upload'.format(self.printable_name))
 
     def serve(self):
-        print('BadRepo is not served')
+        print('{}: is not served'.format(self.printable_name))
 
 
 PIPCONF_DIRECTORYREPO = '''\
