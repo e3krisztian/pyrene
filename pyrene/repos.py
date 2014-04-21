@@ -4,8 +4,8 @@ from __future__ import unicode_literals
 
 import abc
 import shutil
-from upload import upload
-from .util import pip_install, PyPI
+from .upload import upload
+from .util import pip_install, PyPI, red, green
 from .constants import REPO
 
 
@@ -45,19 +45,23 @@ class Repo(object):
         for attribute in self.ATTRIBUTES:
             if attribute in self.attributes:
                 print(
-                    '   {}: {}'
-                    .format(attribute, self.attributes[attribute])
+                    green(
+                        '   {}: {}'
+                        .format(attribute, self.attributes[attribute])
+                    )
                 )
             else:
                 print(' - {}'.format(attribute))
         junk = set(self.attributes.keys()) - set(self.ATTRIBUTES)
         if junk:
             print()
-            print('Unknown attributes:')
+            print('Junk attributes:')
             for attribute in junk:
                 print(
-                    ' ? {}: {}'
-                    .format(attribute, self.attributes[attribute])
+                    red(
+                        ' ? {}: {}'
+                        .format(attribute, self.attributes[attribute])
+                    )
                 )
 
 
@@ -70,12 +74,14 @@ no-index = true
 
 class BadRepo(Repo):
 
+    ATTRIBUTES = {}
+
     def get_as_pip_conf(self):
         return PIPCONF_NULLREPO
 
     @property
     def printable_name(self):
-        return '{} (a misconfigured repo!)'.format(self.name)
+        return red('{} (a misconfigured repo!)'.format(self.name))
 
     def download_packages(self, package_spec, directory):
         print(
