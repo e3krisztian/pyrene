@@ -29,7 +29,11 @@ class Network(object):
         REPOTYPE.HTTP,
     }
 
-    REPO_ATTRIBUTES = DirectoryRepo.ATTRIBUTES.union(HttpRepo.ATTRIBUTES)
+    REPO_ATTRIBUTES = set(
+        DirectoryRepo.ATTRIBUTES
+    ).union(
+        set(HttpRepo.ATTRIBUTES)
+    )
 
     REPO_SECTION_PREFIX = 'repo:'
 

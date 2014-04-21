@@ -13,7 +13,7 @@ from .constants import REPO, REPOTYPE
 class Repo(object):
     __metaclass__ = abc.ABCMeta
 
-    ATTRIBUTES = {REPO.TYPE}
+    ATTRIBUTES = (REPO.TYPE,)
     DEFAULT_ATTRIBUTES = dict()
 
     def __init__(self, attributes):
@@ -74,7 +74,7 @@ find-links = {directory}
 
 class DirectoryRepo(Repo):
 
-    ATTRIBUTES = {
+    ATTRIBUTES = (
         REPO.TYPE,
         REPO.DIRECTORY,
         REPO.VOLATILE,
@@ -82,7 +82,7 @@ class DirectoryRepo(Repo):
         REPO.SERVE_PORT,
         REPO.SERVE_USERNAME,
         REPO.SERVE_PASSWORD,
-    }
+    )
 
     DEFAULT_ATTRIBUTES = {
         REPO.TYPE: REPOTYPE.DIRECTORY,
@@ -133,13 +133,13 @@ extra-index-url =
 
 class HttpRepo(Repo):
 
-    ATTRIBUTES = {
+    ATTRIBUTES = (
         REPO.TYPE,
         REPO.UPLOAD_URL,
         REPO.DOWNLOAD_URL,
         REPO.USERNAME,
         REPO.PASSWORD,
-    }
+    )
 
     DEFAULT_ATTRIBUTES = {
         REPO.DOWNLOAD_URL: 'http://localhost:8080/simple',
