@@ -12,10 +12,6 @@ class UnknownRepoError(NameError):
     '''Repo is not defined at all'''
 
 
-class UnknownRepoType(ValueError):
-    '''type was given, but it is unknown'''
-
-
 TYPE_TO_CLASS = {
     REPOTYPE.DIRECTORY: DirectoryRepo,
     REPOTYPE.HTTP: HttpRepo,
@@ -57,16 +53,9 @@ class Network(object):
             raise UnknownRepoError(repo_name)
 
         attributes = self.get_attributes(repo_name)
-        try:
-            repo_type = attributes[REPO.TYPE]
-        except KeyError:
-            # no type specified
-            return NullRepo(attributes)
+        repo_type = attributes.get(REPO.TYPE)
 
-        try:
-            return TYPE_TO_CLASS[repo_type](attributes)
-        except KeyError:
-            raise UnknownRepoType(repo_type)
+        return TYPE_TO_CLASS.get(repo_type, NullRepo)(attributes)
 
     def define(self, repo_name):
         repokey = self.REPO_SECTION_PREFIX + repo_name

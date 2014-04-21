@@ -62,6 +62,7 @@ class Repo(object):
 
 PIPCONF_NULLREPO = '''\
 [global]
+# no package can be installed from a NullRepo
 no-index = true
 '''
 
@@ -72,10 +73,16 @@ class NullRepo(Repo):
         return PIPCONF_NULLREPO
 
     def download_packages(self, package_spec, directory):
-        print('NullRepo provided packages {}'.format(package_spec))
+        print(
+            'NullRepo pretended to provide package {}'
+            .format(package_spec)
+        )
 
     def upload_packages(self, package_files):
-        print('NullRepo swallowed packages {}'.format(' '.join(package_files)))
+        print(
+            'NullRepo pretended to upload package files {}'
+            .format(' '.join(package_files))
+        )
 
     def serve(self):
         print('NullRepo is not served')
