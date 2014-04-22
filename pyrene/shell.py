@@ -191,6 +191,19 @@ class PyreneCmd(BaseCmd):
         repo, attribute = line.split()
         self.network.unset(repo, attribute)
 
+    def complete_unset(self, text, line, begidx, endidx):
+        complete_line = line[:endidx]
+        words = complete_line.split()
+        complete_index = len(words) + (0 if text else 1)
+        if complete_index == 2:
+            completions = self.complete_repo_name(
+                text, line, begidx, endidx, suffix=' '
+            )
+        else:
+            repo = self.network.get_repo(words[1])
+            completions = repo.attributes.keys()
+        return sorted(c for c in completions if c.startswith(text))
+
     def do_list(self, line):
         '''
         List known repos

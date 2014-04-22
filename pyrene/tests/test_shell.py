@@ -311,6 +311,21 @@ class Test_PyreneCmd(unittest.TestCase):
         completion = self.cmd.complete_set('key=', 'set re key=value', 7, 11)
         self.assertEqual(set(), set(completion))
 
+    def test_complete_unset_without_params(self):
+        self.network.repo_names = ('asd', 'absd')
+        completion = self.cmd.complete_unset('', 'unset ', 6, 6)
+        self.assertEqual({'asd ', 'absd '}, set(completion))
+
+    def test_complete_unset_on_repo(self):
+        self.network.repo_names = ('asd', 'absd', 'bsd')
+        completion = self.cmd.complete_unset('a', 'unset as', 6, 7)
+        self.assertEqual({'asd ', 'absd '}, set(completion))
+
+    def test_complete_unset_on_attribute_name(self):
+        self.repo1.attributes = {'a': 1, 'b': 2}
+        completion = self.cmd.complete_unset('', 'unset repo1 ', 12, 12)
+        self.assertEqual({'a', 'b'}, set(completion))
+
     def test_complete_repo_name(self):
         self.network.repo_names = ('repo', 'repo2')
         completion = self.cmd.complete_repo_name('', 'cmd ', 4, 4)

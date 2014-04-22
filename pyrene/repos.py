@@ -13,6 +13,7 @@ class Repo(object):
     __metaclass__ = abc.ABCMeta
 
     ATTRIBUTES = (REPO.TYPE,)
+    attributes = dict
 
     def __init__(self, name, attributes):
         super(Repo, self).__init__()
