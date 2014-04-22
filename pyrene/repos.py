@@ -20,11 +20,11 @@ class Repo(object):
         self.name = name
         self.attributes = dict(attributes)
 
-    def __getattr__(self, key):
+    def __getattr__(self, attribute):
         try:
-            return self.attributes[key]
+            return self.attributes[attribute]
         except KeyError:
-            raise AttributeError(key)
+            raise AttributeError(attribute)
 
     @abc.abstractmethod
     def get_as_pip_conf(self):

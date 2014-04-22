@@ -240,14 +240,14 @@ class Test_PyreneCmd(unittest.TestCase):
         self.network.forget.assert_called_once_with('somerepo')
 
     def test_set(self):
-        self.cmd.onecmd('set repo1 key=value')
+        self.cmd.onecmd('set repo1 attribute=value')
 
-        self.network.set.assert_called_once_with('repo1', 'key', 'value')
+        self.network.set.assert_called_once_with('repo1', 'attribute', 'value')
 
     def test_unset(self):
-        self.cmd.onecmd('unset repo1 key')
+        self.cmd.onecmd('unset repo1 attribute')
 
-        self.network.unset.assert_called_once_with('repo1', 'key')
+        self.network.unset.assert_called_once_with('repo1', 'attribute')
 
     def test_list(self):
         self.network.repo_names = ['S1', '#@!']
@@ -273,19 +273,21 @@ class Test_PyreneCmd(unittest.TestCase):
 
     def test_complete_set_before_repo(self):
         self.network.repo_names = ('repo', 'repo2')
-        completion = self.cmd.complete_set('', 'set re key=value', 4, 4)
+        completion = self.cmd.complete_set('', 'set re atibute=value', 4, 4)
         self.assertEqual({'repo ', 'repo2 '}, set(completion))
 
     def test_complete_set_on_repo(self):
         self.network.repo_names = ('repo', 'repo2')
-        completion = self.cmd.complete_set('re', 'set re key=value', 4, 5)
+        completion = self.cmd.complete_set(
+            're', 'set re attribute=value', 4, 5
+        )
         self.assertEqual({'repo ', 'repo2 '}, set(completion))
 
-    def test_complete_set_on_key(self):
-        completion = self.cmd.complete_set('', 'set re key=value', 7, 7)
+    def test_complete_set_on_attribute(self):
+        completion = self.cmd.complete_set('', 'set re atibute=value', 7, 7)
         self.assertEqual(set(m.REPO_ATTRIBUTE_COMPLETIONS), set(completion))
 
-    def test_complete_set_on_key_ty(self):
+    def test_complete_set_on_attribute_ty(self):
         completion = self.cmd.complete_set('ty', 'set re ty=value', 7, 9)
         self.assertEqual({'type='}, set(completion))
 
@@ -308,7 +310,9 @@ class Test_PyreneCmd(unittest.TestCase):
         self.assertEqual(set(m.Network.REPO_TYPES), set(completion))
 
     def test_complete_set_on_value(self):
-        completion = self.cmd.complete_set('key=', 'set re key=value', 7, 11)
+        completion = self.cmd.complete_set(
+            'attribute=', 'set re attribute=value', 7, 17
+        )
         self.assertEqual(set(), set(completion))
 
     def test_complete_unset_without_params(self):
