@@ -13,7 +13,7 @@ There are two types of repos I support, probably this covers with their variants
     - a directory with package files, for fast/offline development
     - `~/.pip/local` - one such directory
 
-I provide a shell-like environment as primary interface - with completion for commands and parameters, but I can be used as a command-line tool as well.
+I provide a shell-like environment as primary interface - with completion for commands and attributes, but I can be used as a command-line tool as well.
 
 
 Installation
@@ -73,12 +73,24 @@ Pyrene: list
 set
 ---
 
-Sets a repository parameter.
+Sets a repository attribute.
 
 ```
-Pyrene: set repo key=value
+Pyrene: set repo attribute=value
 Pyrene: show repo
-  key: value
+  attribute: value
+```
+
+unset
+-----
+
+Removes a repository attribute
+
+```
+Pyrene: show repo
+  attribute: value
+Pyrene: unset repo attribute
+Pyrene: show repo
 ```
 
 forget

@@ -98,7 +98,7 @@ class PyreneCmd(BaseCmd):
 
         copy [LOCAL-FILE [...]] [REPO:PACKAGE-SPEC [...]] DESTINATION
 
-        The order of parameters is important:
+        The order of attributes is important:
         LOCAL-FILEs should come first if there are any,
         then packages from defined REPOs, then DESTINATION specification.
         DESTINATION can be either a REPO: or a directory.
@@ -146,9 +146,9 @@ class PyreneCmd(BaseCmd):
 
     def do_set(self, line):
         '''
-        Set repository parameters.
+        Set repository attributes.
 
-        set repo key=value
+        set repo attribute=value
 
         # intended use:
 
@@ -163,9 +163,9 @@ class PyreneCmd(BaseCmd):
         set company-private-repo username=user
         set company-private-repo password=pass
         '''
-        repo, key_value = line.split()
-        key, _, value = key_value.partition('=')
-        self.network.set(repo, key, value)
+        repo, attribute_value = line.split()
+        attribute, _, value = attribute_value.partition('=')
+        self.network.set(repo, attribute, value)
 
     def complete_set(self, text, line, begidx, endidx):
         completions = ()
@@ -182,6 +182,26 @@ class PyreneCmd(BaseCmd):
                 completions = tuple(Network.REPO_TYPES)
         else:
             completions = REPO_ATTRIBUTE_COMPLETIONS
+        return sorted(c for c in completions if c.startswith(text))
+
+    def do_unset(self, line):
+        '''
+        Unset a repository attribute
+        '''
+        repo, attribute = line.split()
+        self.network.unset(repo, attribute)
+
+    def complete_unset(self, text, line, begidx, endidx):
+        complete_line = line[:endidx]
+        words = complete_line.split()
+        complete_index = len(words) + (0 if text else 1)
+        if complete_index == 2:
+            completions = self.complete_repo_name(
+                text, line, begidx, endidx, suffix=' '
+            )
+        else:
+            repo = self.network.get_repo(words[1])
+            completions = repo.attributes.keys()
         return sorted(c for c in completions if c.startswith(text))
 
     def do_list(self, line):

@@ -25,14 +25,14 @@ def bold(text):
 
 
 @contextlib.contextmanager
-def set_env(key, value):
-    exists = key in os.environ
-    original_value = os.environ.get(key, '')
-    os.environ[key] = value
+def set_env(variable, value):
+    exists = variable in os.environ
+    original_value = os.environ.get(variable, '')
+    os.environ[variable] = value
     yield
-    os.environ[key] = original_value
+    os.environ[variable] = original_value
     if not exists:
-        del os.environ[key]
+        del os.environ[variable]
 
 
 def pip_install(*args):

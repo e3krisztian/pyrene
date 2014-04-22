@@ -24,7 +24,7 @@ class Test_set_env(unittest.TestCase):
         os.environ.clear()
         os.environ.update(self.original_environ)
 
-    def test_overwrite_existing_key(self):
+    def test_overwrite_existing_variable(self):
         os.environ['existing'] = '1'
 
         with m.set_env('existing', '2'):
@@ -32,7 +32,7 @@ class Test_set_env(unittest.TestCase):
 
         self.assertEqual('1', os.environ['existing'])
 
-    def test_make_new_key(self):
+    def test_make_new_variable(self):
         if 'new' in os.environ:
             del os.environ['new']
 

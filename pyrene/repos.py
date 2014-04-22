@@ -13,17 +13,18 @@ class Repo(object):
     __metaclass__ = abc.ABCMeta
 
     ATTRIBUTES = (REPO.TYPE,)
+    attributes = dict
 
     def __init__(self, name, attributes):
         super(Repo, self).__init__()
         self.name = name
         self.attributes = dict(attributes)
 
-    def __getattr__(self, key):
+    def __getattr__(self, attribute):
         try:
-            return self.attributes[key]
+            return self.attributes[attribute]
         except KeyError:
-            raise AttributeError(key)
+            raise AttributeError(attribute)
 
     @abc.abstractmethod
     def get_as_pip_conf(self):

@@ -67,9 +67,14 @@ class Network(object):
         self._config.remove_section(repokey)
         self._save()
 
-    def set(self, repo_name, key, value):
+    def set(self, repo_name, attribute, value):
         repokey = self.REPO_SECTION_PREFIX + repo_name
-        self._config.set(repokey, key, value)
+        self._config.set(repokey, attribute, value)
+        self._save()
+
+    def unset(self, repo_name, attribute):
+        repokey = self.REPO_SECTION_PREFIX + repo_name
+        self._config.remove_option(repokey, attribute)
         self._save()
 
     @property
@@ -86,7 +91,7 @@ class Network(object):
             raise UnknownRepoError(repo_name)
 
         attributes = {
-            option: self._config.get(repokey, option)
-            for option in self._config.options(repokey)
+            attribute: self._config.get(repokey, attribute)
+            for attribute in self._config.options(repokey)
         }
         return attributes
