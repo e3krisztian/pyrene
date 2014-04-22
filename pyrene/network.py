@@ -72,6 +72,11 @@ class Network(object):
         self._config.set(repokey, key, value)
         self._save()
 
+    def unset(self, repo_name, key):
+        repokey = self.REPO_SECTION_PREFIX + repo_name
+        self._config.remove_option(repokey, key)
+        self._save()
+
     @property
     def repo_names(self):
         return [

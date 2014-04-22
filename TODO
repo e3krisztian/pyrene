@@ -3,6 +3,7 @@ TODO
    ☐ set user's login name as username
    ☐ generate password for serving directories
  ☐ command 'unset repo attribute' - remove attribute
+   ☐ refactor: rename {key,parameter} to attribute
  ☐ command 'clean repo' - remove all junk attributes
  ☐ support some pip switches when copying packages
    candidates: -r requirements.txt, --pre, --no-use-wheel

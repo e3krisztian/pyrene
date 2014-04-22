@@ -244,6 +244,11 @@ class Test_PyreneCmd(unittest.TestCase):
 
         self.network.set.assert_called_once_with('repo1', 'key', 'value')
 
+    def test_unset(self):
+        self.cmd.onecmd('unset repo1 key')
+
+        self.network.unset.assert_called_once_with('repo1', 'key')
+
     def test_list(self):
         self.network.repo_names = ['S1', '#@!']
 

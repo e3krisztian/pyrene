@@ -184,6 +184,13 @@ class PyreneCmd(BaseCmd):
             completions = REPO_ATTRIBUTE_COMPLETIONS
         return sorted(c for c in completions if c.startswith(text))
 
+    def do_unset(self, line):
+        '''
+        Unset a repository parameter
+        '''
+        repo, attribute = line.split()
+        self.network.unset(repo, attribute)
+
     def do_list(self, line):
         '''
         List known repos

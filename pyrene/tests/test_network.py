@@ -79,6 +79,16 @@ class Test_Network(unittest.TestCase):
         repo = other_network.get_repo('repo')
         self.assertEqual('/a/repo/dir', repo.directory)
 
+    def test_unset_is_persistent(self):
+        self.make_file_repo('/a/repo/dir')
+        self.network.unset('repo', REPO.DIRECTORY)
+
+        other_network = m.Network(self.repo_store)
+        repo = other_network.get_repo('repo')
+        with self.assertRaises(AttributeError):
+            repo.directory
+        # self.assertEqual('/a/repo/dir', repo.directory)
+
     def test_forget_is_persistent(self):
         self.make_file_repo('/a/repo/dir')
         self.network.forget('repo')
