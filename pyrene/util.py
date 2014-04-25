@@ -101,7 +101,7 @@ def write_file(path, content):
     except OSError:
         pass
     with open(path, 'wb') as file:
-        file.write(content.encode('utf8'))
+        file.write(content)
 
 
 class Directory(object):

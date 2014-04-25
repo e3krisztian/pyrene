@@ -123,7 +123,7 @@ class Test_Network(unittest.TestCase):
             self.network.get_attributes('undefined-repo')
 
 
-TEST_CONFIG = '''\
+TEST_CONFIG = b'''\
 [repo:1]
 type=directory
 directory=/tmp
