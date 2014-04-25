@@ -1,4 +1,6 @@
 TODO
+ ☐ tox config
+ ☐ py3 support / move to py3?
  ☐ command 'set_defaults repo' - sets all valid attributes to some sensible value
    ☐ set user's login name as username
    ☐ generate password for serving directories

@@ -101,7 +101,7 @@ def write_file(path, content):
     except OSError:
         pass
     with open(path, 'wb') as file:
-        file.write(content)
+        file.write(content.encode('utf8'))
 
 
 class Directory(object):
@@ -122,5 +122,5 @@ class Directory(object):
 
 
 def generate_password():
-    import codecs
-    return codecs.encode(os.urandom(10), 'hex')
+    import binascii
+    return binascii.hexlify(os.urandom(10))
