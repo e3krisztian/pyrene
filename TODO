@@ -1,6 +1,5 @@
 TODO
- ☐ tox config
- ☐ py3 support / move to py3?
+ ☐ tox config, py3 support / move to py3?
  ☐ command 'set_defaults repo' - sets all valid attributes to some sensible value
    ☐ set user's login name as username
    ☐ generate password for serving directories
@@ -9,6 +8,8 @@ TODO
    candidates: -r requirements.txt, --pre, --no-use-wheel
  ☐ support copying all package versions - ???
    it is hard to do with dependencies, maybe per-package?
+ ☐ junk attributes -> extra attributes
+ ☐ DirectoryRepo() should create directory if it does not exists
 
 FIXME
  ☐ robustness: do not allow 'write_pip_conf_for repo' to write file, when repo is not valid
@@ -17,7 +18,7 @@ FIXME
  ☐ remove order restriction from copy
     after we have a repo any package spec containing a / is treated as a local file
     all others are handled with pip
-
+ ☐ http upload of wheels (e.g. pip) fails
 
 ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
 Archive:
