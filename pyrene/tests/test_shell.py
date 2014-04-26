@@ -75,6 +75,7 @@ class Test_PyreneCmd(unittest.TestCase):
         self.network = mock.Mock(spec_set=m.Network)
         self.network.get_repo.configure_mock(side_effect=self.get_repo)
         self.directory = mock.Mock(spec_set=Directory)
+        self.directory.files = ()
         self.cmd = m.PyreneCmd(
             network=self.network,
             directory=self.directory
@@ -109,13 +110,11 @@ class Test_PyreneCmd(unittest.TestCase):
         self.cmd.onecmd('copy repo1:roman==2.0.0 repo2:')
 
         self.assertEqual(
-            unique_justseen(
-                sorted(
-                    [
-                        mock.call.get_repo('repo1'),
-                        mock.call.get_repo('repo2'),
-                    ]
-                )
+            sorted(
+                [
+                    mock.call.get_repo('repo1'),
+                    mock.call.get_repo('repo2'),
+                ]
             ),
             unique_justseen(sorted(self.network.mock_calls))
         )
@@ -127,25 +126,19 @@ class Test_PyreneCmd(unittest.TestCase):
         self.repo2.upload_packages.assert_called_once_with(['roman-2.0.0.zip'])
 
     def test_copy_uses_network(self):
-        self.directory.files = ['roman-2.0.0.zip']
-
         self.cmd.onecmd('copy repo1:roman==2.0.0 repo2:')
 
         self.assertEqual(
-            unique_justseen(
-                sorted(
-                    [
-                        mock.call.get_repo('repo1'),
-                        mock.call.get_repo('repo2'),
-                    ]
-                )
+            sorted(
+                [
+                    mock.call.get_repo('repo1'),
+                    mock.call.get_repo('repo2'),
+                ]
             ),
             unique_justseen(sorted(self.network.mock_calls))
         )
 
     def test_copy_uses_repo_to_download_packages(self):
-        self.directory.files = ['roman-2.0.0.zip']
-
         self.cmd.onecmd('copy repo1:roman==2.0.0 repo2:')
 
         self.repo1.download_packages.assert_called_once_with(
@@ -191,7 +184,6 @@ class Test_PyreneCmd(unittest.TestCase):
         )
 
     def test_copy_uploads_files(self):
-        self.directory.files = []
         self.cmd.onecmd('copy /a/file somerepo:')
 
         self.somerepo.upload_packages.assert_called_once_with(
