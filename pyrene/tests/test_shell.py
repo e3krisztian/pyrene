@@ -14,32 +14,6 @@ from pyrene.constants import REPO
 from pyrene.repos import Repo
 from .util import capture_stdout, fake_stdin
 
-# START: unique_justseen
-# https://docs.python.org/2.7/library/itertools.html#itertools-recipes
-from itertools import groupby
-
-try:
-    unicode
-except NameError:
-    unicode = str
-
-
-def unique_justseen(iterable, key=None):
-    '''List unique elements, preserving order.
-
-    Remember only the element just seen.
-    '''
-    return [
-        next(group_iterator)
-        for _key, group_iterator in groupby(iterable, key)
-    ]
-
-assert unique_justseen('AAAABBBCCDAABBB') == list('ABCDAB')
-assert unique_justseen('ABBCcAD', unicode.lower) == list('ABCAD')
-
-# END: unique_justseen
-
-
 write_file = m.write_file
 
 
@@ -109,15 +83,8 @@ class Test_PyreneCmd(unittest.TestCase):
 
         self.cmd.onecmd('copy repo1:roman==2.0.0 repo2:')
 
-        self.assertEqual(
-            sorted(
-                [
-                    mock.call.get_repo('repo1'),
-                    mock.call.get_repo('repo2'),
-                ]
-            ),
-            unique_justseen(sorted(self.network.mock_calls))
-        )
+        self.assertIn(mock.call.get_repo('repo1'), self.network.mock_calls)
+        self.assertIn(mock.call.get_repo('repo2'), self.network.mock_calls)
 
         self.repo1.download_packages.assert_called_once_with(
             'roman==2.0.0',
@@ -128,15 +95,8 @@ class Test_PyreneCmd(unittest.TestCase):
     def test_copy_uses_network(self):
         self.cmd.onecmd('copy repo1:roman==2.0.0 repo2:')
 
-        self.assertEqual(
-            sorted(
-                [
-                    mock.call.get_repo('repo1'),
-                    mock.call.get_repo('repo2'),
-                ]
-            ),
-            unique_justseen(sorted(self.network.mock_calls))
-        )
+        self.assertIn(mock.call.get_repo('repo1'), self.network.mock_calls)
+        self.assertIn(mock.call.get_repo('repo2'), self.network.mock_calls)
 
     def test_copy_uses_repo_to_download_packages(self):
         self.cmd.onecmd('copy repo1:roman==2.0.0 repo2:')
@@ -264,9 +224,10 @@ class Test_PyreneCmd(unittest.TestCase):
 
         with capture_stdout() as stdout:
             self.cmd.onecmd('list')
+            output = stdout.content
 
-            self.assertIn('S1', stdout.content)
-            self.assertIn('#@!', stdout.content)
+        self.assertIn('S1', output)
+        self.assertIn('#@!', output)
 
     def test_show(self):
         self.network.get_attributes.configure_mock(
