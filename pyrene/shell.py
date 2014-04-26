@@ -111,24 +111,26 @@ class PyreneCmd(BaseCmd):
 
         distribution_files = []
         repo = None
-        for word in words[:-1]:
-            if ':' in word:
-                repo_name, _, package_spec = word.partition(':')
-                repo = self.network.get_repo(repo_name)
-            else:
-                package_spec = word
-
-            assert ':' not in package_spec
-
-            if package_spec:
-                if not repo:
-                    distribution_files.append(package_spec)
+        try:
+            for word in words[:-1]:
+                if ':' in word:
+                    repo_name, _, package_spec = word.partition(':')
+                    repo = self.network.get_repo(repo_name)
                 else:
-                    repo.download_packages(package_spec, self.__temp_dir)
+                    package_spec = word
 
-        distribution_files.extend(self.__temp_dir.files)
-        destination_repo.upload_packages(distribution_files)
-        self.__temp_dir.clear()
+                assert ':' not in package_spec
+
+                if package_spec:
+                    if not repo:
+                        distribution_files.append(package_spec)
+                    else:
+                        repo.download_packages(package_spec, self.__temp_dir)
+
+            distribution_files.extend(self.__temp_dir.files)
+            destination_repo.upload_packages(distribution_files)
+        finally:
+            self.__temp_dir.clear()
 
     def do_define(self, repo):
         '''

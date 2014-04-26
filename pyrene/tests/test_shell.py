@@ -229,6 +229,16 @@ class Test_PyreneCmd(unittest.TestCase):
             self.directory.mock_calls
         )
 
+    def test_copy_clears_directory_even_if_download_fails(self):
+        self.repo1.download_packages.configure_mock(side_effect=Exception)
+
+        try:
+            self.cmd.onecmd('copy repo1:a repo2:')
+        except:
+            pass
+
+        self.assertIn(mock.call.clear(), self.directory.mock_calls)
+
     def test_define(self):
         self.cmd.onecmd('define new-repo')
 
