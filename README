@@ -13,7 +13,7 @@ There are two types of repos I support, probably this covers with their variants
     - a directory with package files, for fast/offline development
     - `~/.pip/local` - one such directory
 
-I provide a shell-like environment as primary interface - with completion for commands and attributes, but I can be used as a command-line tool as well.
+I provide a shell-like environment as primary interface - with help and completion for commands and attributes, but I can be used as a command-line tool as well.
 
 
 Installation
@@ -141,29 +141,40 @@ Pyrene: write_pip_conf_for repo
 ```
 
 
-Developers
-==========
+Development
+===========
 
-Development is done using `git flow` on branch `develop`, `master` is the release branch.
+Clone the `develop` branch for development and create a pull request against it.
 
-Internals:
+The reason is: I am being developed using `git flow` on branch `develop`.
+`master` is the release branch.
+
+Contributions
+-------------
+
+- reporting issues
+- improving documentation
+- improving on the simplicity and clarity of the code/interface
+- adding relevant tests
+- providing new badly missing features (preferably with tests)
+- showing alternatives of me
+
+are welcome.
+
+Guidelines:
+-----------
+
+- all code should be extremely simple and clear, including tests
+- all features require unit tests
+- zero messages from flake8
+- usability, simplicity wins over feature completeness
+
+The current code might violate these, but it is then considered a bug.
+Fixing any of these violations - even if it looks trivial is welcome!
+
+External packages/tools:
+------------------------
 
 - packages are downloaded with [pip](http://www.pip-installer.org).
 - packages are uploaded with code adopted from [twine](https://pypi.python.org/pypi/twine), though unfortunately `twine` is not used directly.
 - local packages are served with [pypi-server](https://pypi.python.org/pypi/pypiserver)
-
-Guidelines:
-
-- all code should be extremely simple and clear
-- all features require unit tests
-- zero messages from flake8
-
-Contributions
-
-- reporting issues
-- improving documentation
-- improving on the simplicity and clarity of the code
-- adding relevant tests
-- providing new badly missing features (preferably with tests)
-
-are welcome.
