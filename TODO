@@ -15,10 +15,10 @@ FIXME
  ☐ remove order restriction from copy
     after we have a repo any package spec containing a / is treated as a local file
     all others are handled with pip
- ☐ http upload of wheels (e.g. pip) fails
 
 ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
 Archive:
+ ✔ http upload of wheels (e.g. pip) fails @done (14-04-27 01:18)
  ✔ file created in place of directory when directory does not exists for file repos @done (14-04-26 22:05)
  ✔ DirectoryRepo() should create directory if it does not exists @done (14-04-26 22:04)
  ✔ junk attributes -> extra attributes @done (14-04-26 21:32)

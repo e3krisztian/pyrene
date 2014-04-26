@@ -40,21 +40,25 @@ class SDist(pkginfo.SDist):
     py_version = None
 
 
+def get_whl_py_version(filename):
+    wheel_file_re = re.compile(
+        r"""
+        ^(?P<namever>(?P<name>.+?)(-(?P<ver>\d.+?))?)
+        ((-(?P<build>\d.*?))?-(?P<pyver>.+?)-(?P<abi>.+?)-(?P<plat>.+?)
+        \.whl|\.dist-info)$
+        """,
+        re.VERBOSE
+    )
+
+    wheel_info = wheel_file_re.match(filename)
+    return wheel_info.group("pyver")
+
+
 class Wheel(pkginfo.Wheel):
 
     @property
     def py_version(self):
-        wheel_file_re = re.compile(
-            r"""\
-            ^(?P<namever>(?P<name>.+?)(-(?P<ver>\d.+?))?)
-            ((-(?P<build>\d.*?))?-(?P<pyver>.+?)-(?P<abi>.+?)-(?P<plat>.+?)
-            \.whl|\.dist-info)$
-            """,
-            re.VERBOSE
-        )
-
-        wheel_info = wheel_file_re.match(self.filename)
-        return wheel_info.group("pyver")
+        return get_whl_py_version(os.path.basename(self.filename))
 
 
 DIST_TYPES = {
