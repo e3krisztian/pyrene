@@ -21,7 +21,7 @@ class External(object):
 @contextlib.contextmanager
 def capture_stdout():
     orig = sys.stdout
-    temp = tempfile.SpooledTemporaryFile()
+    temp = tempfile.SpooledTemporaryFile(mode='w+t')
 
     with temp:
         sys.stdout = temp

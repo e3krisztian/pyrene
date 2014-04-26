@@ -122,5 +122,5 @@ class Directory(object):
 
 
 def generate_password():
-    import codecs
-    return codecs.encode(os.urandom(10), 'hex')
+    import binascii
+    return binascii.hexlify(os.urandom(10))

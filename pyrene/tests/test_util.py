@@ -42,7 +42,7 @@ class Test_set_env(unittest.TestCase):
         self.assertNotIn('new', os.environ)
 
 
-TEST_SETUP_PY = '''\
+TEST_SETUP_PY = b'''\
 from distutils.core import setup
 
 setup(
@@ -58,7 +58,7 @@ class Test_pip_install(unittest.TestCase):
     @within_temp_dir
     def test_copy_package(self):
         m.write_file('setup.py', TEST_SETUP_PY)
-        m.write_file('foo.py', '')
+        m.write_file('foo.py', b'')
         subprocess.check_output(
             'python setup.py sdist'.split(),
             stderr=subprocess.STDOUT
@@ -86,8 +86,8 @@ class Test_Directory(unittest.TestCase):
     def test_files(self):
         os.makedirs('a/directory')
         d = m.Directory('a')
-        m.write_file('a/file1', '')
-        m.write_file('a/file2', '')
+        m.write_file('a/file1', b'')
+        m.write_file('a/file2', b'')
 
         f1 = os.path.join('a', 'file1')
         f2 = os.path.join('a', 'file2')
@@ -97,8 +97,8 @@ class Test_Directory(unittest.TestCase):
     def test_clear(self):
         os.makedirs('a/directory')
         d = m.Directory('a')
-        m.write_file('a/file1', '')
-        m.write_file('a/file2', '')
+        m.write_file('a/file1', b'')
+        m.write_file('a/file2', b'')
 
         d.clear()
 

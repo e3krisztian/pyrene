@@ -16,8 +16,12 @@ from .util import capture_stdout, fake_stdin
 
 # START: unique_justseen
 # https://docs.python.org/2.7/library/itertools.html#itertools-recipes
-from itertools import imap, groupby
-from operator import itemgetter
+from itertools import groupby
+
+try:
+    unicode
+except NameError:
+    unicode = str
 
 
 def unique_justseen(iterable, key=None):
@@ -25,7 +29,10 @@ def unique_justseen(iterable, key=None):
 
     Remember only the element just seen.
     '''
-    return map(next, imap(itemgetter(1), groupby(iterable, key)))
+    return [
+        next(group_iterator)
+        for _key, group_iterator in groupby(iterable, key)
+    ]
 
 assert unique_justseen('AAAABBBCCDAABBB') == list('ABCDAB')
 assert unique_justseen('ABBCcAD', unicode.lower) == list('ABCAD')
@@ -83,8 +90,9 @@ class Test_PyreneCmd(unittest.TestCase):
             return self.somerepo
 
     def test_write_pip_conf_for(self):
+        pip_conf = 'someconf'
         self.somerepo.get_as_pip_conf.configure_mock(
-            return_value=mock.sentinel.pip_conf
+            return_value=pip_conf
         )
 
         self.cmd.onecmd('write_pip_conf_for somerepo')
@@ -92,7 +100,7 @@ class Test_PyreneCmd(unittest.TestCase):
         self.somerepo.get_as_pip_conf.assert_called_once_with()
         self.cmd.write_file.assert_called_once_with(
             os.path.expanduser('~/.pip/pip.conf'),
-            mock.sentinel.pip_conf
+            pip_conf.encode('utf8')
         )
 
     def test_copy_single_package(self):
@@ -354,7 +362,7 @@ class Test_PyreneCmd(unittest.TestCase):
     def test_complete_filenames(self):
         os.makedirs('a')
         os.makedirs('c')
-        write_file('ef', '')
+        write_file('ef', b'')
 
         completion = self.cmd.complete_filenames('', 'cmd ', 4, 4)
 
@@ -376,7 +384,7 @@ class Test_PyreneCmd(unittest.TestCase):
 
     @within_temp_dir
     def test_complete_filenames_with_subpaths(self):
-        write_file('a/b/c', '')
+        write_file('a/b/c', b'')
 
         completion = self.cmd.complete_filenames('', 'cmd a/b/', 6, 6)
 

@@ -3,7 +3,13 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import os
-from ConfigParser import RawConfigParser
+try:
+    from ConfigParser import RawConfigParser
+except ImportError:
+    def RawConfigParser():
+        import configparser
+        return configparser.ConfigParser(interpolation=None)
+
 from .repos import BadRepo, DirectoryRepo, HttpRepo
 from .constants import REPO, REPOTYPE
 

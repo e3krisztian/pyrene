@@ -82,7 +82,7 @@ class PyreneCmd(BaseCmd):
         '''
         repo = self.network.get_repo(repo)
         pip_conf = os.path.expanduser('~/.pip/pip.conf')
-        self.write_file(pip_conf, repo.get_as_pip_conf())
+        self.write_file(pip_conf, repo.get_as_pip_conf().encode('utf8'))
 
     def _get_destination_repo(self, word):
         if word.endswith(':'):
