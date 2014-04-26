@@ -6,7 +6,6 @@ TODO
    candidates: -r requirements.txt, --pre, --no-use-wheel
  ☐ support copying all package versions - ???
    it is hard to do with dependencies, maybe per-package?
- ☐ junk attributes -> extra attributes
  ☐ DirectoryRepo() should create directory if it does not exists
  ☐ Repo.upload_packages -> Repo.upload_all_from(directory)
  ☐ command 'clean repo' - remove all extra attributes
@@ -22,6 +21,7 @@ FIXME
 
 ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
 Archive:
+ ✔ junk attributes -> extra attributes @done (14-04-26 21:32)
  ✔ tox config, py3 support / move to py3? @done (14-04-26 20:49)
  ✔ command 'unset repo attribute' - remove attribute @done (14-04-22 15:35)
  ✔ refactor: rename {key,parameter} to attribute @done (14-04-22 15:32)

@@ -54,11 +54,13 @@ class Repo(object):
 
             print(msg)
 
-        junk = sorted(set(self.attributes.keys()) - set(self.ATTRIBUTES))
-        if junk:
+        extra_attrs = sorted(
+            set(self.attributes.keys()) - set(self.ATTRIBUTES)
+        )
+        if extra_attrs:
             print()
-            print('Junk attributes:')
-            for attribute in junk:
+            print(red('Extra attributes:'))
+            for attribute in extra_attrs:
                 msg = red(
                     ' ? {}: {}'.format(attribute, self.attributes[attribute])
                 )
