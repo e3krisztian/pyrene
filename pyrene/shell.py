@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import os
 from cmd import Cmd
 import traceback
-from .util import write_file
+from .util import write_file, bold
 from .network import Network, DirectoryRepo
 from .constants import REPO, REPOTYPE
 
@@ -53,13 +53,15 @@ class PyreneCmd(BaseCmd):
     intro = '''
     Pyrene provides tools to work with different repos of python packages.
 
-    e.g. one might use three different repos:
+    e.g. one might use three different repos in one project:
 
      - pypi.python.org       (globally shared)
      - private pypi instance (project/company specific,
                               pip needs to be configured to fetch from here)
      - developer cache       (~/.pip/local)
-    '''
+
+    For help on commands type {help} or {qmark}
+    '''.format(help=bold('help'), qmark=bold('?'))
     prompt = 'Pyrene: '
 
     def __init__(self, network, directory):
