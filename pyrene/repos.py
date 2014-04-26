@@ -3,6 +3,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import abc
+import os
 import shutil
 from .upload import upload
 from .util import pip_install, PyPI, red, green
@@ -137,12 +138,20 @@ class DirectoryRepo(Repo):
             package_spec,
         )
 
+    def ensure_repo_directory(self):
+        if not os.path.isdir(self.directory):
+            os.makedirs(self.directory)
+
     def upload_packages(self, package_files):
+        self.ensure_repo_directory()
+
         destination = self.directory
         for source in package_files:
             shutil.copy2(source, destination)
 
     def serve(self, pypi_server=PyPI):
+        self.ensure_repo_directory()
+
         server = pypi_server()
         server.directory = self.directory
         server.interface = getattr(self, REPO.SERVE_INTERFACE, '0.0.0.0')

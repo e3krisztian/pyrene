@@ -6,13 +6,11 @@ TODO
    candidates: -r requirements.txt, --pre, --no-use-wheel
  ☐ support copying all package versions - ???
    it is hard to do with dependencies, maybe per-package?
- ☐ DirectoryRepo() should create directory if it does not exists
  ☐ Repo.upload_packages -> Repo.upload_all_from(directory)
  ☐ command 'clean repo' - remove all extra attributes
 
 FIXME
  ☐ robustness: do not allow 'write_pip_conf_for repo' to write file, when repo is not valid
- ☐ file created in place of directory when directory does not exists for file repos
  ☐ robustness: check user supplied repo names and give human feedback instead of exception
  ☐ remove order restriction from copy
     after we have a repo any package spec containing a / is treated as a local file
@@ -21,6 +19,8 @@ FIXME
 
 ＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
 Archive:
+ ✔ file created in place of directory when directory does not exists for file repos @done (14-04-26 22:05)
+ ✔ DirectoryRepo() should create directory if it does not exists @done (14-04-26 22:04)
  ✔ junk attributes -> extra attributes @done (14-04-26 21:32)
  ✔ tox config, py3 support / move to py3? @done (14-04-26 20:49)
  ✔ command 'unset repo attribute' - remove attribute @done (14-04-22 15:35)

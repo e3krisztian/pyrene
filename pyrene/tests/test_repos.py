@@ -4,7 +4,9 @@ from __future__ import unicode_literals
 
 import unittest
 import mock
-from io import StringIO
+import os
+from temp_dir import within_temp_dir
+
 import pyrene.repos as m
 from pyrene.constants import REPO, REPOTYPE
 from .util import capture_stdout, Assertions
@@ -25,6 +27,8 @@ class Test_BadRepo(unittest.TestCase):
 class Test_DirectoryRepo(Assertions, unittest.TestCase):
 
     def make_repo(self, attrs, name='repo'):
+        attrs = attrs.copy()
+        attrs[REPO.TYPE] = REPOTYPE.DIRECTORY
         return m.DirectoryRepo(name, attrs)
 
     def test_attributes(self):
@@ -43,14 +47,12 @@ class Test_DirectoryRepo(Assertions, unittest.TestCase):
         self.assertIn(directory, repo.get_as_pip_conf())
 
     def test_serve_without_upload_user(self):
-        attrs = {REPO.TYPE: REPOTYPE.DIRECTORY, REPO.DIRECTORY: '.'}
-        repo = self.make_repo(attrs)
+        repo = self.make_repo({REPO.DIRECTORY: '.'})
         pypi = mock.Mock()
         repo.serve(pypi)
 
     def test_serve_with_upload_user(self):
         attrs = {
-            REPO.TYPE: REPOTYPE.DIRECTORY,
             REPO.DIRECTORY: '.',
             REPO.SERVE_USERNAME: 'tu',
             REPO.SERVE_PASSWORD: 'tp',
@@ -58,6 +60,23 @@ class Test_DirectoryRepo(Assertions, unittest.TestCase):
         repo = self.make_repo(attrs)
         pypi = mock.Mock()
         repo.serve(pypi)
+
+    @within_temp_dir
+    def test_serve_creates_nonexistent_repo_directory(self):
+        repo = self.make_repo({REPO.DIRECTORY: 'missing'})
+        pypi = mock.Mock()
+
+        repo.serve(pypi)
+
+        self.assertTrue(os.path.isdir('missing'))
+
+    @within_temp_dir
+    def test_upload_packages_creates_nonexistent_repo_directory(self):
+        repo = self.make_repo({REPO.DIRECTORY: 'missing'})
+
+        repo.upload_packages([])
+
+        self.assertTrue(os.path.isdir('missing'))
 
     def test_print_attributes(self):
         with capture_stdout() as stdout:
@@ -71,28 +90,27 @@ class Test_DirectoryRepo(Assertions, unittest.TestCase):
 class Test_HttpRepo(Assertions, unittest.TestCase):
 
     def make_repo(self, attrs, name='repo'):
+        attrs = attrs.copy()
+        attrs[REPO.TYPE] = REPOTYPE.HTTP
         return m.HttpRepo(name, attrs)
 
     def test_attributes(self):
         repo = self.make_repo(
-            {
-                REPO.DOWNLOAD_URL: 'https://priv.repos.org/simple',
-                REPO.TYPE: REPOTYPE.HTTP
-            }
+            {REPO.DOWNLOAD_URL: 'https://priv.repos.org/simple'}
         )
         self.assertEqual('http', repo.type)
         self.assertEqual('https://priv.repos.org/simple', repo.download_url)
 
     def test_serve(self):
         repo = self.make_repo(
-            {
-                REPO.DOWNLOAD_URL: 'https://priv.repos.org/simple',
-            }
+            {REPO.DOWNLOAD_URL: 'https://priv.repos.org/simple'}
         )
-        with mock.patch('sys.stdout', new_callable=StringIO) as stdout:
-            repo.serve()
 
-            self.assertIn('https://priv.repos.org/simple', stdout.getvalue())
+        with capture_stdout() as stdout:
+            repo.serve()
+            output = stdout.content
+
+        self.assertIn('https://priv.repos.org/simple', output)
 
     def test_incomplete_repo_get_as_pip_conf(self):
         repo = self.make_repo({})
