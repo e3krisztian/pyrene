@@ -57,6 +57,7 @@ class Network(object):
             self._config.write(f)
 
     def get_repo(self, repo_name):
+        repo_name = repo_name or self.active_repo
         repokey = self.REPO_SECTION_PREFIX + repo_name
         if not self._config.has_section(repokey):
             raise UnknownRepoError(repo_name)

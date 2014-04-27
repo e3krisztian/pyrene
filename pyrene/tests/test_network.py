@@ -61,6 +61,14 @@ class Test_Network(unittest.TestCase):
         repo = self.network.get_repo('r!')
         self.assertEqual('r!', repo.name)
 
+    def test_get_repo_with_empty_repo_name_returns_active_repo(self):
+        self.network.define('activerepo')
+        self.network.set('activerepo', 'type', 'http')
+
+        repo = self.network.get_repo('')
+
+        self.assertEqual('activerepo', repo.name)
+
     def make_file_repo(self, directory):
         self.network.define('repo')
         self.network.set('repo', REPO.TYPE, REPOTYPE.DIRECTORY)
