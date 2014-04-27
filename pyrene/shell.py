@@ -62,7 +62,15 @@ class PyreneCmd(BaseCmd):
 
     For help on commands type {help} or {qmark}
     '''.format(help=bold('help'), qmark=bold('?'))
-    prompt = 'Pyrene: '
+
+    @property
+    def prompt(self):
+        active_repo = self.network.active_repo
+        prompt = (
+            'Pyrene[{}]: '.format(active_repo) if active_repo
+            else 'Pyrene: '
+        )
+        return prompt
 
     def __init__(self, network, directory):
         super(PyreneCmd, self).__init__()
@@ -132,6 +140,13 @@ class PyreneCmd(BaseCmd):
         finally:
             self.__temp_dir.clear()
 
+    def do_use(self, repo):
+        '''
+        Make repo the active one.
+        Commands working on a repo will use it as default for repo parameter.
+        '''
+        self.network.active_repo = repo
+
     def do_define(self, repo):
         '''
         Define a new package repository.
@@ -167,8 +182,9 @@ class PyreneCmd(BaseCmd):
         set company-private-repo username=user
         set company-private-repo password=pass
         '''
-        repo, attribute_value = line.split()
-        attribute, _, value = attribute_value.partition('=')
+        repo = self.network.active_repo
+        assert repo is not None
+        attribute, _, value = line.partition('=')
         self.network.set(repo, attribute, value)
 
     def complete_set(self, text, line, begidx, endidx):
@@ -188,12 +204,11 @@ class PyreneCmd(BaseCmd):
             completions = REPO_ATTRIBUTE_COMPLETIONS
         return sorted(c for c in completions if c.startswith(text))
 
-    def do_unset(self, line):
+    def do_unset(self, attribute):
         '''
-        Unset a repository attribute
+        Unset attribute on the active/default repo
         '''
-        repo, attribute = line.split()
-        self.network.unset(repo, attribute)
+        self.network.unset(self.network.active_repo, attribute)
 
     def complete_unset(self, text, line, begidx, endidx):
         complete_line = line[:endidx]

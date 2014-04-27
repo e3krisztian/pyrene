@@ -37,6 +37,13 @@ def fake_stdin(text):
     sys.stdin = stdin
 
 
+def record_calls(calls, function):
+    def recorded(*args, **kwargs):
+        calls.append((args, kwargs))
+        return function(*args, **kwargs)
+    return recorded
+
+
 def _first_not_found(text, fragments):
     if not fragments:
         return None

@@ -7,19 +7,36 @@ import os
 import unittest
 import mock
 from temp_dir import within_temp_dir
+import tempfile
 
 import pyrene.shell as m
 from pyrene.util import Directory
-from pyrene.constants import REPO
 from pyrene.repos import Repo
-from .util import capture_stdout, fake_stdin
+from .util import capture_stdout, fake_stdin, Assertions, record_calls
 
 write_file = m.write_file
+
+
+class MockingNetwork(m.Network):
+    '''get_repo returns BadRepo to prevent all destructive operations'''
+    TYPE_TO_CLASS = {}
+
+    def __init__(self, dot_pyrene, get_repo):
+        super(MockingNetwork, self).__init__(dot_pyrene)
+        self.__get_repo = get_repo
+
+    def get_repo(self, repo_name):
+        repo = self.__get_repo(repo_name)
+        return (
+            repo if repo
+            else super(MockingNetwork, self).get_repo(repo_name)
+        )
 
 
 class Test_PyreneCmd_write_file(unittest.TestCase):
 
     def setUp(self):
+        super(Test_PyreneCmd_write_file, self).setUp()
         self.network = mock.Mock(spec_set=m.Network)
         self.directory = mock.Mock(spec_set=Directory)
         self.cmd = m.PyreneCmd(
@@ -40,14 +57,19 @@ class Test_PyreneCmd_write_file(unittest.TestCase):
             self.assertEqual(b'somecontent', f.read())
 
 
-class Test_PyreneCmd(unittest.TestCase):
+class Test_PyreneCmd(Assertions, unittest.TestCase):
 
     def setUp(self):
+        super(Test_PyreneCmd, self).setUp()
         self.repo1 = mock.Mock(spec_set=Repo)
         self.repo2 = mock.Mock(spec_set=Repo)
         self.somerepo = mock.Mock(spec_set=Repo)
-        self.network = mock.Mock(spec_set=m.Network)
-        self.network.get_repo.configure_mock(side_effect=self.get_repo)
+
+        self.dot_pyrene = tempfile.NamedTemporaryFile()
+        self.network = MockingNetwork(self.dot_pyrene.name, self.get_repo)
+
+        # self.network = mock.Mock(spec_set=m.Network)
+        # self.network.get_repo.configure_mock(side_effect=self.get_repo)
         self.directory = mock.Mock(spec_set=Directory)
         self.directory.files = ()
         self.cmd = m.PyreneCmd(
@@ -55,6 +77,19 @@ class Test_PyreneCmd(unittest.TestCase):
             directory=self.directory
         )
         self.cmd.write_file = mock.Mock()
+
+    def tearDown(self):
+        self.dot_pyrene.close()
+        super(Test_PyreneCmd, self).tearDown()
+
+    def define_repos(self, *repo_names):
+        for repo_name in repo_names:
+            self.network.define(repo_name)
+
+    def define_repo(self, repo_name, attributes):
+        self.network.define(repo_name)
+        for attr, value in attributes.items():
+            self.network.set(repo_name, attr, value)
 
     def get_repo(self, repo_name):
         if repo_name == 'repo1':
@@ -65,6 +100,7 @@ class Test_PyreneCmd(unittest.TestCase):
             return self.somerepo
 
     def test_write_pip_conf_for(self):
+        self.network.get_repo = mock.Mock(return_value=self.somerepo)
         pip_conf = 'someconf'
         self.somerepo.get_as_pip_conf.configure_mock(
             return_value=pip_conf
@@ -72,19 +108,16 @@ class Test_PyreneCmd(unittest.TestCase):
 
         self.cmd.onecmd('write_pip_conf_for somerepo')
 
-        self.somerepo.get_as_pip_conf.assert_called_once_with()
         self.cmd.write_file.assert_called_once_with(
             os.path.expanduser('~/.pip/pip.conf'),
             pip_conf.encode('utf8')
         )
 
     def test_copy_single_package(self):
+        self.define_repos('repo1', 'repo2')
         self.directory.files = ['roman-2.0.0.zip']
 
         self.cmd.onecmd('copy repo1:roman==2.0.0 repo2:')
-
-        self.assertIn(mock.call.get_repo('repo1'), self.network.mock_calls)
-        self.assertIn(mock.call.get_repo('repo2'), self.network.mock_calls)
 
         self.repo1.download_packages.assert_called_once_with(
             'roman==2.0.0',
@@ -92,13 +125,9 @@ class Test_PyreneCmd(unittest.TestCase):
         )
         self.repo2.upload_packages.assert_called_once_with(['roman-2.0.0.zip'])
 
-    def test_copy_uses_network(self):
-        self.cmd.onecmd('copy repo1:roman==2.0.0 repo2:')
-
-        self.assertIn(mock.call.get_repo('repo1'), self.network.mock_calls)
-        self.assertIn(mock.call.get_repo('repo2'), self.network.mock_calls)
-
     def test_copy_uses_repo_to_download_packages(self):
+        self.define_repos('repo1', 'repo2')
+
         self.cmd.onecmd('copy repo1:roman==2.0.0 repo2:')
 
         self.repo1.download_packages.assert_called_once_with(
@@ -107,6 +136,7 @@ class Test_PyreneCmd(unittest.TestCase):
         )
 
     def test_copy_uses_repo_to_upload_packages(self):
+        self.define_repos('repo1', 'repo2')
         self.directory.files = ['roman-2.0.0.zip']
 
         self.cmd.onecmd('copy repo1:roman==2.0.0 repo2:')
@@ -114,6 +144,7 @@ class Test_PyreneCmd(unittest.TestCase):
         self.repo2.upload_packages.assert_called_once_with(['roman-2.0.0.zip'])
 
     def test_copy_package_with_dependencies(self):
+        self.define_repos('repo1', 'repo2')
         package_files = ('pkg-1.0.0.tar.gz', 'dep-0.3.1.zip')
         self.directory.files = list(package_files)
 
@@ -126,6 +157,7 @@ class Test_PyreneCmd(unittest.TestCase):
         self.repo2.upload_packages.assert_called_once_with(list(package_files))
 
     def test_copy_from_two_repos(self):
+        self.define_repos('repo1', 'repo2', 'somerepo')
         package_files = ('a-1.egg', 'b-2.tar.gz')
         self.directory.files = list(package_files)
 
@@ -144,6 +176,7 @@ class Test_PyreneCmd(unittest.TestCase):
         )
 
     def test_copy_uploads_files(self):
+        self.define_repos('somerepo')
         self.cmd.onecmd('copy /a/file somerepo:')
 
         self.somerepo.upload_packages.assert_called_once_with(
@@ -151,6 +184,7 @@ class Test_PyreneCmd(unittest.TestCase):
         )
 
     def test_copy_uploads_both_files_and_packages(self):
+        self.define_repos('somerepo')
         self.directory.files = ['/tmp/downloaded-package-file']
         self.cmd.onecmd('copy /a/file somerepo:')
 
@@ -159,6 +193,7 @@ class Test_PyreneCmd(unittest.TestCase):
         )
 
     def test_get_destination_repo_on_repo1(self):
+        self.define_repos('repo1')
         repo = self.cmd._get_destination_repo('repo1:')
         self.assertIs(self.repo1, repo)
 
@@ -167,6 +202,7 @@ class Test_PyreneCmd(unittest.TestCase):
         self.assertEqual('/path/to/directory', repo.directory)
 
     def test_copy_with_directory_destination(self):
+        self.define_repos('repo1')
         self.directory.files = ['a-pkg']
         self.cmd._get_destination_repo = mock.Mock(
             return_value=self.somerepo
@@ -177,6 +213,7 @@ class Test_PyreneCmd(unittest.TestCase):
         self.somerepo.upload_packages.assert_called_once_with(['a-pkg'])
 
     def test_copy_clears_directory_after_upload(self):
+        self.define_repos('repo1', 'repo2')
         package_files = ('pkg-1.0.0.tar.gz', 'dep-0.3.1.zip')
         files = mock.PropertyMock(return_value=list(package_files))
         type(self.directory).files = files
@@ -190,6 +227,7 @@ class Test_PyreneCmd(unittest.TestCase):
         )
 
     def test_copy_clears_directory_even_if_download_fails(self):
+        self.define_repos('repo1', 'repo2')
         self.repo1.download_packages.configure_mock(side_effect=Exception)
 
         try:
@@ -200,27 +238,40 @@ class Test_PyreneCmd(unittest.TestCase):
         self.assertIn(mock.call.clear(), self.directory.mock_calls)
 
     def test_define(self):
-        self.cmd.onecmd('define new-repo')
+        output = run_script(
+            self.cmd,
+            '''
+            define new-repo
+            list
+            '''
+        )
 
-        self.network.define.assert_called_once_with('new-repo')
+        self.assertIn('new-repo', output)
 
     def test_forget(self):
+        self.network.define('somerepo')
+
         self.cmd.onecmd('forget somerepo')
 
-        self.network.forget.assert_called_once_with('somerepo')
-
-    def test_set(self):
-        self.cmd.onecmd('set repo1 attribute=value')
-
-        self.network.set.assert_called_once_with('repo1', 'attribute', 'value')
+        self.assertNotIn('somerepo', self.network.repo_names)
 
     def test_unset(self):
-        self.cmd.onecmd('unset repo1 attribute')
+        output = run_script(
+            self.cmd,
+            '''
+            define repo
+            set someattribute=value
+            unset someattribute
+            set someotherattribute=othervalue
+            show repo
+            '''
+        )
 
-        self.network.unset.assert_called_once_with('repo1', 'attribute')
+        self.assertNotIn('someattribute', output)
+        self.assertIn('someotherattribute', output)
 
     def test_list(self):
-        self.network.repo_names = ['S1', '#@!']
+        self.define_repos('S1', '#@!')
 
         with capture_stdout() as stdout:
             self.cmd.onecmd('list')
@@ -230,25 +281,26 @@ class Test_PyreneCmd(unittest.TestCase):
         self.assertIn('#@!', output)
 
     def test_show(self):
-        self.network.get_attributes.configure_mock(
-            return_value={'name': 'SHRP1', REPO.TYPE: '??'}
+        output = run_script(
+            self.cmd,
+            '''
+            define repo
+            set name=SHRP1
+            set type=??
+            show repo
+            '''
         )
 
-        self.cmd.onecmd('show repo1')
-
-        self.assertEqual(
-            [mock.call.get_repo('repo1')],
-            self.network.mock_calls
-        )
-        self.repo1.print_attributes.assert_called_once_with()
+        self.assertIn('SHRP1', output)
+        self.assertIn('??', output)
 
     def test_complete_set_before_repo(self):
-        self.network.repo_names = ('repo', 'repo2')
+        self.define_repos('repo', 'repo2')
         completion = self.cmd.complete_set('', 'set re atibute=value', 4, 4)
         self.assertEqual({'repo ', 'repo2 '}, set(completion))
 
     def test_complete_set_on_repo(self):
-        self.network.repo_names = ('repo', 'repo2')
+        self.define_repos('repo', 'repo2')
         completion = self.cmd.complete_set(
             're', 'set re attribute=value', 4, 5
         )
@@ -287,37 +339,37 @@ class Test_PyreneCmd(unittest.TestCase):
         self.assertEqual(set(), set(completion))
 
     def test_complete_unset_without_params(self):
-        self.network.repo_names = ('asd', 'absd')
+        self.define_repos('asd', 'absd')
         completion = self.cmd.complete_unset('', 'unset ', 6, 6)
         self.assertEqual({'asd ', 'absd '}, set(completion))
 
     def test_complete_unset_on_repo(self):
-        self.network.repo_names = ('asd', 'absd', 'bsd')
+        self.define_repos('asd', 'absd', 'bsd')
         completion = self.cmd.complete_unset('a', 'unset as', 6, 7)
         self.assertEqual({'asd ', 'absd '}, set(completion))
 
     def test_complete_unset_on_attribute_name(self):
-        self.repo1.attributes = {'a': 1, 'b': 2}
-        completion = self.cmd.complete_unset('', 'unset repo1 ', 12, 12)
+        self.define_repo('repo', {'a': '1', 'b': '2'})
+        completion = self.cmd.complete_unset('', 'unset repo ', 12, 12)
         self.assertEqual({'a', 'b'}, set(completion))
 
     def test_complete_repo_name(self):
-        self.network.repo_names = ('repo', 'repo2')
+        self.define_repos('repo', 'repo2')
         completion = self.cmd.complete_repo_name('', 'cmd ', 4, 4)
         self.assertEqual({'repo', 'repo2'}, set(completion))
 
     def test_complete_repo_name_with_suffix(self):
-        self.network.repo_names = ('repo', 'repo2')
+        self.define_repos('repo', 'repo2')
         completion = self.cmd.complete_repo_name('', 'cmd ', 4, 4, suffix=':')
         self.assertEqual({'repo:', 'repo2:'}, set(completion))
 
     def test_complete_repo_name_returns_sorted_output(self):
-        self.network.repo_names = ('c-repo', 'repo-b', 'repo-a')
+        self.define_repos('c-repo', 'repo-b', 'repo-a')
         completion = self.cmd.complete_repo_name('re', 'cmd re', 4, 6)
         self.assertEqual(['repo-a', 'repo-b'], completion)
 
     def test_complete_copy_completes_repos(self):
-        self.network.repo_names = ('repo', 'repo2')
+        self.define_repos('repo', 'repo2')
         completion = self.cmd.complete_copy('', 'copy ', 5, 5)
         self.assertTrue({'repo:', 'repo2:'}.issubset(set(completion)))
 
@@ -356,7 +408,6 @@ class Test_PyreneCmd(unittest.TestCase):
     @within_temp_dir
     def test_complete_copy_completes_directories(self):
         os.makedirs('dir3/dir2/dir1')
-        self.network.repo_names = ('repo', 'repo2')
 
         completion = self.cmd.complete_copy('', 'copy ', 4, 4)
 
@@ -365,7 +416,7 @@ class Test_PyreneCmd(unittest.TestCase):
     @within_temp_dir
     def test_complete_copy_does_not_complete_repos_after_slash(self):
         os.makedirs('dir')
-        self.network.repo_names = ('repo', 'repo2')
+        self.define_repos('repo', 'repo2')
 
         completion = self.cmd.complete_copy('', 'copy ./', 7, 7)
 
@@ -374,35 +425,64 @@ class Test_PyreneCmd(unittest.TestCase):
     @within_temp_dir
     def test_complete_copy_does_not_complete_filenames_after_a_repo(self):
         os.makedirs('dir')
-        self.network.repo_names = ('repo', 'repo2')
+        self.define_repos('repo', 'repo2')
 
         completion = self.cmd.complete_copy('', 'copy repo:', 10, 10)
 
         self.assertEqual([], completion)
 
     def test_setup_for_pypi_python_org(self):
+        self.define_repos('repo')
+
         self.cmd.onecmd('setup_for_pypi_python_org repo')
-        calls = [mock.call.set('repo', mock.ANY, mock.ANY)]
-        self.network.set.assert_has_calls(calls)
+
+        repo = self.network.get_repo('repo')
+        self.assertIn('pypi.python.org', repo.download_url)
 
     def test_setup_for_pip_local(self):
+        self.define_repos('repo')
+
         self.cmd.onecmd('setup_for_pip_local repo')
-        calls = [mock.call.set('repo', mock.ANY, mock.ANY)]
-        self.network.set.assert_has_calls(calls)
+
+        repo = self.network.get_repo('repo')
+        self.assertIn('pip/local', repo.directory)
 
     def test_serve(self):
+        self.define_repos('repo1')
+
         self.cmd.onecmd('serve repo1')
+
         self.repo1.serve.assert_called_once_with()
 
     def test_network_reload_called_before_every_command_in_the_loop(self):
-        self.network.repo_names = ['repo-a']
-        with fake_stdin('\nlist\n'):
-            self.cmd.cmdloop()
+        calls = []
+        self.network.reload = record_calls(calls, self.network.reload)
+        self.define_repos('repo-a')
 
-        self.assertEqual(
-            [
-                mock.call.reload(),  # empty line
-                mock.call.reload(),  # list
-                mock.call.reload(),  # EOF
-            ], self.network.mock_calls
-        )
+        run_script(self.cmd, '\nlist\n')
+
+        # expect 3 calls, one for each of
+        # empty line
+        # list
+        # EOF
+        self.assertEqual(3, len(calls))
+
+    def test_define_sets_default_repo(self):
+        script = '''
+        define repo
+        set someattr=somevalue
+        show repo
+        '''
+        output = run_script(self.cmd, script)
+        self.assertContainsInOrder(output, ['someattr', 'somevalue'])
+
+    def test_use_sets_prompt(self):
+        output = run_script(self.cmd, 'use somerepo')
+        self.assertIn('Pyrene[somerepo]: ', output)
+
+
+def run_script(cmd, script):
+    with fake_stdin(script):
+        with capture_stdout() as stdout:
+            cmd.cmdloop()
+            return stdout.content
