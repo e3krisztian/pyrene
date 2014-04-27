@@ -37,7 +37,7 @@ class Test_Network(unittest.TestCase):
         with self.assertRaises(m.UnknownRepoError):
             self.network.get_repo('undefined')
 
-    def test_get_repo_returns_nullrepo_on_missing_repo_type(self):
+    def test_get_repo_returns_badrepo_on_missing_repo_type(self):
         self.network.define('no-type')
         self.network.set('no-type', 'attr', 'attr-value')
         repo = self.network.get_repo('no-type')
