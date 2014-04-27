@@ -294,42 +294,20 @@ class Test_PyreneCmd(Assertions, unittest.TestCase):
         self.assertIn('SHRP1', output)
         self.assertIn('??', output)
 
-    def test_complete_set_before_repo(self):
-        self.define_repos('repo', 'repo2')
-        completion = self.cmd.complete_set('', 'set re atibute=value', 4, 4)
-        self.assertEqual({'repo ', 'repo2 '}, set(completion))
-
-    def test_complete_set_on_repo(self):
-        self.define_repos('repo', 'repo2')
-        completion = self.cmd.complete_set(
-            're', 'set re attribute=value', 4, 5
-        )
-        self.assertEqual({'repo ', 'repo2 '}, set(completion))
-
     def test_complete_set_on_attribute(self):
-        completion = self.cmd.complete_set('', 'set re atibute=value', 7, 7)
+        completion = self.cmd.complete_set('', 'set atibute=value', 4, 4)
         self.assertEqual(set(m.REPO_ATTRIBUTE_COMPLETIONS), set(completion))
 
     def test_complete_set_on_attribute_ty(self):
-        completion = self.cmd.complete_set('ty', 'set re ty=value', 7, 9)
+        completion = self.cmd.complete_set('ty', 'set ty=value', 4, 6)
         self.assertEqual({'type='}, set(completion))
 
     def test_complete_set_on_type_value_fi(self):
-        completion = self.cmd.complete_set(
-            'di',
-            'set re type=di',
-            12,
-            14,
-        )
+        completion = self.cmd.complete_set('di', 'set type=di', 9, 11)
         self.assertEqual(['directory'], completion)
 
     def test_complete_set_on_empty_type_value(self):
-        completion = self.cmd.complete_set(
-            '',
-            'set re type=',
-            12,
-            12,
-        )
+        completion = self.cmd.complete_set('', 'set type=', 9, 9)
         self.assertEqual(set(m.Network.REPO_TYPES), set(completion))
 
     def test_complete_set_on_value(self):
@@ -338,19 +316,9 @@ class Test_PyreneCmd(Assertions, unittest.TestCase):
         )
         self.assertEqual(set(), set(completion))
 
-    def test_complete_unset_without_params(self):
-        self.define_repos('asd', 'absd')
-        completion = self.cmd.complete_unset('', 'unset ', 6, 6)
-        self.assertEqual({'asd ', 'absd '}, set(completion))
-
-    def test_complete_unset_on_repo(self):
-        self.define_repos('asd', 'absd', 'bsd')
-        completion = self.cmd.complete_unset('a', 'unset as', 6, 7)
-        self.assertEqual({'asd ', 'absd '}, set(completion))
-
     def test_complete_unset_on_attribute_name(self):
         self.define_repo('repo', {'a': '1', 'b': '2'})
-        completion = self.cmd.complete_unset('', 'unset repo ', 12, 12)
+        completion = self.cmd.complete_unset('', 'unset ', 6, 6)
         self.assertEqual({'a', 'b'}, set(completion))
 
     def test_complete_repo_name(self):

@@ -191,13 +191,7 @@ class PyreneCmd(BaseCmd):
         completions = ()
         complete_line = line[:endidx]
         words = complete_line.split()
-        complete_index = len(words) + (0 if text else 1)
-        assert complete_index > 1, "complete on command not done???"
-        if complete_index == 2:
-            completions = self.complete_repo_name(
-                text, line, begidx, endidx, suffix=' '
-            )
-        elif '=' in words[-1]:
+        if '=' in words[-1]:
             if words[-1].startswith('type='):
                 completions = tuple(Network.REPO_TYPES)
         else:
@@ -211,16 +205,11 @@ class PyreneCmd(BaseCmd):
         self.network.unset(self.network.active_repo, attribute)
 
     def complete_unset(self, text, line, begidx, endidx):
-        complete_line = line[:endidx]
-        words = complete_line.split()
-        complete_index = len(words) + (0 if text else 1)
-        if complete_index == 2:
-            completions = self.complete_repo_name(
-                text, line, begidx, endidx, suffix=' '
-            )
-        else:
-            repo = self.network.get_repo(words[1])
-            completions = repo.attributes.keys()
+        repo_name = self.network.active_repo
+        if not repo_name:
+            return []
+        repo = self.network.get_repo(repo_name)
+        completions = repo.attributes.keys()
         return sorted(c for c in completions if c.startswith(text))
 
     def do_list(self, line):
@@ -245,6 +234,7 @@ class PyreneCmd(BaseCmd):
             if name.startswith(text)
         )
 
+    complete_use = complete_repo_name
     complete_forget = complete_repo_name
     complete_show = complete_repo_name
     complete_write_pip_conf_for = complete_repo_name
