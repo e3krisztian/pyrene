@@ -2,9 +2,10 @@ Python Repository Network tool
 ==============================
 
 I am a tool to help your interactions with Python package repositories.
-I can copy packages between repos for you without modifying any config files.
 
-There are two types of repos I support, probably this covers with their variants all you might need:
+For example I can copy packages between repos without modifying any config files.
+
+There are two types of repos I support:
 
 - http repos
     - https://pypi.python.org - the global python public package repo
@@ -19,16 +20,34 @@ I provide a shell-like environment as primary interface - with help and completi
 Installation
 ============
 
+From PyPI:
+
+```
+mkvirtualenv sys-pyrene
+pip install pyrene
+```
+
+Directly from GitHub:
+
 `master` branch is always the latest release, so it is safe to install with
 
 ```shell
-mkvirtualenv pyrene
+mkvirtualenv sys-pyrene
 pip install git+https://github.com/krisztianfekete/pyrene.git
 ```
 
+As an extra, in order to have `pyrene` without activating its `virtualenv` I do the following:
+
+```shell
+ln -s ~/.virtualenvs/sys-pyrene/bin/pyrene ~/bin
+```
 
 Usage
 =====
+
+My state consists of:
+- set of repositories
+- an active repository (initially None)
 
 I support the following commands:
 
@@ -66,7 +85,7 @@ Introduces a new repository.
 
 ```
 Pyrene: define repo
-Pyrene: list
+Pyrene[repo]: list
   repo
 ```
 
@@ -76,8 +95,9 @@ set
 Sets a repository attribute.
 
 ```
-Pyrene: set repo attribute=value
-Pyrene: show repo
+Pyrene: use repo
+Pyrene[repo]: set attribute=value
+Pyrene[repo]: show
   attribute: value
 ```
 
@@ -89,8 +109,9 @@ Removes a repository attribute
 ```
 Pyrene: show repo
   attribute: value
-Pyrene: unset repo attribute
-Pyrene: show repo
+Pyrene: use repo
+Pyrene[repo]: unset attribute
+Pyrene[repo]: show
 ```
 
 forget
@@ -132,9 +153,9 @@ Pyrene: show local
 write_pip_conf_for
 ------------------
 
-The working of `pip` can be greatly influenced by the `~/.pip/pip.conf` configuration file: it defines which repo is used to download from (`index-url` or `find-links`) and how (`no-use-wheels`, etc.)
+How `pip` works can be greatly influenced by the `~/.pip/pip.conf` configuration file: it defines which repo is used to download from (`index-url` or `find-links`) and how (`no-use-wheels`, etc.)
 
-I'll create a minimal `pip.conf` config file (or overwrite silently the existing one) so that pip will use the named Pyrene defined repo outside of `Pyrene` for downloads: 
+With `write_pip_conf_for` I'll create a minimal `pip.conf` config file (*or overwrite silently the existing one!!!*) so that pip will use the given repo outside of `Pyrene` for downloads: 
 
 ```
 Pyrene: write_pip_conf_for repo
@@ -144,12 +165,16 @@ Pyrene: write_pip_conf_for repo
 Development
 ===========
 
-Clone the `develop` branch for development and create a pull request against it.
+Fork the [repo](https://github.com/krisztianfekete/pyrene) and create a pull request against the `develop` branch.
 
 The reason is: I am being developed using `git flow` on branch `develop`.
 `master` is the release branch.
 
-Contributions
+`Pyrene` is a work in progress, with lots of sharp edges, miswordings, etc.
+
+So
+
+contributions
 -------------
 
 - reporting issues
@@ -168,6 +193,7 @@ Guidelines:
 - all features require unit tests
 - zero messages from flake8
 - usability, simplicity wins over feature completeness
+- the smallest the change, the better
 
 The current code might violate these, but it is then considered a bug.
 Fixing any of these violations - even if it looks trivial is welcome!
@@ -176,5 +202,5 @@ External packages/tools:
 ------------------------
 
 - packages are downloaded with [pip](http://www.pip-installer.org).
-- packages are uploaded with code adopted from [twine](https://pypi.python.org/pypi/twine), though unfortunately `twine` is not used directly.
+- packages are uploaded with code adopted from [twine](https://pypi.python.org/pypi/twine), unfortunately `twine` is not used directly.
 - local packages are served with [pypi-server](https://pypi.python.org/pypi/pypiserver)

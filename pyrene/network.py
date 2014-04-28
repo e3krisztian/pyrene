@@ -18,12 +18,6 @@ class UnknownRepoError(NameError):
     '''Repo is not defined at all'''
 
 
-TYPE_TO_CLASS = {
-    REPOTYPE.DIRECTORY: DirectoryRepo,
-    REPOTYPE.HTTP: HttpRepo,
-}
-
-
 class Network(object):
 
     REPO_TYPES = {
@@ -39,9 +33,18 @@ class Network(object):
 
     REPO_SECTION_PREFIX = 'repo:'
 
+    TYPE_TO_CLASS = {
+        REPOTYPE.DIRECTORY: DirectoryRepo,
+        REPOTYPE.HTTP: HttpRepo,
+    }
+
+    # name of active/default/ repo
+    active_repo = None
+
     def __init__(self, filename):
         self._repo_store_filename = filename
         self._config = None
+        self.active_repo = None
         self.reload()
 
     def reload(self):
@@ -54,6 +57,7 @@ class Network(object):
             self._config.write(f)
 
     def get_repo(self, repo_name):
+        repo_name = repo_name or self.active_repo
         repokey = self.REPO_SECTION_PREFIX + repo_name
         if not self._config.has_section(repokey):
             raise UnknownRepoError(repo_name)
@@ -61,12 +65,14 @@ class Network(object):
         attributes = self.get_attributes(repo_name)
         repo_type = attributes.get(REPO.TYPE)
 
-        return TYPE_TO_CLASS.get(repo_type, BadRepo)(repo_name, attributes)
+        repo_class = self.TYPE_TO_CLASS.get(repo_type, BadRepo)
+        return repo_class(repo_name, attributes)
 
     def define(self, repo_name):
         repokey = self.REPO_SECTION_PREFIX + repo_name
         self._config.add_section(repokey)
         self._save()
+        self.active_repo = repo_name
 
     def forget(self, repo_name):
         repokey = self.REPO_SECTION_PREFIX + repo_name

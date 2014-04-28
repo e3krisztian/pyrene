@@ -62,7 +62,15 @@ class PyreneCmd(BaseCmd):
 
     For help on commands type {help} or {qmark}
     '''.format(help=bold('help'), qmark=bold('?'))
-    prompt = 'Pyrene: '
+
+    @property
+    def prompt(self):
+        active_repo = self.network.active_repo
+        prompt = (
+            'Pyrene[{}]: '.format(active_repo) if active_repo
+            else 'Pyrene: '
+        )
+        return prompt
 
     def __init__(self, network, directory):
         super(PyreneCmd, self).__init__()
@@ -132,6 +140,13 @@ class PyreneCmd(BaseCmd):
         finally:
             self.__temp_dir.clear()
 
+    def do_use(self, repo):
+        '''
+        Make repo the active one.
+        Commands working on a repo will use it as default for repo parameter.
+        '''
+        self.network.active_repo = repo
+
     def do_define(self, repo):
         '''
         Define a new package repository.
@@ -167,45 +182,34 @@ class PyreneCmd(BaseCmd):
         set company-private-repo username=user
         set company-private-repo password=pass
         '''
-        repo, attribute_value = line.split()
-        attribute, _, value = attribute_value.partition('=')
+        repo = self.network.active_repo
+        assert repo is not None
+        attribute, _, value = line.partition('=')
         self.network.set(repo, attribute, value)
 
     def complete_set(self, text, line, begidx, endidx):
         completions = ()
         complete_line = line[:endidx]
         words = complete_line.split()
-        complete_index = len(words) + (0 if text else 1)
-        assert complete_index > 1, "complete on command not done???"
-        if complete_index == 2:
-            completions = self.complete_repo_name(
-                text, line, begidx, endidx, suffix=' '
-            )
-        elif '=' in words[-1]:
+        if '=' in words[-1]:
             if words[-1].startswith('type='):
                 completions = tuple(Network.REPO_TYPES)
         else:
             completions = REPO_ATTRIBUTE_COMPLETIONS
         return sorted(c for c in completions if c.startswith(text))
 
-    def do_unset(self, line):
+    def do_unset(self, attribute):
         '''
-        Unset a repository attribute
+        Unset attribute on the active/default repo
         '''
-        repo, attribute = line.split()
-        self.network.unset(repo, attribute)
+        self.network.unset(self.network.active_repo, attribute)
 
     def complete_unset(self, text, line, begidx, endidx):
-        complete_line = line[:endidx]
-        words = complete_line.split()
-        complete_index = len(words) + (0 if text else 1)
-        if complete_index == 2:
-            completions = self.complete_repo_name(
-                text, line, begidx, endidx, suffix=' '
-            )
-        else:
-            repo = self.network.get_repo(words[1])
-            completions = repo.attributes.keys()
+        repo_name = self.network.active_repo
+        if not repo_name:
+            return []
+        repo = self.network.get_repo(repo_name)
+        completions = repo.attributes.keys()
         return sorted(c for c in completions if c.startswith(text))
 
     def do_list(self, line):
@@ -230,6 +234,7 @@ class PyreneCmd(BaseCmd):
             if name.startswith(text)
         )
 
+    complete_use = complete_repo_name
     complete_forget = complete_repo_name
     complete_show = complete_repo_name
     complete_write_pip_conf_for = complete_repo_name

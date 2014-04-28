@@ -69,7 +69,7 @@ class Repo(object):
                 print(msg)
 
 
-PIPCONF_NULLREPO = '''\
+PIPCONF_BADREPO = '''\
 [global]
 # no package can be installed from a BadRepo
 no-index = true
@@ -81,7 +81,7 @@ class BadRepo(Repo):
     ATTRIBUTES = {}
 
     def get_as_pip_conf(self):
-        return PIPCONF_NULLREPO
+        return PIPCONF_BADREPO
 
     @property
     def printable_name(self):
