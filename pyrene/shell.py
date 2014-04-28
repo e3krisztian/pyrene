@@ -188,12 +188,19 @@ class PyreneCmd(BaseCmd):
         self.network.set(repo, attribute, value)
 
     def complete_set(self, text, line, begidx, endidx):
-        completions = ()
+        completions = set()
         complete_line = line[:endidx]
         words = complete_line.split()
         if '=' in words[-1]:
-            if words[-1].startswith('type='):
-                completions = tuple(Network.REPO_TYPES)
+            attribute, _, value = words[-1].partition('=')
+            if attribute == 'type':
+                completions = set(Network.REPO_TYPES)
+            if self.network.active_repo:
+                attributes = self.network.get_attributes(
+                    self.network.active_repo
+                )
+                if attribute in attributes:
+                    completions.add(attributes[attribute])
         else:
             completions = REPO_ATTRIBUTE_COMPLETIONS
         return sorted(c for c in completions if c.startswith(text))

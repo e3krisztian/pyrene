@@ -310,6 +310,17 @@ class Test_PyreneCmd(Assertions, unittest.TestCase):
         completion = self.cmd.complete_set('', 'set type=', 9, 9)
         self.assertEqual(set(m.Network.REPO_TYPES), set(completion))
 
+    def test_complete_set_completes_existing_attribute_value(self):
+        run_script(
+            self.cmd,
+            '''
+            define repo
+            set attr=somevalue
+            '''
+        )
+        completion = self.cmd.complete_set('', 'set attr=', 9, 9)
+        self.assertEqual({'somevalue'}, set(completion))
+
     def test_complete_set_on_value(self):
         completion = self.cmd.complete_set(
             'attribute=', 'set re attribute=value', 7, 17
