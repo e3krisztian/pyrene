@@ -171,22 +171,24 @@ class PyreneCmd(BaseCmd):
 
     def do_set(self, line):
         '''
-        Set repository attributes.
+        Set repository attributes on the active repo.
 
-        set repo attribute=value
+        set attribute=value
 
         # intended use:
 
         # directory repos:
-        set developer-repo type=directory
-        set developer-repo directory=package-directory
+        work_on developer-repo
+        set type=directory
+        set directory=package-directory
 
         # http repos:
-        set company-private-repo type=http
-        set company-private-repo download-url=http://...
-        set company-private-repo upload-url=http://...
-        set company-private-repo username=user
-        set company-private-repo password=pass
+        work_on company-private-repo
+        set type=http
+        set download-url=http://...
+        set upload-url=http://...
+        set username=user
+        set password=pass
         '''
         repo = self.network.active_repo
         assert repo is not None
