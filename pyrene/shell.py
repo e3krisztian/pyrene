@@ -257,6 +257,42 @@ class PyreneCmd(BaseCmd):
         repo = self.network.get_repo(repo)
         repo.print_attributes()
 
+    def do_setup_for_pypi_python_org(self, repo):
+        '''
+        Configure repo to point to the default package index
+        https://pypi.python.org.
+        '''
+        self.network.set(repo, REPO.TYPE, REPOTYPE.HTTP)
+        self.network.set(
+            repo,
+            REPO.DOWNLOAD_URL,
+            'https://pypi.python.org/simple/'
+        )
+        self.network.set(
+            repo,
+            REPO.UPLOAD_URL,
+            'https://pypi.python.org/'
+        )
+
+    def do_setup_for_pip_local(self, repo):
+        '''
+        Configure repo to be directory based with directory `~/.pip/local`.
+        Also makes that directory if needed.
+        '''
+        piplocal = os.path.expanduser('~/.pip/local')
+        if not os.path.exists(piplocal):
+            os.makedirs(piplocal)
+        self.network.set(repo, REPO.TYPE, REPOTYPE.DIRECTORY)
+        self.network.set(repo, REPO.DIRECTORY, piplocal)
+
+    def do_serve(self, repo_name):
+        '''
+        Serve a local directory over http as a package index (like pypi).
+        Intended for quick package exchanges.
+        '''
+        repo = self.network.get_repo(repo_name)
+        repo.serve()
+
     def complete_repo_name(self, text, line, begidx, endidx, suffix=''):
         return sorted(
             '{}{}'.format(name, suffix)
@@ -270,6 +306,9 @@ class PyreneCmd(BaseCmd):
     complete_forget = complete_repo_name
     complete_show = complete_repo_name
     complete_use = complete_repo_name
+    complete_setup_for_pypi_python_org = complete_repo_name
+    complete_setup_for_pip_local = complete_repo_name
+    complete_serve = complete_repo_name
 
     def complete_filenames(self, text, line, begidx, endidx):
         dir_prefix = '.'
@@ -304,45 +343,3 @@ class PyreneCmd(BaseCmd):
 
         filenames = self.complete_filenames(text, line, begidx, endidx)
         return repos + filenames
-
-    def do_setup_for_pypi_python_org(self, repo):
-        '''
-        Configure repo to point to the default package index
-        https://pypi.python.org.
-        '''
-        self.network.set(repo, REPO.TYPE, REPOTYPE.HTTP)
-        self.network.set(
-            repo,
-            REPO.DOWNLOAD_URL,
-            'https://pypi.python.org/simple/'
-        )
-        self.network.set(
-            repo,
-            REPO.UPLOAD_URL,
-            'https://pypi.python.org/'
-        )
-
-    complete_setup_for_pypi_python_org = complete_repo_name
-
-    def do_setup_for_pip_local(self, repo):
-        '''
-        Configure repo to be directory based with directory `~/.pip/local`.
-        Also makes that directory if needed.
-        '''
-        piplocal = os.path.expanduser('~/.pip/local')
-        if not os.path.exists(piplocal):
-            os.makedirs(piplocal)
-        self.network.set(repo, REPO.TYPE, REPOTYPE.DIRECTORY)
-        self.network.set(repo, REPO.DIRECTORY, piplocal)
-
-    complete_setup_for_pip_local = complete_repo_name
-
-    def do_serve(self, repo_name):
-        '''
-        Serve a local directory over http as a package index (like pypi).
-        Intended for quick package exchanges.
-        '''
-        repo = self.network.get_repo(repo_name)
-        repo.serve()
-
-    complete_serve = complete_repo_name
