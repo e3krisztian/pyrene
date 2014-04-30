@@ -252,7 +252,7 @@ class PyreneCmd(BaseCmd):
     complete_use = complete_repo_name
     complete_forget = complete_repo_name
     complete_show = complete_repo_name
-    complete_write_pip_conf_for = complete_repo_name
+    complete_work_on = complete_repo_name
 
     def complete_filenames(self, text, line, begidx, endidx):
         dir_prefix = '.'
