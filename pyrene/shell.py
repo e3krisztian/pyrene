@@ -252,7 +252,7 @@ class PyreneCmd(BaseCmd):
 
     def do_show(self, repo):
         '''
-        List repo attributes - as could be specified in pip.conf
+        List repo attributes
         '''
         repo = self.network.get_repo(repo)
         repo.print_attributes()

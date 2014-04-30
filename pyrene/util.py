@@ -20,6 +20,10 @@ def green(text):
     return termcolor.colored(text, 'green')
 
 
+def yellow(text):
+    return termcolor.colored(text, 'yellow')
+
+
 def bold(text):
     return termcolor.colored(text, attrs={'bold'})
 
