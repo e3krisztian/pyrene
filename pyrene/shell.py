@@ -153,13 +153,28 @@ class PyreneCmd(BaseCmd):
         '''
         self.network.active_repo = repo
 
-    def do_define(self, repo):
-        '''
-        Define a new package repository.
+    def __define_or_change_type(self, repo, repotype):
+        repo_name = repo or self.network.active_repo
+        if repo_name not in self.network.repo_names:
+            self.network.define(repo_name)
+        self.network.active_repo = repo_name
+        self.network.set(repo_name, REPO.TYPE, repotype)
 
-        define REPO
+    def do_http_repo(self, repo):
         '''
-        self.network.define(repo)
+        [Re]define REPO as http package repository.
+
+        http_repo REPO
+        '''
+        self.__define_or_change_type(repo, REPOTYPE.HTTP)
+
+    def do_directory_repo(self, repo):
+        '''
+        [Re]define REPO as directory package repository.
+
+        directory_repo REPO
+        '''
+        self.__define_or_change_type(repo, REPOTYPE.DIRECTORY)
 
     def do_forget(self, repo):
         '''
@@ -249,10 +264,12 @@ class PyreneCmd(BaseCmd):
             if name.startswith(text)
         )
 
-    complete_use = complete_repo_name
+    complete_http_repo = complete_repo_name
+    complete_directory_repo = complete_repo_name
+    complete_work_on = complete_repo_name
     complete_forget = complete_repo_name
     complete_show = complete_repo_name
-    complete_work_on = complete_repo_name
+    complete_use = complete_repo_name
 
     def complete_filenames(self, text, line, begidx, endidx):
         dir_prefix = '.'

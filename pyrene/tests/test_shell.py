@@ -88,6 +88,7 @@ class Test_PyreneCmd(Assertions, unittest.TestCase):
 
     def define_repo(self, repo_name, attributes):
         self.network.define(repo_name)
+        self.network.active_repo = repo_name
         for attr, value in attributes.items():
             self.network.set(repo_name, attr, value)
 
@@ -237,16 +238,57 @@ class Test_PyreneCmd(Assertions, unittest.TestCase):
 
         self.assertIn(mock.call.clear(), self.directory.mock_calls)
 
-    def test_define(self):
+    def test_http_repo_defines_new_repo(self):
         output = run_script(
             self.cmd,
             '''
-            define new-repo
+            http_repo new-repo
             list
             '''
         )
 
         self.assertIn('new-repo', output)
+
+    def test_existing_repo_http_repo_changes_repo_type(self):
+        run_script(
+            self.cmd,
+            '''
+            directory_repo new-repo
+            set attr=somevalue
+            http_repo
+            '''
+        )
+
+        self.assertEqual('new-repo', self.network.active_repo)
+        repo = self.network.get_repo('new-repo')
+        self.assertEqual(m.REPOTYPE.HTTP, repo.type)
+        self.assertEqual('somevalue', repo.attr)
+
+    def test_directory_repo_defines_new_repo(self):
+        output = run_script(
+            self.cmd,
+            '''
+            directory_repo new-repo
+            list
+            '''
+        )
+
+        self.assertIn('new-repo', output)
+
+    def test_existing_repo_directory_repo_changes_repo_type(self):
+        run_script(
+            self.cmd,
+            '''
+            http_repo new-repo
+            set attr=somevalue
+            directory_repo
+            '''
+        )
+
+        self.assertEqual('new-repo', self.network.active_repo)
+        repo = self.network.get_repo('new-repo')
+        self.assertEqual(m.REPOTYPE.DIRECTORY, repo.type)
+        self.assertEqual('somevalue', repo.attr)
 
     def test_forget(self):
         self.network.define('somerepo')
@@ -259,7 +301,7 @@ class Test_PyreneCmd(Assertions, unittest.TestCase):
         output = run_script(
             self.cmd,
             '''
-            define repo
+            http_repo repo
             set someattribute=value
             unset someattribute
             set someotherattribute=othervalue
@@ -284,7 +326,7 @@ class Test_PyreneCmd(Assertions, unittest.TestCase):
         output = run_script(
             self.cmd,
             '''
-            define repo
+            directory_repo repo
             set name=SHRP1
             set type=??
             show repo
@@ -314,7 +356,7 @@ class Test_PyreneCmd(Assertions, unittest.TestCase):
         run_script(
             self.cmd,
             '''
-            define repo
+            directory_repo repo
             set attr=somevalue
             '''
         )
@@ -448,7 +490,7 @@ class Test_PyreneCmd(Assertions, unittest.TestCase):
 
     def test_define_sets_default_repo(self):
         script = '''
-        define repo
+        http_repo repo
         set someattr=somevalue
         show repo
         '''

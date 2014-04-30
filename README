@@ -78,13 +78,24 @@ Shows repository attributes
 Pyrene: show repo
 ```
 
-define
-------
+directory_repo
+--------------
 
-Introduces a new repository.
+Defines a new `directory` repository or change an existing repo's the type to `directory`.
 
 ```
-Pyrene: define repo
+Pyrene: directory_repo repo
+Pyrene[repo]: list
+  repo
+```
+
+http_repo
+---------
+
+Defines a new `http` repository or change an existing repo's the type to `http`.
+
+```
+Pyrene: http_repo repo
 Pyrene[repo]: list
   repo
 ```

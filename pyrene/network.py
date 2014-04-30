@@ -72,7 +72,6 @@ class Network(object):
         repokey = self.REPO_SECTION_PREFIX + repo_name
         self._config.add_section(repokey)
         self._save()
-        self.active_repo = repo_name
 
     def forget(self, repo_name):
         repokey = self.REPO_SECTION_PREFIX + repo_name
