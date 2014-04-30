@@ -99,14 +99,14 @@ class Test_PyreneCmd(Assertions, unittest.TestCase):
         if repo_name == 'somerepo':
             return self.somerepo
 
-    def test_write_pip_conf_for(self):
+    def test_use(self):
         self.network.get_repo = mock.Mock(return_value=self.somerepo)
         pip_conf = 'someconf'
         self.somerepo.get_as_pip_conf.configure_mock(
             return_value=pip_conf
         )
 
-        self.cmd.onecmd('write_pip_conf_for somerepo')
+        self.cmd.onecmd('use somerepo')
 
         self.cmd.write_file.assert_called_once_with(
             os.path.expanduser('~/.pip/pip.conf'),
@@ -455,8 +455,8 @@ class Test_PyreneCmd(Assertions, unittest.TestCase):
         output = run_script(self.cmd, script)
         self.assertContainsInOrder(output, ['someattr', 'somevalue'])
 
-    def test_use_sets_prompt(self):
-        output = run_script(self.cmd, 'use somerepo')
+    def test_work_on_sets_prompt(self):
+        output = run_script(self.cmd, 'work_on somerepo')
         self.assertIn('Pyrene[somerepo]: ', output)
 
 

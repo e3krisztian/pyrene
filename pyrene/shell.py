@@ -84,11 +84,11 @@ class PyreneCmd(BaseCmd):
     def write_file(self, filename, content):
         write_file(filename, content)
 
-    def do_write_pip_conf_for(self, repo):
+    def do_use(self, repo):
         '''
-        Set up pip to use REPO by default (write ~/.pip/pip.conf)
+        Set up pip when used outside of Pyren to use REPO by default.
 
-        write_pip_conf_for REPO
+        [Over]writes ~/.pip/pip.conf
         '''
         repo = self.network.get_repo(repo)
         pip_conf = os.path.expanduser('~/.pip/pip.conf')
@@ -140,7 +140,7 @@ class PyreneCmd(BaseCmd):
         finally:
             self.__temp_dir.clear()
 
-    def do_use(self, repo):
+    def do_work_on(self, repo):
         '''
         Make repo the active one.
         Commands working on a repo will use it as default for repo parameter.
