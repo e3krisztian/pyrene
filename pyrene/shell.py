@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import os
 from cmd import Cmd
 import traceback
-from .util import write_file, bold
+from .util import write_file, bold, red
 from .network import Network, DirectoryRepo
 from .constants import REPO, REPOTYPE
 
@@ -85,14 +85,20 @@ class PyreneCmd(BaseCmd):
         write_file(filename, content)
 
     def do_use(self, repo):
-        '''
-        Set up pip when used outside of Pyren to use REPO by default.
-
-        [Over]writes ~/.pip/pip.conf
-        '''
         repo = self.network.get_repo(repo)
         pip_conf = os.path.expanduser('~/.pip/pip.conf')
         self.write_file(pip_conf, repo.get_as_pip_conf().encode('utf8'))
+
+    def help_use(self):
+        help = '''
+        Set up {pip} (when used outside of Pyrene) to use REPO by default.
+
+        {warn}
+        '''.format(
+            pip=bold('pip'),
+            warn=red('WARNING: Overwrites ~/.pip/pip.conf!')
+        )
+        print(help)
 
     def _get_destination_repo(self, word):
         if word.endswith(':'):
