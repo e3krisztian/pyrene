@@ -78,13 +78,24 @@ Shows repository attributes
 Pyrene: show repo
 ```
 
-define
-------
+directory_repo
+--------------
 
-Introduces a new repository.
+Defines a new `directory` repository or change an existing repo's the type to `directory`.
 
 ```
-Pyrene: define repo
+Pyrene: directory_repo repo
+Pyrene[repo]: list
+  repo
+```
+
+http_repo
+---------
+
+Defines a new `http` repository or change an existing repo's the type to `http`.
+
+```
+Pyrene: http_repo repo
 Pyrene[repo]: list
   repo
 ```
@@ -95,7 +106,7 @@ set
 Sets a repository attribute.
 
 ```
-Pyrene: use repo
+Pyrene: work_on repo
 Pyrene[repo]: set attribute=value
 Pyrene[repo]: show
   attribute: value
@@ -109,7 +120,7 @@ Removes a repository attribute
 ```
 Pyrene: show repo
   attribute: value
-Pyrene: use repo
+Pyrene: work_on repo
 Pyrene[repo]: unset attribute
 Pyrene[repo]: show
 ```
@@ -150,15 +161,15 @@ Pyrene: show local
   type: directory
 ```
 
-write_pip_conf_for
-------------------
+use
+---
 
 How `pip` works can be greatly influenced by the `~/.pip/pip.conf` configuration file: it defines which repo is used to download from (`index-url` or `find-links`) and how (`no-use-wheels`, etc.)
 
-With `write_pip_conf_for` I'll create a minimal `pip.conf` config file (*or overwrite silently the existing one!!!*) so that pip will use the given repo outside of `Pyrene` for downloads: 
+When you say `use` I'll create a minimal `pip.conf` config file (*or overwrite silently the existing one!!!*) so that `pip` will use the given repo outside of `Pyrene` for downloads: 
 
 ```
-Pyrene: write_pip_conf_for repo
+Pyrene: use repo
 ```
 
 

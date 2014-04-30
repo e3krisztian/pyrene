@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import os
 from cmd import Cmd
 import traceback
-from .util import write_file, bold
+from .util import write_file, bold, red
 from .network import Network, DirectoryRepo
 from .constants import REPO, REPOTYPE
 
@@ -84,15 +84,21 @@ class PyreneCmd(BaseCmd):
     def write_file(self, filename, content):
         write_file(filename, content)
 
-    def do_write_pip_conf_for(self, repo):
-        '''
-        Set up pip to use REPO by default (write ~/.pip/pip.conf)
-
-        write_pip_conf_for REPO
-        '''
+    def do_use(self, repo):
         repo = self.network.get_repo(repo)
         pip_conf = os.path.expanduser('~/.pip/pip.conf')
         self.write_file(pip_conf, repo.get_as_pip_conf().encode('utf8'))
+
+    def help_use(self):
+        help = '''
+        Set up {pip} (when used outside of Pyrene) to use REPO by default.
+
+        {warn}
+        '''.format(
+            pip=bold('pip'),
+            warn=red('WARNING: Overwrites ~/.pip/pip.conf!')
+        )
+        print(help)
 
     def _get_destination_repo(self, word):
         if word.endswith(':'):
@@ -140,20 +146,35 @@ class PyreneCmd(BaseCmd):
         finally:
             self.__temp_dir.clear()
 
-    def do_use(self, repo):
+    def do_work_on(self, repo):
         '''
         Make repo the active one.
         Commands working on a repo will use it as default for repo parameter.
         '''
         self.network.active_repo = repo
 
-    def do_define(self, repo):
-        '''
-        Define a new package repository.
+    def __define_or_change_type(self, repo, repotype):
+        repo_name = repo or self.network.active_repo
+        if repo_name not in self.network.repo_names:
+            self.network.define(repo_name)
+        self.network.active_repo = repo_name
+        self.network.set(repo_name, REPO.TYPE, repotype)
 
-        define REPO
+    def do_http_repo(self, repo):
         '''
-        self.network.define(repo)
+        [Re]define REPO as http package repository.
+
+        http_repo REPO
+        '''
+        self.__define_or_change_type(repo, REPOTYPE.HTTP)
+
+    def do_directory_repo(self, repo):
+        '''
+        [Re]define REPO as directory package repository.
+
+        directory_repo REPO
+        '''
+        self.__define_or_change_type(repo, REPOTYPE.DIRECTORY)
 
     def do_forget(self, repo):
         '''
@@ -165,22 +186,24 @@ class PyreneCmd(BaseCmd):
 
     def do_set(self, line):
         '''
-        Set repository attributes.
+        Set repository attributes on the active repo.
 
-        set repo attribute=value
+        set attribute=value
 
         # intended use:
 
         # directory repos:
-        set developer-repo type=directory
-        set developer-repo directory=package-directory
+        work_on developer-repo
+        set type=directory
+        set directory=package-directory
 
         # http repos:
-        set company-private-repo type=http
-        set company-private-repo download-url=http://...
-        set company-private-repo upload-url=http://...
-        set company-private-repo username=user
-        set company-private-repo password=pass
+        work_on company-private-repo
+        set type=http
+        set download-url=http://...
+        set upload-url=http://...
+        set username=user
+        set password=pass
         '''
         repo = self.network.active_repo
         assert repo is not None
@@ -229,10 +252,46 @@ class PyreneCmd(BaseCmd):
 
     def do_show(self, repo):
         '''
-        List repo attributes - as could be specified in pip.conf
+        List repo attributes
         '''
         repo = self.network.get_repo(repo)
         repo.print_attributes()
+
+    def do_setup_for_pypi_python_org(self, repo):
+        '''
+        Configure repo to point to the default package index
+        https://pypi.python.org.
+        '''
+        self.network.set(repo, REPO.TYPE, REPOTYPE.HTTP)
+        self.network.set(
+            repo,
+            REPO.DOWNLOAD_URL,
+            'https://pypi.python.org/simple/'
+        )
+        self.network.set(
+            repo,
+            REPO.UPLOAD_URL,
+            'https://pypi.python.org/'
+        )
+
+    def do_setup_for_pip_local(self, repo):
+        '''
+        Configure repo to be directory based with directory `~/.pip/local`.
+        Also makes that directory if needed.
+        '''
+        piplocal = os.path.expanduser('~/.pip/local')
+        if not os.path.exists(piplocal):
+            os.makedirs(piplocal)
+        self.network.set(repo, REPO.TYPE, REPOTYPE.DIRECTORY)
+        self.network.set(repo, REPO.DIRECTORY, piplocal)
+
+    def do_serve(self, repo_name):
+        '''
+        Serve a local directory over http as a package index (like pypi).
+        Intended for quick package exchanges.
+        '''
+        repo = self.network.get_repo(repo_name)
+        repo.serve()
 
     def complete_repo_name(self, text, line, begidx, endidx, suffix=''):
         return sorted(
@@ -241,10 +300,15 @@ class PyreneCmd(BaseCmd):
             if name.startswith(text)
         )
 
-    complete_use = complete_repo_name
+    complete_http_repo = complete_repo_name
+    complete_directory_repo = complete_repo_name
+    complete_work_on = complete_repo_name
     complete_forget = complete_repo_name
     complete_show = complete_repo_name
-    complete_write_pip_conf_for = complete_repo_name
+    complete_use = complete_repo_name
+    complete_setup_for_pypi_python_org = complete_repo_name
+    complete_setup_for_pip_local = complete_repo_name
+    complete_serve = complete_repo_name
 
     def complete_filenames(self, text, line, begidx, endidx):
         dir_prefix = '.'
@@ -279,45 +343,3 @@ class PyreneCmd(BaseCmd):
 
         filenames = self.complete_filenames(text, line, begidx, endidx)
         return repos + filenames
-
-    def do_setup_for_pypi_python_org(self, repo):
-        '''
-        Configure repo to point to the default package index
-        https://pypi.python.org.
-        '''
-        self.network.set(repo, REPO.TYPE, REPOTYPE.HTTP)
-        self.network.set(
-            repo,
-            REPO.DOWNLOAD_URL,
-            'https://pypi.python.org/simple/'
-        )
-        self.network.set(
-            repo,
-            REPO.UPLOAD_URL,
-            'https://pypi.python.org/'
-        )
-
-    complete_setup_for_pypi_python_org = complete_repo_name
-
-    def do_setup_for_pip_local(self, repo):
-        '''
-        Configure repo to be directory based with directory `~/.pip/local`.
-        Also makes that directory if needed.
-        '''
-        piplocal = os.path.expanduser('~/.pip/local')
-        if not os.path.exists(piplocal):
-            os.makedirs(piplocal)
-        self.network.set(repo, REPO.TYPE, REPOTYPE.DIRECTORY)
-        self.network.set(repo, REPO.DIRECTORY, piplocal)
-
-    complete_setup_for_pip_local = complete_repo_name
-
-    def do_serve(self, repo_name):
-        '''
-        Serve a local directory over http as a package index (like pypi).
-        Intended for quick package exchanges.
-        '''
-        repo = self.network.get_repo(repo_name)
-        repo.serve()
-
-    complete_serve = complete_repo_name

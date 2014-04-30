@@ -64,6 +64,7 @@ class Test_Network(unittest.TestCase):
     def test_get_repo_with_empty_repo_name_returns_active_repo(self):
         self.network.define('activerepo')
         self.network.set('activerepo', 'type', 'http')
+        self.network.active_repo = 'activerepo'
 
         repo = self.network.get_repo('')
 
