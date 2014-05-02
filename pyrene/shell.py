@@ -96,13 +96,18 @@ class PyreneCmd(BaseCmd):
     def write_file(self, filename, content):
         write_file(filename, content)
 
+    def check_repo_exists(self, repo_name):
+        if repo_name:
+            if repo_name not in self.network.repo_names:
+                raise ShellError('Unknown repository: {}'.format(repo_name))
+        elif not self.network.active_repo:
+                raise ShellError(
+                    'Not working on any repository'
+                    + ' and repository was not given'
+                )
+
     def do_use(self, repo):
-        if not repo:
-            raise ShellError(
-                'Not working on any repository and repository was not given'
-            )
-        if repo not in self.network.repo_names:
-            raise ShellError('Unknown repository: {}'.format(repo))
+        self.check_repo_exists(repo)
 
         repo = self.network.get_repo(repo)
         pip_conf = os.path.expanduser('~/.pip/pip.conf')

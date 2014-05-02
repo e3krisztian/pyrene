@@ -124,6 +124,19 @@ class Test_PyreneCmd(Assertions, unittest.TestCase):
         )
         self.assertEqual(0, self.cmd.write_file.call_count)
 
+    def test_use_with_implicit_repo(self):
+        output = run_script(
+            self.cmd,
+            '''
+            directory_repo somerepo
+            work_on somerepo
+            use
+            '''
+        )
+
+        self.assertNotIn('ERROR:', output)
+        self.assertEqual(1, self.cmd.write_file.call_count)
+
     def test_use_with_missing_implicit_repo(self):
         output = run_script(self.cmd, 'use')
 
