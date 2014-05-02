@@ -1,5 +1,7 @@
-Python Repository Network tool
-==============================
+![logo](docs/pyrene.png)
+
+Pyrene: a Python Repository Network tool
+========================================
 
 I am a tool to help your interactions with Python package repositories.
 
