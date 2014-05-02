@@ -1,20 +1,25 @@
-Python Repository Network tool
-==============================
+<figure>
+  <img src="docs/pyrene.png"/>
+  <figcaption>Pyrene</figcaption>
+</figure>
+
+a _Py_ thon _Re_ pository _Ne_ twork tool
+=========================================
 
 I am a tool to help your interactions with Python package repositories.
 
-For example I can copy packages between repos without modifying any config files.
+For example I can copy packages between repos.
+
+I provide a shell-like environment as primary interface - with help and completion for commands and attributes, but I can be used as a command-line tool as well.
 
 There are two types of repos I support:
 
-- http repos
+- http repos, e.g.
     - https://pypi.python.org - the global python public package repo
     - project specific PyPI server - defined by you or your company, for deployment
-- directory repos
+- directory repos, that is
     - a directory with package files, for fast/offline development
     - `~/.pip/local` - one such directory
-
-I provide a shell-like environment as primary interface - with help and completion for commands and attributes, but I can be used as a command-line tool as well.
 
 
 Installation
