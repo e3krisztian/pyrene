@@ -101,6 +101,7 @@ class Test_PyreneCmd(Assertions, unittest.TestCase):
             return self.somerepo
 
     def test_use(self):
+        self.network.define('somerepo')
         self.network.get_repo = mock.Mock(return_value=self.somerepo)
         pip_conf = 'someconf'
         self.somerepo.get_as_pip_conf.configure_mock(
@@ -113,6 +114,25 @@ class Test_PyreneCmd(Assertions, unittest.TestCase):
             os.path.expanduser('~/.pip/pip.conf'),
             pip_conf.encode('utf8')
         )
+
+    def test_use_with_unknown_repo(self):
+        with capture_stdout() as stdout:
+            self.cmd.onecmd('use undefined')
+            output = stdout.content
+
+        self.assertContainsInOrder(
+            output,
+            ('ERROR:', 'Unknown repo', 'undefined')
+        )
+        self.assertEqual(0, self.cmd.write_file.call_count)
+
+    def test_use_with_missing_implicit_repo(self):
+        with capture_stdout() as stdout:
+            self.cmd.onecmd('use')
+            output = stdout.content
+
+        self.assertIn('ERROR:', output)
+        self.assertEqual(0, self.cmd.write_file.call_count)
 
     def test_copy_single_package(self):
         self.define_repos('repo1', 'repo2')

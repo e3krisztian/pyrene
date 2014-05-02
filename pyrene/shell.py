@@ -85,6 +85,14 @@ class PyreneCmd(BaseCmd):
         write_file(filename, content)
 
     def do_use(self, repo):
+        if not repo:
+            msg = 'Not working on any repository and repository was not given'
+            print('ERROR: {}'.format(msg))
+            return
+        if repo not in self.network.repo_names:
+            print('ERROR: Unknown repository: {}'.format(repo))
+            return
+
         repo = self.network.get_repo(repo)
         pip_conf = os.path.expanduser('~/.pip/pip.conf')
         self.write_file(pip_conf, repo.get_as_pip_conf().encode('utf8'))
