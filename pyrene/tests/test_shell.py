@@ -116,9 +116,7 @@ class Test_PyreneCmd(Assertions, unittest.TestCase):
         )
 
     def test_use_with_unknown_repo(self):
-        with capture_stdout() as stdout:
-            self.cmd.onecmd('use undefined')
-            output = stdout.content
+        output = run_script(self.cmd, 'use undefined')
 
         self.assertContainsInOrder(
             output,
@@ -127,9 +125,7 @@ class Test_PyreneCmd(Assertions, unittest.TestCase):
         self.assertEqual(0, self.cmd.write_file.call_count)
 
     def test_use_with_missing_implicit_repo(self):
-        with capture_stdout() as stdout:
-            self.cmd.onecmd('use')
-            output = stdout.content
+        output = run_script(self.cmd, 'use')
 
         self.assertIn('ERROR:', output)
         self.assertEqual(0, self.cmd.write_file.call_count)
@@ -212,6 +208,31 @@ class Test_PyreneCmd(Assertions, unittest.TestCase):
         self.somerepo.upload_packages.assert_called_once_with(
             ['/a/file', '/tmp/downloaded-package-file']
         )
+
+    def test_copy_from_unknown_repo(self):
+        output = run_script(
+            self.cmd,
+            '''
+            directory_repo somerepo
+            copy unknown:pkg somerepo:
+            '''
+        )
+
+        self.assertContainsInOrder(output, ('ERROR:', 'unknown'))
+        self.assertEqual(0, self.somerepo.upload_packages.call_count)
+
+    def test_copy_to_unknown_repo(self):
+        self.directory.files = ['/tmp/downloaded-package-file']
+        output = run_script(
+            self.cmd,
+            '''
+            directory_repo somerepo
+            copy somerepo:pkg unknown:
+            '''
+        )
+
+        self.assertContainsInOrder(output, ('ERROR:', 'unknown'))
+        self.assertEqual(0, self.somerepo.upload_packages.call_count)
 
     def test_get_destination_repo_on_repo1(self):
         self.define_repos('repo1')

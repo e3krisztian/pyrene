@@ -6,8 +6,14 @@ import os
 from cmd import Cmd
 import traceback
 from .util import write_file, bold, red
-from .network import Network, DirectoryRepo
+from .network import Network, DirectoryRepo, UnknownRepoError
 from .constants import REPO, REPOTYPE
+
+
+class ShellError(Exception):
+
+    def __init__(self, message):
+        self.message = message
 
 
 class BaseCmd(Cmd, object):
@@ -25,6 +31,12 @@ class BaseCmd(Cmd, object):
             except KeyboardInterrupt:
                 print('^C')
             intro = ''
+
+    def onecmd(self, line):
+        try:
+            return super(BaseCmd, self).onecmd(line)
+        except ShellError as e:
+            print('ERROR: {}'.format(e.message))
 
     def do_EOF(self, line):
         '''
@@ -86,12 +98,11 @@ class PyreneCmd(BaseCmd):
 
     def do_use(self, repo):
         if not repo:
-            msg = 'Not working on any repository and repository was not given'
-            print('ERROR: {}'.format(msg))
-            return
+            raise ShellError(
+                'Not working on any repository and repository was not given'
+            )
         if repo not in self.network.repo_names:
-            print('ERROR: Unknown repository: {}'.format(repo))
-            return
+            raise ShellError('Unknown repository: {}'.format(repo))
 
         repo = self.network.get_repo(repo)
         pip_conf = os.path.expanduser('~/.pip/pip.conf')
@@ -111,7 +122,12 @@ class PyreneCmd(BaseCmd):
     def _get_destination_repo(self, word):
         if word.endswith(':'):
             repo_name = word[:-1]
-            return self.network.get_repo(repo_name)
+            try:
+                return self.network.get_repo(repo_name)
+            except UnknownRepoError:
+                raise ShellError(
+                    'Repository {} is not known'.format(repo_name)
+                )
 
         attributes = {'directory': word}
         return DirectoryRepo('Implicit({})'.format(word), attributes)
@@ -137,7 +153,12 @@ class PyreneCmd(BaseCmd):
             for word in words[:-1]:
                 if ':' in word:
                     repo_name, _, package_spec = word.partition(':')
-                    repo = self.network.get_repo(repo_name)
+                    try:
+                        repo = self.network.get_repo(repo_name)
+                    except UnknownRepoError:
+                        raise ShellError(
+                            'Unknown repository {}'.format(repo_name)
+                        )
                 else:
                     package_spec = word
 
