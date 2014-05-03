@@ -561,3 +561,111 @@ def run_script(cmd, script):
         with capture_stdout() as stdout:
             cmd.cmdloop()
             return stdout.content
+
+
+#########################################################
+import nose.util
+
+
+# nose specific: uses test generators for checking all commands
+class Test_PyreneCmd_repo_parameter_checking(Assertions):
+
+    def setup(self):
+        self.dot_pyrene = tempfile.NamedTemporaryFile()
+        self.network = m.Network(self.dot_pyrene.name)
+
+        self.directory = mock.Mock(spec_set=Directory)
+        self.directory.files = ('dummy')
+        self.cmd = m.PyreneCmd(
+            network=self.network,
+            directory=self.directory
+        )
+        self.cmd.write_file = mock.Mock()
+
+    def teardown(self):
+        self.dot_pyrene.close()
+
+    def test_requires_existing_repo(self):
+        commands = [
+            'setup_for_pip_local',
+            'setup_for_pypi_python_org',
+        ]
+        for command in commands:
+            yield self.check_requires_repo_parameter, command
+
+    def check_requires_repo_parameter(self, command):
+        output = run_script(
+            self.cmd,
+            '''
+            directory_repo somerepo
+            work_on somerepo
+            {}
+            '''.format(command)
+        )
+        self.assertContainsInOrder(output, ('ERROR', command, 'requires'))
+
+    def test_active_repo_works(self):
+        commands = [
+            'use',
+            'forget',
+            'show',
+            # 'setup_for_pip_local',
+            # 'setup_for_pypi_python_org',
+            'serve',
+        ]
+        for command in commands:
+            yield self.check_active_repo_works_for, command
+
+    def check_active_repo_works_for(self, command):
+        output = run_script(
+            self.cmd,
+            '''
+            http_repo somerepo
+            set download_url=http://example.com:8080/simple
+            work_on somerepo
+            {}
+            '''.format(command)
+        )
+        nose.tools.assert_not_in('ERROR', output)
+
+    def test_missing_active_repo_error_message(self):
+        commands = [
+            'use',
+            'forget',
+            'show',
+            'setup_for_pip_local',
+            'setup_for_pypi_python_org',
+            'serve',
+        ]
+        for command in commands:
+            yield self.check_missing_active_repo_error_message, command
+
+    def check_missing_active_repo_error_message(self, command):
+        output = run_script(
+            self.cmd,
+            '''
+            {}
+            '''.format(command)
+        )
+        self.assertContainsInOrder(output, ('ERROR', command, 'requires'))
+
+    def test_unknown_repo_error_message(self):
+        commands = [
+            'use',
+            'forget',
+            'show',
+            'setup_for_pip_local',
+            'setup_for_pypi_python_org',
+            'serve',
+        ]
+        for command in commands:
+            yield self.check_unknown_repo_error_message, command
+
+    def check_unknown_repo_error_message(self, command):
+        output = run_script(
+            self.cmd,
+            '''
+            {} undefined-repo
+            '''.format(command)
+        )
+        self.assertContainsInOrder(output, ('ERROR', 'undefined-repo'))
