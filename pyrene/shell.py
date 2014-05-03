@@ -36,7 +36,7 @@ class BaseCmd(Cmd, object):
         try:
             return super(BaseCmd, self).onecmd(line)
         except ShellError as e:
-            print('ERROR: {}'.format(e.message))
+            print(red('ERROR: {}'.format(e.message)))
 
     def do_EOF(self, line):
         '''
@@ -96,18 +96,19 @@ class PyreneCmd(BaseCmd):
     def write_file(self, filename, content):
         write_file(filename, content)
 
-    def check_repo_exists(self, repo_name):
+    def abort_on_unspecified_repo(self, repo_name, command):
         if repo_name:
             if repo_name not in self.network.repo_names:
                 raise ShellError('Unknown repository: {}'.format(repo_name))
         elif not self.network.active_repo:
-                raise ShellError(
-                    'Not working on any repository'
-                    + ' and repository was not given'
+                msg = (
+                    'Command "{}" requires a repository,'
+                    + ' but none was given or active'
                 )
+                raise ShellError(msg.format(command))
 
     def do_use(self, repo):
-        self.check_repo_exists(repo)
+        self.abort_on_unspecified_repo(repo, 'use')
 
         repo = self.network.get_repo(repo)
         pip_conf = os.path.expanduser('~/.pip/pip.conf')
@@ -185,6 +186,7 @@ class PyreneCmd(BaseCmd):
         Make repo the active one.
         Commands working on a repo will use it as default for repo parameter.
         '''
+        self.abort_on_nonexisting_repo(repo, 'work_on')
         self.network.active_repo = repo
 
     def __define_or_change_type(self, repo, repotype):
@@ -216,6 +218,7 @@ class PyreneCmd(BaseCmd):
 
         forget REPO
         '''
+        self.abort_on_nonexisting_repo(repo, 'forget')
         self.network.forget(repo)
 
     def do_set(self, line):
@@ -288,14 +291,26 @@ class PyreneCmd(BaseCmd):
         '''
         List repo attributes
         '''
+        self.abort_on_unspecified_repo(repo, 'show')
+
         repo = self.network.get_repo(repo)
         repo.print_attributes()
+
+    def abort_on_nonexisting_repo(self, repo_name, command):
+        if not repo_name:
+            raise ShellError(
+                'Command "{}" requires a repository parameter'.format(command)
+            )
+        if repo_name not in self.network.repo_names:
+            raise ShellError('Unknown repository: {}'.format(repo_name))
 
     def do_setup_for_pypi_python_org(self, repo):
         '''
         Configure repo to point to the default package index
         https://pypi.python.org.
         '''
+        self.abort_on_nonexisting_repo(repo, 'setup_for_pypi_python_org')
+
         self.network.set(repo, REPO.TYPE, REPOTYPE.HTTP)
         self.network.set(
             repo,
@@ -313,6 +328,8 @@ class PyreneCmd(BaseCmd):
         Configure repo to be directory based with directory `~/.pip/local`.
         Also makes that directory if needed.
         '''
+        self.abort_on_nonexisting_repo(repo, 'setup_for_pip_local')
+
         piplocal = os.path.expanduser('~/.pip/local')
         if not os.path.exists(piplocal):
             os.makedirs(piplocal)
@@ -324,6 +341,8 @@ class PyreneCmd(BaseCmd):
         Serve a local directory over http as a package index (like pypi).
         Intended for quick package exchanges.
         '''
+        self.abort_on_unspecified_repo(repo_name, 'serve')
+
         repo = self.network.get_repo(repo_name)
         repo.serve()
 

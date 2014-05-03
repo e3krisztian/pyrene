@@ -552,7 +552,13 @@ class Test_PyreneCmd(Assertions, unittest.TestCase):
         self.assertContainsInOrder(output, ['someattr', 'somevalue'])
 
     def test_work_on_sets_prompt(self):
-        output = run_script(self.cmd, 'work_on somerepo')
+        output = run_script(
+            self.cmd,
+            '''
+            http_repo somerepo
+            work_on somerepo
+            '''
+        )
         self.assertIn('Pyrene[somerepo]: ', output)
 
 
@@ -587,8 +593,10 @@ class Test_PyreneCmd_repo_parameter_checking(Assertions):
 
     def test_requires_existing_repo(self):
         commands = [
+            'forget',
             'setup_for_pip_local',
             'setup_for_pypi_python_org',
+            'work_on',
         ]
         for command in commands:
             yield self.check_requires_repo_parameter, command
@@ -607,11 +615,12 @@ class Test_PyreneCmd_repo_parameter_checking(Assertions):
     def test_active_repo_works(self):
         commands = [
             'use',
-            'forget',
+            # 'forget',
             'show',
             # 'setup_for_pip_local',
             # 'setup_for_pypi_python_org',
             'serve',
+            # 'work_on',
         ]
         for command in commands:
             yield self.check_active_repo_works_for, command
@@ -636,6 +645,7 @@ class Test_PyreneCmd_repo_parameter_checking(Assertions):
             'setup_for_pip_local',
             'setup_for_pypi_python_org',
             'serve',
+            'work_on',
         ]
         for command in commands:
             yield self.check_missing_active_repo_error_message, command
@@ -657,6 +667,7 @@ class Test_PyreneCmd_repo_parameter_checking(Assertions):
             'setup_for_pip_local',
             'setup_for_pypi_python_org',
             'serve',
+            'work_on',
         ]
         for command in commands:
             yield self.check_unknown_repo_error_message, command
@@ -669,3 +680,6 @@ class Test_PyreneCmd_repo_parameter_checking(Assertions):
             '''.format(command)
         )
         self.assertContainsInOrder(output, ('ERROR', 'undefined-repo'))
+
+
+# TODO: tests for error cases for set, unset, copy. directory_repo, http_repo
