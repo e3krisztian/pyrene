@@ -591,11 +591,9 @@ class Test_PyreneCmd_repo_parameter_checking(Assertions):
     def teardown(self):
         self.dot_pyrene.close()
 
-    def test_requires_existing_repo(self):
+    def test_requires_explicit_repo_parameter(self):
         commands = [
             'forget',
-            'setup_for_pip_local',
-            'setup_for_pypi_python_org',
             'work_on',
         ]
         for command in commands:
@@ -617,8 +615,8 @@ class Test_PyreneCmd_repo_parameter_checking(Assertions):
             'use',
             # 'forget',
             'show',
-            # 'setup_for_pip_local',
-            # 'setup_for_pypi_python_org',
+            'setup_for_pip_local',
+            'setup_for_pypi_python_org',
             'serve',
             # 'work_on',
             'directory_repo',
@@ -688,4 +686,4 @@ class Test_PyreneCmd_repo_parameter_checking(Assertions):
         self.assertContainsInOrder(output, ('ERROR', 'undefined-repo'))
 
 
-# TODO: tests for error cases for set, unset, copy. directory_repo, http_repo
+# TODO: tests for error cases for set, unset, copy

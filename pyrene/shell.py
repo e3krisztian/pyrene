@@ -324,16 +324,19 @@ class PyreneCmd(BaseCmd):
         Configure repo to point to the default package index
         https://pypi.python.org.
         '''
-        self.abort_on_nonexisting_repo(repo, 'setup_for_pypi_python_org')
+        effective_repo_name = self.get_effective_repo_name(repo)
+        self.abort_on_nonexisting_repo(
+            effective_repo_name, 'setup_for_pypi_python_org'
+        )
 
-        self.network.set(repo, REPO.TYPE, REPOTYPE.HTTP)
+        self.network.set(effective_repo_name, REPO.TYPE, REPOTYPE.HTTP)
         self.network.set(
-            repo,
+            effective_repo_name,
             REPO.DOWNLOAD_URL,
             'https://pypi.python.org/simple/'
         )
         self.network.set(
-            repo,
+            effective_repo_name,
             REPO.UPLOAD_URL,
             'https://pypi.python.org/'
         )
@@ -343,13 +346,16 @@ class PyreneCmd(BaseCmd):
         Configure repo to be directory based with directory `~/.pip/local`.
         Also makes that directory if needed.
         '''
-        self.abort_on_nonexisting_repo(repo, 'setup_for_pip_local')
+        effective_repo_name = self.get_effective_repo_name(repo)
+        self.abort_on_nonexisting_repo(
+            effective_repo_name, 'setup_for_pip_local'
+        )
 
         piplocal = os.path.expanduser('~/.pip/local')
         if not os.path.exists(piplocal):
             os.makedirs(piplocal)
-        self.network.set(repo, REPO.TYPE, REPOTYPE.DIRECTORY)
-        self.network.set(repo, REPO.DIRECTORY, piplocal)
+        self.network.set(effective_repo_name, REPO.TYPE, REPOTYPE.DIRECTORY)
+        self.network.set(effective_repo_name, REPO.DIRECTORY, piplocal)
 
     def do_serve(self, repo_name):
         '''
