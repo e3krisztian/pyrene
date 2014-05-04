@@ -96,16 +96,30 @@ class PyreneCmd(BaseCmd):
     def write_file(self, filename, content):
         write_file(filename, content)
 
+    def abort_on_unknown_repository_name(self, repo_name, command):
+        if repo_name not in self.network.repo_names:
+            raise ShellError('Unknown repository: {}'.format(repo_name))
+
     def abort_on_unspecified_repo(self, repo_name, command):
-        if repo_name:
-            if repo_name not in self.network.repo_names:
-                raise ShellError('Unknown repository: {}'.format(repo_name))
-        elif not self.network.active_repo:
-                msg = (
+        effective_repo_name = repo_name or self.network.active_repo
+        if not effective_repo_name:
+            raise ShellError(
+                (
                     'Command "{}" requires a repository,'
                     + ' but none was given or active'
-                )
-                raise ShellError(msg.format(command))
+                ).format(command)
+            )
+
+        self.abort_on_unknown_repository_name(effective_repo_name, command)
+
+    def abort_on_nonexisting_repo(self, repo_name, command):
+        if not repo_name:
+            raise ShellError(
+                'Command "{}" requires a repository parameter'
+                .format(command)
+            )
+
+        self.abort_on_unknown_repository_name(repo_name, command)
 
     def do_use(self, repo):
         self.abort_on_unspecified_repo(repo, 'use')
@@ -295,14 +309,6 @@ class PyreneCmd(BaseCmd):
 
         repo = self.network.get_repo(repo)
         repo.print_attributes()
-
-    def abort_on_nonexisting_repo(self, repo_name, command):
-        if not repo_name:
-            raise ShellError(
-                'Command "{}" requires a repository parameter'.format(command)
-            )
-        if repo_name not in self.network.repo_names:
-            raise ShellError('Unknown repository: {}'.format(repo_name))
 
     def do_setup_for_pypi_python_org(self, repo):
         '''
