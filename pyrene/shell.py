@@ -244,6 +244,13 @@ class PyreneCmd(BaseCmd):
         self.abort_on_nonexisting_repo(repo, 'forget')
         self.network.forget(repo)
 
+    def abort_on_invalid_active_repo(self, command):
+        if self.network.active_repo not in self.network.repo_names:
+            raise ShellError(
+                'Command "{}" requires a valid repository to be worked on'
+                .format(command)
+            )
+
     def do_set(self, line):
         '''
         Set repository attributes on the active repo.
@@ -265,8 +272,8 @@ class PyreneCmd(BaseCmd):
         set username=user
         set password=pass
         '''
+        self.abort_on_invalid_active_repo('set')
         repo = self.network.active_repo
-        assert repo is not None
         attribute, _, value = line.partition('=')
         self.network.set(repo, attribute, value)
 
@@ -292,6 +299,7 @@ class PyreneCmd(BaseCmd):
         '''
         Unset attribute on the active/default repo
         '''
+        self.abort_on_invalid_active_repo('unset')
         self.network.unset(self.network.active_repo, attribute)
 
     def complete_unset(self, text, line, begidx, endidx):

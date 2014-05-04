@@ -661,6 +661,26 @@ class Test_PyreneCmd_repo_parameter_checking(Assertions):
         )
         self.assertContainsInOrder(output, ('ERROR', command, 'requires'))
 
+    def test_active_repo_only_error_message(self):
+        commands = [
+            ('set', 'attr=value'),
+            ('unset', 'attr'),
+        ]
+        for command, param in commands:
+            yield self.check_active_repo_only_error_message, command, param
+
+    def check_active_repo_only_error_message(self, command, param):
+        output = run_script(
+            self.cmd,
+            '''
+            {} {}
+            '''.format(command, param)
+        )
+        self.assertContainsInOrder(
+            output,
+            ('ERROR', command, 'requires', 'work')
+        )
+
     def test_unknown_repo_error_message(self):
         commands = [
             'use',
@@ -686,4 +706,4 @@ class Test_PyreneCmd_repo_parameter_checking(Assertions):
         self.assertContainsInOrder(output, ('ERROR', 'undefined-repo'))
 
 
-# TODO: tests for error cases for set, unset, copy
+# TODO: tests for error cases in copy
