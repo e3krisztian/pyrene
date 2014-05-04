@@ -100,9 +100,11 @@ class PyreneCmd(BaseCmd):
         if repo_name not in self.network.repo_names:
             raise ShellError('Unknown repository: {}'.format(repo_name))
 
-    def abort_on_unspecified_repo(self, repo_name, command):
-        effective_repo_name = repo_name or self.network.active_repo
-        if not effective_repo_name:
+    def get_effective_repo_name(self, repo_name):
+        return repo_name or self.network.active_repo
+
+    def abort_on_missing_effective_repo_name(self, repo_name, command):
+        if not self.get_effective_repo_name(repo_name):
             raise ShellError(
                 (
                     'Command "{}" requires a repository,'
@@ -110,7 +112,12 @@ class PyreneCmd(BaseCmd):
                 ).format(command)
             )
 
-        self.abort_on_unknown_repository_name(effective_repo_name, command)
+    def abort_on_nonexisting_effective_repo(self, repo_name, command):
+        self.abort_on_missing_effective_repo_name(repo_name, command)
+        self.abort_on_unknown_repository_name(
+            self.get_effective_repo_name(repo_name),
+            command
+        )
 
     def abort_on_nonexisting_repo(self, repo_name, command):
         if not repo_name:
@@ -122,7 +129,7 @@ class PyreneCmd(BaseCmd):
         self.abort_on_unknown_repository_name(repo_name, command)
 
     def do_use(self, repo):
-        self.abort_on_unspecified_repo(repo, 'use')
+        self.abort_on_nonexisting_effective_repo(repo, 'use')
 
         repo = self.network.get_repo(repo)
         pip_conf = os.path.expanduser('~/.pip/pip.conf')
@@ -204,11 +211,11 @@ class PyreneCmd(BaseCmd):
         self.network.active_repo = repo
 
     def __define_or_change_type(self, repo, repotype):
-        repo_name = repo or self.network.active_repo
-        if repo_name not in self.network.repo_names:
-            self.network.define(repo_name)
-        self.network.active_repo = repo_name
-        self.network.set(repo_name, REPO.TYPE, repotype)
+        effective_repo_name = self.get_effective_repo_name(repo)
+        if effective_repo_name not in self.network.repo_names:
+            self.network.define(effective_repo_name)
+        self.network.active_repo = effective_repo_name
+        self.network.set(effective_repo_name, REPO.TYPE, repotype)
 
     def do_http_repo(self, repo):
         '''
@@ -216,6 +223,7 @@ class PyreneCmd(BaseCmd):
 
         http_repo REPO
         '''
+        self.abort_on_missing_effective_repo_name(repo, 'http_repo')
         self.__define_or_change_type(repo, REPOTYPE.HTTP)
 
     def do_directory_repo(self, repo):
@@ -224,6 +232,7 @@ class PyreneCmd(BaseCmd):
 
         directory_repo REPO
         '''
+        self.abort_on_missing_effective_repo_name(repo, 'directory_repo')
         self.__define_or_change_type(repo, REPOTYPE.DIRECTORY)
 
     def do_forget(self, repo):
@@ -305,7 +314,7 @@ class PyreneCmd(BaseCmd):
         '''
         List repo attributes
         '''
-        self.abort_on_unspecified_repo(repo, 'show')
+        self.abort_on_nonexisting_effective_repo(repo, 'show')
 
         repo = self.network.get_repo(repo)
         repo.print_attributes()
@@ -347,7 +356,7 @@ class PyreneCmd(BaseCmd):
         Serve a local directory over http as a package index (like pypi).
         Intended for quick package exchanges.
         '''
-        self.abort_on_unspecified_repo(repo_name, 'serve')
+        self.abort_on_nonexisting_effective_repo(repo_name, 'serve')
 
         repo = self.network.get_repo(repo_name)
         repo.serve()

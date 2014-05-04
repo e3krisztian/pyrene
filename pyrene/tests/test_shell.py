@@ -621,6 +621,8 @@ class Test_PyreneCmd_repo_parameter_checking(Assertions):
             # 'setup_for_pypi_python_org',
             'serve',
             # 'work_on',
+            'directory_repo',
+            'http_repo',
         ]
         for command in commands:
             yield self.check_active_repo_works_for, command
@@ -646,6 +648,8 @@ class Test_PyreneCmd_repo_parameter_checking(Assertions):
             'setup_for_pypi_python_org',
             'serve',
             'work_on',
+            'directory_repo',
+            'http_repo',
         ]
         for command in commands:
             yield self.check_missing_active_repo_error_message, command
@@ -668,6 +672,8 @@ class Test_PyreneCmd_repo_parameter_checking(Assertions):
             'setup_for_pypi_python_org',
             'serve',
             'work_on',
+            # 'directory_repo',
+            # 'http_repo',
         ]
         for command in commands:
             yield self.check_unknown_repo_error_message, command
