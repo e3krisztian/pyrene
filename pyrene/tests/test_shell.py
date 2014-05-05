@@ -705,5 +705,43 @@ class Test_PyreneCmd_repo_parameter_checking(Assertions):
         )
         self.assertContainsInOrder(output, ('ERROR', 'undefined-repo'))
 
+    def test_set_without_parameter(self):
+        output = run_script(
+            self.cmd,
+            '''
+            directory_repo repo
+            set
+            '''
+        )
+        self.assertContainsInOrder(
+            output,
+            ('ERROR', 'set', 'requires', 'attribute')
+        )
+
+    def test_set_without_equal_sign(self):
+        output = run_script(
+            self.cmd,
+            '''
+            directory_repo repo
+            set attr
+            '''
+        )
+        self.assertContainsInOrder(
+            output,
+            ('ERROR', 'set', 'requires', 'value')
+        )
+
+    def test_unset_without_attribute(self):
+        output = run_script(
+            self.cmd,
+            '''
+            directory_repo repo
+            unset
+            '''
+        )
+        self.assertContainsInOrder(
+            output,
+            ('ERROR', 'unset', 'requires', 'attribute')
+        )
 
 # TODO: tests for error cases in copy

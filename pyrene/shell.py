@@ -274,7 +274,11 @@ class PyreneCmd(BaseCmd):
         '''
         self.abort_on_invalid_active_repo('set')
         repo = self.network.active_repo
-        attribute, _, value = line.partition('=')
+        attribute, eq, value = line.partition('=')
+        if not attribute:
+            raise ShellError('command "set" requires a non-empty attribute')
+        if not eq:
+            raise ShellError('command "set" requires a value')
         self.network.set(repo, attribute, value)
 
     def complete_set(self, text, line, begidx, endidx):
@@ -300,6 +304,8 @@ class PyreneCmd(BaseCmd):
         Unset attribute on the active/default repo
         '''
         self.abort_on_invalid_active_repo('unset')
+        if not attribute:
+            raise ShellError('command "unset" requires a non-empty attribute')
         self.network.unset(self.network.active_repo, attribute)
 
     def complete_unset(self, text, line, begidx, endidx):
