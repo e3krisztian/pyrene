@@ -163,39 +163,36 @@ class PyreneCmd(BaseCmd):
         '''
         Copy packages between repos
 
-        copy [LOCAL-FILE [...]] [REPO:PACKAGE-SPEC [...]] DESTINATION
+          copy SOURCE DESTINATION
 
-        The order of attributes is important:
-        LOCAL-FILEs should come first if there are any,
-        then packages from defined REPOs, then DESTINATION specification.
+        Where SOURCE can be either LOCAL-FILE or REPO:PACKAGE-SPEC
         DESTINATION can be either a REPO: or a directory.
-
         '''
         words = line.split()
-        destination_repo = self._get_destination_repo(words[-1])
+        source, destination = words
+        destination_repo = self._get_destination_repo(destination)
 
         distribution_files = []
         repo = None
         try:
-            for word in words[:-1]:
-                if ':' in word:
-                    repo_name, _, package_spec = word.partition(':')
-                    try:
-                        repo = self.network.get_repo(repo_name)
-                    except UnknownRepoError:
-                        raise ShellError(
-                            'Unknown repository {}'.format(repo_name)
-                        )
+            if ':' in source:
+                repo_name, _, package_spec = source.partition(':')
+                try:
+                    repo = self.network.get_repo(repo_name)
+                except UnknownRepoError:
+                    raise ShellError(
+                        'Unknown repository {}'.format(repo_name)
+                    )
+            else:
+                package_spec = source
+
+            assert ':' not in package_spec
+
+            if package_spec:
+                if not repo:
+                    distribution_files.append(package_spec)
                 else:
-                    package_spec = word
-
-                assert ':' not in package_spec
-
-                if package_spec:
-                    if not repo:
-                        distribution_files.append(package_spec)
-                    else:
-                        repo.download_packages(package_spec, self.__temp_dir)
+                    repo.download_packages(package_spec, self.__temp_dir)
 
             distribution_files.extend(self.__temp_dir.files)
             destination_repo.upload_packages(distribution_files)

@@ -186,25 +186,6 @@ class Test_PyreneCmd(Assertions, unittest.TestCase):
         )
         self.repo2.upload_packages.assert_called_once_with(list(package_files))
 
-    def test_copy_from_two_repos(self):
-        self.define_repos('repo1', 'repo2', 'somerepo')
-        package_files = ('a-1.egg', 'b-2.tar.gz')
-        self.directory.files = list(package_files)
-
-        self.cmd.onecmd('copy repo1:a repo2:b somerepo:')
-
-        self.repo1.download_packages.assert_called_once_with(
-            'a',
-            self.directory
-        )
-        self.repo2.download_packages.assert_called_once_with(
-            'b',
-            self.directory
-        )
-        self.somerepo.upload_packages.assert_called_once_with(
-            list(package_files)
-        )
-
     def test_copy_uploads_files(self):
         self.define_repos('somerepo')
         self.cmd.onecmd('copy /a/file somerepo:')
