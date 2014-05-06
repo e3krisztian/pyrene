@@ -171,33 +171,25 @@ class PyreneCmd(BaseCmd):
         words = line.split()
         source, destination = words
         destination_repo = self._get_destination_repo(destination)
+        local_file_source = ':' not in source
 
-        distribution_files = []
-        repo = None
-        try:
-            if ':' in source:
-                repo_name, _, package_spec = source.partition(':')
-                try:
-                    repo = self.network.get_repo(repo_name)
-                except UnknownRepoError:
-                    raise ShellError(
-                        'Unknown repository {}'.format(repo_name)
-                    )
-            else:
-                package_spec = source
+        if local_file_source:
+            destination_repo.upload_packages([source])
+        else:
+            source_repo_name, _, package_spec = source.partition(':')
+            try:
+                source_repo = self.network.get_repo(source_repo_name)
+            except UnknownRepoError:
+                raise ShellError(
+                    'Unknown repository {}'.format(source_repo_name)
+                )
 
-            assert ':' not in package_spec
-
-            if package_spec:
-                if not repo:
-                    distribution_files.append(package_spec)
-                else:
-                    repo.download_packages(package_spec, self.__temp_dir)
-
-            distribution_files.extend(self.__temp_dir.files)
-            destination_repo.upload_packages(distribution_files)
-        finally:
-            self.__temp_dir.clear()
+            # copy between repos with the help of temporary storage
+            try:
+                source_repo.download_packages(package_spec, self.__temp_dir)
+                destination_repo.upload_packages(self.__temp_dir.files)
+            finally:
+                self.__temp_dir.clear()
 
     def do_work_on(self, repo):
         '''

@@ -194,15 +194,6 @@ class Test_PyreneCmd(Assertions, unittest.TestCase):
             ['/a/file']
         )
 
-    def test_copy_uploads_both_files_and_packages(self):
-        self.define_repos('somerepo')
-        self.directory.files = ['/tmp/downloaded-package-file']
-        self.cmd.onecmd('copy /a/file somerepo:')
-
-        self.somerepo.upload_packages.assert_called_once_with(
-            ['/a/file', '/tmp/downloaded-package-file']
-        )
-
     def test_copy_from_unknown_repo(self):
         output = run_script(
             self.cmd,
