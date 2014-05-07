@@ -52,129 +52,30 @@ Usage
 
 My state consists of:
 - set of repositories
-- an active repository (initially None)
+- an active repository (initially None) that is used for the repo parameter when it is not given for most commands
 
 I support the following commands:
 
-copy
-----
+- changing state
+  - [un]defining repositories - [http_repo], [directory_repo], [forget]
+  - [work_on]
+  - changing repository parameters [set], [unset], [setup_for_pip_local], [setup_for_pypi_python_org]
+- showing details about the state - [list], [show]
+- operations on repos - [copy], [serve], [use]
 
-Copy packages with the same ease like local files with `cp` (or remote with `rsync`!).
-
-```
-Pyrene: copy SOURCE DESTINATION
-```
-
-Where `SOURCE` can be either `LOCAL-FILE` or `REPO:PACKAGE-SPEC`,
-`DESTINATION` can be either a `REPO:` or a `LOCAL-DIRECTORY`
-
-list
-----
-
-Lists known repositories.
-
-show
-----
-
-Shows repository attributes
-
-```
-Pyrene: show repo
-```
-
-directory_repo
---------------
-
-Defines a new `directory` repository or change an existing repo's the type to `directory`.
-
-```
-Pyrene: directory_repo repo
-Pyrene[repo]: list
-  repo
-```
-
-http_repo
----------
-
-Defines a new `http` repository or change an existing repo's the type to `http`.
-
-```
-Pyrene: http_repo repo
-Pyrene[repo]: list
-  repo
-```
-
-set
----
-
-Sets a repository attribute.
-
-```
-Pyrene: work_on repo
-Pyrene[repo]: set attribute=value
-Pyrene[repo]: show
-  attribute: value
-```
-
-unset
------
-
-Removes a repository attribute
-
-```
-Pyrene: show repo
-  attribute: value
-Pyrene: work_on repo
-Pyrene[repo]: unset attribute
-Pyrene[repo]: show
-```
-
-forget
-------
-
-Makes a known repository unknown.
-
-```
-Pyrene: forget repo
-Pyrene: list
-```
-
-setup_for_pypi_python_org
--------------------------
-
-Configures repo to point to the default package index https://pypi.python.org.
-
-```
-Pyrene: setup_for_pip_local pypi
-Pyrene: show pypi
-  upload_url: https://pypi.python.org/
-  type: http
-  download_url: https://pypi.python.org/simple/
-```
-
-setup_for_pip_local
--------------------
-
-Configures repo to be directory based and sets directory to `~/.pip/local`.
-Also makes that directory if needed.
-
-```
-Pyrene: setup_for_pip_local local
-Pyrene: show local
-  directory: /home/user/.pip/local
-  type: directory
-```
-
-use
----
-
-How `pip` works can be greatly influenced by the `~/.pip/pip.conf` configuration file: it defines which repo is used to download from (`index-url` or `find-links`) and how (`no-use-wheels`, etc.)
-
-When you say `use` I'll create a minimal `pip.conf` config file (*or overwrite silently the existing one!!!*) so that `pip` will use the given repo outside of `Pyrene` for downloads: 
-
-```
-Pyrene: use repo
-```
+[http_repo]: docs/commands.md#http_repo
+[directory_repo]: docs/commands.md#directory_repo
+[forget]: docs/commands.md#forget
+[work_on]: docs/commands.md#work_on
+[set]: docs/commands.md#set
+[unset]: docs/commands.md#unset
+[setup_for_pip_local]: docs/commands.md#setup_for_pip_local
+[setup_for_pypi_python_org]: docs/commands.md#setup_for_pypi_python_org
+[list]: docs/commands.md#list
+[show]: docs/commands.md#show
+[copy]: docs/commands.md#copy
+[serve]: docs/commands.md#serve
+[use]: docs/commands.md#use
 
 
 Development
