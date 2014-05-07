@@ -122,3 +122,16 @@ When you say `use` I'll create a minimal `pip.conf` config file (*or overwrite s
 Pyrene: use repo
 ```
 
+serve
+-----
+
+For directory repos fire up a pypi-server on the repository.
+For http repos show where it is already served.
+
+work_on
+-------
+
+Sets the implicit/active repo.
+This repo will serve as implicit repo parameter for most commands.
+
+See e.g. [set](#set) or [unset](#unset)
