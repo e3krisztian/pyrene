@@ -6,8 +6,14 @@ import os
 from cmd import Cmd
 import traceback
 from .util import write_file, bold, red
-from .network import Network, DirectoryRepo
+from .network import Network, DirectoryRepo, UnknownRepoError
 from .constants import REPO, REPOTYPE
+
+
+class ShellError(Exception):
+
+    def __init__(self, message):
+        self.message = message
 
 
 class BaseCmd(Cmd, object):
@@ -25,6 +31,12 @@ class BaseCmd(Cmd, object):
             except KeyboardInterrupt:
                 print('^C')
             intro = ''
+
+    def onecmd(self, line):
+        try:
+            return super(BaseCmd, self).onecmd(line)
+        except ShellError as e:
+            print(red('ERROR: {}'.format(e.message)))
 
     def do_EOF(self, line):
         '''
@@ -84,7 +96,41 @@ class PyreneCmd(BaseCmd):
     def write_file(self, filename, content):
         write_file(filename, content)
 
+    def abort_on_unknown_repository_name(self, repo_name, command):
+        if repo_name not in self.network.repo_names:
+            raise ShellError('Unknown repository: {}'.format(repo_name))
+
+    def get_effective_repo_name(self, repo_name):
+        return repo_name or self.network.active_repo
+
+    def abort_on_missing_effective_repo_name(self, repo_name, command):
+        if not self.get_effective_repo_name(repo_name):
+            raise ShellError(
+                (
+                    'Command "{}" requires a repository,'
+                    + ' but none was given or active'
+                ).format(command)
+            )
+
+    def abort_on_nonexisting_effective_repo(self, repo_name, command):
+        self.abort_on_missing_effective_repo_name(repo_name, command)
+        self.abort_on_unknown_repository_name(
+            self.get_effective_repo_name(repo_name),
+            command
+        )
+
+    def abort_on_nonexisting_repo(self, repo_name, command):
+        if not repo_name:
+            raise ShellError(
+                'Command "{}" requires a repository parameter'
+                .format(command)
+            )
+
+        self.abort_on_unknown_repository_name(repo_name, command)
+
     def do_use(self, repo):
+        self.abort_on_nonexisting_effective_repo(repo, 'use')
+
         repo = self.network.get_repo(repo)
         pip_conf = os.path.expanduser('~/.pip/pip.conf')
         self.write_file(pip_conf, repo.get_as_pip_conf().encode('utf8'))
@@ -103,7 +149,12 @@ class PyreneCmd(BaseCmd):
     def _get_destination_repo(self, word):
         if word.endswith(':'):
             repo_name = word[:-1]
-            return self.network.get_repo(repo_name)
+            try:
+                return self.network.get_repo(repo_name)
+            except UnknownRepoError:
+                raise ShellError(
+                    'Repository {} is not known'.format(repo_name)
+                )
 
         attributes = {'directory': word}
         return DirectoryRepo('Implicit({})'.format(word), attributes)
@@ -112,53 +163,48 @@ class PyreneCmd(BaseCmd):
         '''
         Copy packages between repos
 
-        copy [LOCAL-FILE [...]] [REPO:PACKAGE-SPEC [...]] DESTINATION
+          copy SOURCE DESTINATION
 
-        The order of attributes is important:
-        LOCAL-FILEs should come first if there are any,
-        then packages from defined REPOs, then DESTINATION specification.
+        Where SOURCE can be either LOCAL-FILE or REPO:PACKAGE-SPEC
         DESTINATION can be either a REPO: or a directory.
-
         '''
         words = line.split()
-        destination_repo = self._get_destination_repo(words[-1])
+        source, destination = words
+        destination_repo = self._get_destination_repo(destination)
+        local_file_source = ':' not in source
 
-        distribution_files = []
-        repo = None
-        try:
-            for word in words[:-1]:
-                if ':' in word:
-                    repo_name, _, package_spec = word.partition(':')
-                    repo = self.network.get_repo(repo_name)
-                else:
-                    package_spec = word
+        if local_file_source:
+            destination_repo.upload_packages([source])
+        else:
+            source_repo_name, _, package_spec = source.partition(':')
+            try:
+                source_repo = self.network.get_repo(source_repo_name)
+            except UnknownRepoError:
+                raise ShellError(
+                    'Unknown repository {}'.format(source_repo_name)
+                )
 
-                assert ':' not in package_spec
-
-                if package_spec:
-                    if not repo:
-                        distribution_files.append(package_spec)
-                    else:
-                        repo.download_packages(package_spec, self.__temp_dir)
-
-            distribution_files.extend(self.__temp_dir.files)
-            destination_repo.upload_packages(distribution_files)
-        finally:
-            self.__temp_dir.clear()
+            # copy between repos with the help of temporary storage
+            try:
+                source_repo.download_packages(package_spec, self.__temp_dir)
+                destination_repo.upload_packages(self.__temp_dir.files)
+            finally:
+                self.__temp_dir.clear()
 
     def do_work_on(self, repo):
         '''
         Make repo the active one.
         Commands working on a repo will use it as default for repo parameter.
         '''
+        self.abort_on_nonexisting_repo(repo, 'work_on')
         self.network.active_repo = repo
 
     def __define_or_change_type(self, repo, repotype):
-        repo_name = repo or self.network.active_repo
-        if repo_name not in self.network.repo_names:
-            self.network.define(repo_name)
-        self.network.active_repo = repo_name
-        self.network.set(repo_name, REPO.TYPE, repotype)
+        effective_repo_name = self.get_effective_repo_name(repo)
+        if effective_repo_name not in self.network.repo_names:
+            self.network.define(effective_repo_name)
+        self.network.active_repo = effective_repo_name
+        self.network.set(effective_repo_name, REPO.TYPE, repotype)
 
     def do_http_repo(self, repo):
         '''
@@ -166,6 +212,7 @@ class PyreneCmd(BaseCmd):
 
         http_repo REPO
         '''
+        self.abort_on_missing_effective_repo_name(repo, 'http_repo')
         self.__define_or_change_type(repo, REPOTYPE.HTTP)
 
     def do_directory_repo(self, repo):
@@ -174,6 +221,7 @@ class PyreneCmd(BaseCmd):
 
         directory_repo REPO
         '''
+        self.abort_on_missing_effective_repo_name(repo, 'directory_repo')
         self.__define_or_change_type(repo, REPOTYPE.DIRECTORY)
 
     def do_forget(self, repo):
@@ -182,7 +230,15 @@ class PyreneCmd(BaseCmd):
 
         forget REPO
         '''
+        self.abort_on_nonexisting_repo(repo, 'forget')
         self.network.forget(repo)
+
+    def abort_on_invalid_active_repo(self, command):
+        if self.network.active_repo not in self.network.repo_names:
+            raise ShellError(
+                'Command "{}" requires a valid repository to be worked on'
+                .format(command)
+            )
 
     def do_set(self, line):
         '''
@@ -205,9 +261,13 @@ class PyreneCmd(BaseCmd):
         set username=user
         set password=pass
         '''
+        self.abort_on_invalid_active_repo('set')
         repo = self.network.active_repo
-        assert repo is not None
-        attribute, _, value = line.partition('=')
+        attribute, eq, value = line.partition('=')
+        if not attribute:
+            raise ShellError('command "set" requires a non-empty attribute')
+        if not eq:
+            raise ShellError('command "set" requires a value')
         self.network.set(repo, attribute, value)
 
     def complete_set(self, text, line, begidx, endidx):
@@ -232,6 +292,9 @@ class PyreneCmd(BaseCmd):
         '''
         Unset attribute on the active/default repo
         '''
+        self.abort_on_invalid_active_repo('unset')
+        if not attribute:
+            raise ShellError('command "unset" requires a non-empty attribute')
         self.network.unset(self.network.active_repo, attribute)
 
     def complete_unset(self, text, line, begidx, endidx):
@@ -254,6 +317,8 @@ class PyreneCmd(BaseCmd):
         '''
         List repo attributes
         '''
+        self.abort_on_nonexisting_effective_repo(repo, 'show')
+
         repo = self.network.get_repo(repo)
         repo.print_attributes()
 
@@ -262,14 +327,19 @@ class PyreneCmd(BaseCmd):
         Configure repo to point to the default package index
         https://pypi.python.org.
         '''
-        self.network.set(repo, REPO.TYPE, REPOTYPE.HTTP)
+        effective_repo_name = self.get_effective_repo_name(repo)
+        self.abort_on_nonexisting_repo(
+            effective_repo_name, 'setup_for_pypi_python_org'
+        )
+
+        self.network.set(effective_repo_name, REPO.TYPE, REPOTYPE.HTTP)
         self.network.set(
-            repo,
+            effective_repo_name,
             REPO.DOWNLOAD_URL,
             'https://pypi.python.org/simple/'
         )
         self.network.set(
-            repo,
+            effective_repo_name,
             REPO.UPLOAD_URL,
             'https://pypi.python.org/'
         )
@@ -279,17 +349,24 @@ class PyreneCmd(BaseCmd):
         Configure repo to be directory based with directory `~/.pip/local`.
         Also makes that directory if needed.
         '''
+        effective_repo_name = self.get_effective_repo_name(repo)
+        self.abort_on_nonexisting_repo(
+            effective_repo_name, 'setup_for_pip_local'
+        )
+
         piplocal = os.path.expanduser('~/.pip/local')
         if not os.path.exists(piplocal):
             os.makedirs(piplocal)
-        self.network.set(repo, REPO.TYPE, REPOTYPE.DIRECTORY)
-        self.network.set(repo, REPO.DIRECTORY, piplocal)
+        self.network.set(effective_repo_name, REPO.TYPE, REPOTYPE.DIRECTORY)
+        self.network.set(effective_repo_name, REPO.DIRECTORY, piplocal)
 
     def do_serve(self, repo_name):
         '''
         Serve a local directory over http as a package index (like pypi).
         Intended for quick package exchanges.
         '''
+        self.abort_on_nonexisting_effective_repo(repo_name, 'serve')
+
         repo = self.network.get_repo(repo_name)
         repo.serve()
 

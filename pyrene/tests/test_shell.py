@@ -101,6 +101,7 @@ class Test_PyreneCmd(Assertions, unittest.TestCase):
             return self.somerepo
 
     def test_use(self):
+        self.network.define('somerepo')
         self.network.get_repo = mock.Mock(return_value=self.somerepo)
         pip_conf = 'someconf'
         self.somerepo.get_as_pip_conf.configure_mock(
@@ -113,6 +114,34 @@ class Test_PyreneCmd(Assertions, unittest.TestCase):
             os.path.expanduser('~/.pip/pip.conf'),
             pip_conf.encode('utf8')
         )
+
+    def test_use_with_unknown_repo(self):
+        output = run_script(self.cmd, 'use undefined')
+
+        self.assertContainsInOrder(
+            output,
+            ('ERROR:', 'Unknown repo', 'undefined')
+        )
+        self.assertEqual(0, self.cmd.write_file.call_count)
+
+    def test_use_with_implicit_repo(self):
+        output = run_script(
+            self.cmd,
+            '''
+            directory_repo somerepo
+            work_on somerepo
+            use
+            '''
+        )
+
+        self.assertNotIn('ERROR:', output)
+        self.assertEqual(1, self.cmd.write_file.call_count)
+
+    def test_use_with_missing_implicit_repo(self):
+        output = run_script(self.cmd, 'use')
+
+        self.assertIn('ERROR:', output)
+        self.assertEqual(0, self.cmd.write_file.call_count)
 
     def test_copy_single_package(self):
         self.define_repos('repo1', 'repo2')
@@ -157,25 +186,6 @@ class Test_PyreneCmd(Assertions, unittest.TestCase):
         )
         self.repo2.upload_packages.assert_called_once_with(list(package_files))
 
-    def test_copy_from_two_repos(self):
-        self.define_repos('repo1', 'repo2', 'somerepo')
-        package_files = ('a-1.egg', 'b-2.tar.gz')
-        self.directory.files = list(package_files)
-
-        self.cmd.onecmd('copy repo1:a repo2:b somerepo:')
-
-        self.repo1.download_packages.assert_called_once_with(
-            'a',
-            self.directory
-        )
-        self.repo2.download_packages.assert_called_once_with(
-            'b',
-            self.directory
-        )
-        self.somerepo.upload_packages.assert_called_once_with(
-            list(package_files)
-        )
-
     def test_copy_uploads_files(self):
         self.define_repos('somerepo')
         self.cmd.onecmd('copy /a/file somerepo:')
@@ -184,14 +194,30 @@ class Test_PyreneCmd(Assertions, unittest.TestCase):
             ['/a/file']
         )
 
-    def test_copy_uploads_both_files_and_packages(self):
-        self.define_repos('somerepo')
-        self.directory.files = ['/tmp/downloaded-package-file']
-        self.cmd.onecmd('copy /a/file somerepo:')
-
-        self.somerepo.upload_packages.assert_called_once_with(
-            ['/a/file', '/tmp/downloaded-package-file']
+    def test_copy_from_unknown_repo(self):
+        output = run_script(
+            self.cmd,
+            '''
+            directory_repo somerepo
+            copy unknown:pkg somerepo:
+            '''
         )
+
+        self.assertContainsInOrder(output, ('ERROR:', 'unknown'))
+        self.assertEqual(0, self.somerepo.upload_packages.call_count)
+
+    def test_copy_to_unknown_repo(self):
+        self.directory.files = ['/tmp/downloaded-package-file']
+        output = run_script(
+            self.cmd,
+            '''
+            directory_repo somerepo
+            copy somerepo:pkg unknown:
+            '''
+        )
+
+        self.assertContainsInOrder(output, ('ERROR:', 'unknown'))
+        self.assertEqual(0, self.somerepo.upload_packages.call_count)
 
     def test_get_destination_repo_on_repo1(self):
         self.define_repos('repo1')
@@ -498,7 +524,13 @@ class Test_PyreneCmd(Assertions, unittest.TestCase):
         self.assertContainsInOrder(output, ['someattr', 'somevalue'])
 
     def test_work_on_sets_prompt(self):
-        output = run_script(self.cmd, 'work_on somerepo')
+        output = run_script(
+            self.cmd,
+            '''
+            http_repo somerepo
+            work_on somerepo
+            '''
+        )
         self.assertIn('Pyrene[somerepo]: ', output)
 
 
@@ -507,3 +539,181 @@ def run_script(cmd, script):
         with capture_stdout() as stdout:
             cmd.cmdloop()
             return stdout.content
+
+
+#########################################################
+import nose.util
+
+
+# nose specific: uses test generators for checking all commands
+class Test_PyreneCmd_repo_parameter_checking(Assertions):
+
+    def setup(self):
+        self.dot_pyrene = tempfile.NamedTemporaryFile()
+        self.network = m.Network(self.dot_pyrene.name)
+
+        self.directory = mock.Mock(spec_set=Directory)
+        self.directory.files = ('dummy')
+        self.cmd = m.PyreneCmd(
+            network=self.network,
+            directory=self.directory
+        )
+        self.cmd.write_file = mock.Mock()
+
+    def teardown(self):
+        self.dot_pyrene.close()
+
+    def test_requires_explicit_repo_parameter(self):
+        commands = [
+            'forget',
+            'work_on',
+        ]
+        for command in commands:
+            yield self.check_requires_repo_parameter, command
+
+    def check_requires_repo_parameter(self, command):
+        output = run_script(
+            self.cmd,
+            '''
+            directory_repo somerepo
+            work_on somerepo
+            {}
+            '''.format(command)
+        )
+        self.assertContainsInOrder(output, ('ERROR', command, 'requires'))
+
+    def test_active_repo_works(self):
+        commands = [
+            'use',
+            # 'forget',
+            'show',
+            'setup_for_pip_local',
+            'setup_for_pypi_python_org',
+            'serve',
+            # 'work_on',
+            'directory_repo',
+            'http_repo',
+        ]
+        for command in commands:
+            yield self.check_active_repo_works_for, command
+
+    def check_active_repo_works_for(self, command):
+        output = run_script(
+            self.cmd,
+            '''
+            http_repo somerepo
+            set download_url=http://example.com:8080/simple
+            work_on somerepo
+            {}
+            '''.format(command)
+        )
+        nose.tools.assert_not_in('ERROR', output)
+
+    def test_missing_active_repo_error_message(self):
+        commands = [
+            'use',
+            'forget',
+            'show',
+            'setup_for_pip_local',
+            'setup_for_pypi_python_org',
+            'serve',
+            'work_on',
+            'directory_repo',
+            'http_repo',
+        ]
+        for command in commands:
+            yield self.check_missing_active_repo_error_message, command
+
+    def check_missing_active_repo_error_message(self, command):
+        output = run_script(
+            self.cmd,
+            '''
+            {}
+            '''.format(command)
+        )
+        self.assertContainsInOrder(output, ('ERROR', command, 'requires'))
+
+    def test_active_repo_only_error_message(self):
+        commands = [
+            ('set', 'attr=value'),
+            ('unset', 'attr'),
+        ]
+        for command, param in commands:
+            yield self.check_active_repo_only_error_message, command, param
+
+    def check_active_repo_only_error_message(self, command, param):
+        output = run_script(
+            self.cmd,
+            '''
+            {} {}
+            '''.format(command, param)
+        )
+        self.assertContainsInOrder(
+            output,
+            ('ERROR', command, 'requires', 'work')
+        )
+
+    def test_unknown_repo_error_message(self):
+        commands = [
+            'use',
+            'forget',
+            'show',
+            'setup_for_pip_local',
+            'setup_for_pypi_python_org',
+            'serve',
+            'work_on',
+            # 'directory_repo',
+            # 'http_repo',
+        ]
+        for command in commands:
+            yield self.check_unknown_repo_error_message, command
+
+    def check_unknown_repo_error_message(self, command):
+        output = run_script(
+            self.cmd,
+            '''
+            {} undefined-repo
+            '''.format(command)
+        )
+        self.assertContainsInOrder(output, ('ERROR', 'undefined-repo'))
+
+    def test_set_without_parameter(self):
+        output = run_script(
+            self.cmd,
+            '''
+            directory_repo repo
+            set
+            '''
+        )
+        self.assertContainsInOrder(
+            output,
+            ('ERROR', 'set', 'requires', 'attribute')
+        )
+
+    def test_set_without_equal_sign(self):
+        output = run_script(
+            self.cmd,
+            '''
+            directory_repo repo
+            set attr
+            '''
+        )
+        self.assertContainsInOrder(
+            output,
+            ('ERROR', 'set', 'requires', 'value')
+        )
+
+    def test_unset_without_attribute(self):
+        output = run_script(
+            self.cmd,
+            '''
+            directory_repo repo
+            unset
+            '''
+        )
+        self.assertContainsInOrder(
+            output,
+            ('ERROR', 'unset', 'requires', 'attribute')
+        )
+
+# TODO: tests for error cases in copy

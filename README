@@ -62,11 +62,10 @@ copy
 Copy packages with the same ease like local files with `cp` (or remote with `rsync`!).
 
 ```
-Pyrene: copy [LOCAL-FILE [...]] [REPO:PACKAGE [...]] DESTINATION
+Pyrene: copy SOURCE DESTINATION
 ```
 
-It is important, that `LOCAL-FILE`s to be uploaded should come before any `REPO` specification!
-
+Where `SOURCE` can be either `LOCAL-FILE` or `REPO:PACKAGE-SPEC`,
 `DESTINATION` can be either a `REPO:` or a `LOCAL-DIRECTORY`
 
 list
