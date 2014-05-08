@@ -1,0 +1,46 @@
+Pyrene is about treating Python package repositories equal.
+
+
+Thoughts
+========
+
+Package repositories contain and serve packages securely (at least they should).
+
+Local directories with a bunch of packages work.
+
+There is great need for private repositories with restricted access.
+
+
+Features
+========
+
+Configure pip (by writing a `~/.pip/pip.conf` file) to use a repo without
+`--index-url` or `--find-links` command line options:
+
+    $ pyrene use repo
+
+Serve a directory for quick & direct package exchange over http:
+
+    $ pyrene serve dir-repo
+
+Populate a repo from another repository:
+
+    $ pyrene copy source-repo:package-with-lots-of-dependencies destination-repo:
+
+Shell for configuration and interactive operations:
+
+    $ pyrene
+    ...
+    Pyrene: directory_repo local
+    Pyrene[local]: set directory=/path/to/repo
+    Pyrene[local]: copy pypi:someinterestingpkg==0.1 local:
+    Pyrene[local]: work_on private
+    Pyrene[private]: copy local:someinterestingpkg private:
+    Pyrene[private]: help use
+    ...
+
+
+Changelog
+=========
+
+0.1.0 (2014-05-08) - initial release - for testing
