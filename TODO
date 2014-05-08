@@ -1,45 +1,16 @@
+FIXME
+ ☐ robustness: do not allow 'use repo' to write file, when repo is not valid
+
 TODO
  ☐ command 'set_defaults repo' - sets all valid attributes to some sensible value
    ☐ set user's login name as username
    ☐ generate password for serving directories
- ☐ support some pip switches when copying packages
-   candidates: -r requirements.txt, --pre, --no-use-wheel
- ☐ support copying all package versions - ???
-   it is hard to do with dependencies, maybe per-package?
- ☐ Repo.upload_packages -> Repo.upload_all_from(directory)
+
+MAYBE
+ ☐ specialized copy commands:
+   ☐ copy without dependencies
+   ☐ copy sdists only, not wheels
+   ☐ copy packages listed in a requirements.txt file
+   ☐ copy all versions of package(?)
+   ☐ copy all packages in repo
  ☐ command 'clean repo' - remove all extra attributes
-
-FIXME
- ☐ robustness: do not allow 'write_pip_conf_for repo' to write file, when repo is not valid
- ☐ robustness: check user supplied repo names and give human feedback instead of exception
- ☐ remove order restriction from copy
-    after we have a repo any package spec containing a / is treated as a local file
-    all others are handled with pip
-
-＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
-Archive:
- ✔ http upload of wheels (e.g. pip) fails @done (14-04-27 01:18)
- ✔ file created in place of directory when directory does not exists for file repos @done (14-04-26 22:05)
- ✔ DirectoryRepo() should create directory if it does not exists @done (14-04-26 22:04)
- ✔ junk attributes -> extra attributes @done (14-04-26 21:32)
- ✔ tox config, py3 support / move to py3? @done (14-04-26 20:49)
- ✔ command 'unset repo attribute' - remove attribute @done (14-04-22 15:35)
- ✔ refactor: rename {key,parameter} to attribute @done (14-04-22 15:32)
- ✔ show attributes in consistent repo type defined order @done (14-04-22 01:33)
- ✔ resilience/autohealing: @done (14-04-22 01:33)
- ✔ colored output with https://pypi.python.org/pypi/termcolor @done (14-04-22 01:33)
- ✔ reload .pyrene file before operations - to immediately apply changes made in another Pyrene instance @done (14-04-17 00:42)
- ✔ command serve to serve a repo with pypi-server(?) @done (14-04-16 15:23)
- ✔ tests should not write to stdout/stderr directly from subprocesses?! @done (14-04-15 02:23)
- ✔ rename use command write_pip_conf_for @done (14-04-11 11:35)
-   ✔ rename test_use @done (14-04-11 11:34)
-   ✔ rename do_use @done (14-04-11 11:34)
-   ✔ rename complete_use @done (14-04-11 11:34)
-   ✔ fix README @done (14-04-11 11:34)
- ✔ rename FileRepo to DirectoryRepo and type file to type directory @done (14-04-11 11:05)
- ✔ setup_for_pip_local command @done (14-04-10 22:50)
-  replaces repo type piplocal, PipLocalRepo
- ✔ setup_for_pypi command @done (14-04-10 22:00)
-  replaces repo type pypi, PyPIRepo
- ✔ complete repo/file/directory names for copy command @done (14-04-10 18:55)
- ✔ complete repo names - forget, show, use @done (14-04-10 14:37)
