@@ -1,0 +1,16 @@
+FIXME
+ ☐ robustness: do not allow 'use repo' to write file, when repo is not valid
+
+TODO
+ ☐ command 'set_defaults repo' - sets all valid attributes to some sensible value
+   ☐ set user's login name as username
+   ☐ generate password for serving directories
+
+MAYBE
+ ☐ specialized copy commands:
+   ☐ copy without dependencies
+   ☐ copy sdists only, not wheels
+   ☐ copy packages listed in a requirements.txt file
+   ☐ copy all versions of package(?)
+   ☐ copy all packages in repo
+ ☐ command 'clean repo' - remove all extra attributes

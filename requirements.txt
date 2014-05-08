@@ -1,7 +1,12 @@
 temp-dir>=0.1.1
-# there is only pre-release with wheel support, so pin it exactly
+# there is only pre-release with wheel support, so pin it exactly for now
 pkginfo==1.2b1
-requests >=2.2.1, <2.3
+requests>=2.2.1,<2.3
 # pip 1.5.3: Fixed #1111:
 #   pip install --download was failing using local --find-links (PR #1524)
-pip >= 1.5.3
+pip>=1.5.3
+# command serve:
+pypiserver>=1.1.6,<1.2
+passlib>=1.6.2,<1.7
+# color output:
+termcolor==1.1.0

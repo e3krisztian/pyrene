@@ -3,46 +3,44 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import os
-from io import StringIO
 
 import unittest
 import mock
 from temp_dir import within_temp_dir
+import tempfile
 
 import pyrene.shell as m
 from pyrene.util import Directory
 from pyrene.repos import Repo
-from pyrene.repomanager import KEY_TYPE
-
-# START: unique_justseen
-# https://docs.python.org/2.7/library/itertools.html#itertools-recipes
-from itertools import imap, groupby
-from operator import itemgetter
-
-
-def unique_justseen(iterable, key=None):
-    '''List unique elements, preserving order.
-
-    Remember only the element just seen.
-    '''
-    return map(next, imap(itemgetter(1), groupby(iterable, key)))
-
-assert unique_justseen('AAAABBBCCDAABBB') == list('ABCDAB')
-assert unique_justseen('ABBCcAD', unicode.lower) == list('ABCAD')
-
-# END: unique_justseen
-
+from .util import capture_stdout, fake_stdin, Assertions, record_calls
 
 write_file = m.write_file
+
+
+class MockingNetwork(m.Network):
+    '''get_repo returns BadRepo to prevent all destructive operations'''
+    TYPE_TO_CLASS = {}
+
+    def __init__(self, dot_pyrene, get_repo):
+        super(MockingNetwork, self).__init__(dot_pyrene)
+        self.__get_repo = get_repo
+
+    def get_repo(self, repo_name):
+        repo = self.__get_repo(repo_name)
+        return (
+            repo if repo
+            else super(MockingNetwork, self).get_repo(repo_name)
+        )
 
 
 class Test_PyreneCmd_write_file(unittest.TestCase):
 
     def setUp(self):
-        self.repo_manager = mock.Mock(spec_set=m.RepoManager)
+        super(Test_PyreneCmd_write_file, self).setUp()
+        self.network = mock.Mock(spec_set=m.Network)
         self.directory = mock.Mock(spec_set=Directory)
         self.cmd = m.PyreneCmd(
-            repo_manager=self.repo_manager,
+            network=self.network,
             directory=self.directory
         )
 
@@ -59,20 +57,40 @@ class Test_PyreneCmd_write_file(unittest.TestCase):
             self.assertEqual(b'somecontent', f.read())
 
 
-class Test_PyreneCmd(unittest.TestCase):
+class Test_PyreneCmd(Assertions, unittest.TestCase):
 
     def setUp(self):
+        super(Test_PyreneCmd, self).setUp()
         self.repo1 = mock.Mock(spec_set=Repo)
         self.repo2 = mock.Mock(spec_set=Repo)
         self.somerepo = mock.Mock(spec_set=Repo)
-        self.repo_manager = mock.Mock(spec_set=m.RepoManager)
-        self.repo_manager.get_repo.configure_mock(side_effect=self.get_repo)
+
+        self.dot_pyrene = tempfile.NamedTemporaryFile()
+        self.network = MockingNetwork(self.dot_pyrene.name, self.get_repo)
+
+        # self.network = mock.Mock(spec_set=m.Network)
+        # self.network.get_repo.configure_mock(side_effect=self.get_repo)
         self.directory = mock.Mock(spec_set=Directory)
+        self.directory.files = ()
         self.cmd = m.PyreneCmd(
-            repo_manager=self.repo_manager,
+            network=self.network,
             directory=self.directory
         )
         self.cmd.write_file = mock.Mock()
+
+    def tearDown(self):
+        self.dot_pyrene.close()
+        super(Test_PyreneCmd, self).tearDown()
+
+    def define_repos(self, *repo_names):
+        for repo_name in repo_names:
+            self.network.define(repo_name)
+
+    def define_repo(self, repo_name, attributes):
+        self.network.define(repo_name)
+        self.network.active_repo = repo_name
+        for attr, value in attributes.items():
+            self.network.set(repo_name, attr, value)
 
     def get_repo(self, repo_name):
         if repo_name == 'repo1':
@@ -83,34 +101,53 @@ class Test_PyreneCmd(unittest.TestCase):
             return self.somerepo
 
     def test_use(self):
+        self.network.define('somerepo')
+        self.network.get_repo = mock.Mock(return_value=self.somerepo)
+        pip_conf = 'someconf'
         self.somerepo.get_as_pip_conf.configure_mock(
-            return_value=mock.sentinel.pip_conf
+            return_value=pip_conf
         )
 
         self.cmd.onecmd('use somerepo')
 
-        self.somerepo.get_as_pip_conf.assert_called_once_with()
         self.cmd.write_file.assert_called_once_with(
             os.path.expanduser('~/.pip/pip.conf'),
-            mock.sentinel.pip_conf
+            pip_conf.encode('utf8')
         )
 
+    def test_use_with_unknown_repo(self):
+        output = run_script(self.cmd, 'use undefined')
+
+        self.assertContainsInOrder(
+            output,
+            ('ERROR:', 'Unknown repo', 'undefined')
+        )
+        self.assertEqual(0, self.cmd.write_file.call_count)
+
+    def test_use_with_implicit_repo(self):
+        output = run_script(
+            self.cmd,
+            '''
+            directory_repo somerepo
+            work_on somerepo
+            use
+            '''
+        )
+
+        self.assertNotIn('ERROR:', output)
+        self.assertEqual(1, self.cmd.write_file.call_count)
+
+    def test_use_with_missing_implicit_repo(self):
+        output = run_script(self.cmd, 'use')
+
+        self.assertIn('ERROR:', output)
+        self.assertEqual(0, self.cmd.write_file.call_count)
+
     def test_copy_single_package(self):
+        self.define_repos('repo1', 'repo2')
         self.directory.files = ['roman-2.0.0.zip']
 
         self.cmd.onecmd('copy repo1:roman==2.0.0 repo2:')
-
-        self.assertEqual(
-            unique_justseen(
-                sorted(
-                    [
-                        mock.call.get_repo('repo1'),
-                        mock.call.get_repo('repo2'),
-                    ]
-                )
-            ),
-            unique_justseen(sorted(self.repo_manager.mock_calls))
-        )
 
         self.repo1.download_packages.assert_called_once_with(
             'roman==2.0.0',
@@ -118,25 +155,8 @@ class Test_PyreneCmd(unittest.TestCase):
         )
         self.repo2.upload_packages.assert_called_once_with(['roman-2.0.0.zip'])
 
-    def test_copy_uses_repo_manager(self):
-        self.directory.files = ['roman-2.0.0.zip']
-
-        self.cmd.onecmd('copy repo1:roman==2.0.0 repo2:')
-
-        self.assertEqual(
-            unique_justseen(
-                sorted(
-                    [
-                        mock.call.get_repo('repo1'),
-                        mock.call.get_repo('repo2'),
-                    ]
-                )
-            ),
-            unique_justseen(sorted(self.repo_manager.mock_calls))
-        )
-
     def test_copy_uses_repo_to_download_packages(self):
-        self.directory.files = ['roman-2.0.0.zip']
+        self.define_repos('repo1', 'repo2')
 
         self.cmd.onecmd('copy repo1:roman==2.0.0 repo2:')
 
@@ -146,6 +166,7 @@ class Test_PyreneCmd(unittest.TestCase):
         )
 
     def test_copy_uses_repo_to_upload_packages(self):
+        self.define_repos('repo1', 'repo2')
         self.directory.files = ['roman-2.0.0.zip']
 
         self.cmd.onecmd('copy repo1:roman==2.0.0 repo2:')
@@ -153,6 +174,7 @@ class Test_PyreneCmd(unittest.TestCase):
         self.repo2.upload_packages.assert_called_once_with(['roman-2.0.0.zip'])
 
     def test_copy_package_with_dependencies(self):
+        self.define_repos('repo1', 'repo2')
         package_files = ('pkg-1.0.0.tar.gz', 'dep-0.3.1.zip')
         self.directory.files = list(package_files)
 
@@ -164,25 +186,61 @@ class Test_PyreneCmd(unittest.TestCase):
         )
         self.repo2.upload_packages.assert_called_once_with(list(package_files))
 
-    def test_copy_from_two_repos(self):
-        package_files = ('a-1.egg', 'b-2.tar.gz')
-        self.directory.files = list(package_files)
+    def test_copy_uploads_files(self):
+        self.define_repos('somerepo')
+        self.cmd.onecmd('copy /a/file somerepo:')
 
-        self.cmd.onecmd('copy repo1:a repo2:b somerepo:')
-
-        self.repo1.download_packages.assert_called_once_with(
-            'a',
-            self.directory
-        )
-        self.repo2.download_packages.assert_called_once_with(
-            'b',
-            self.directory
-        )
         self.somerepo.upload_packages.assert_called_once_with(
-            list(package_files)
+            ['/a/file']
         )
+
+    def test_copy_from_unknown_repo(self):
+        output = run_script(
+            self.cmd,
+            '''
+            directory_repo somerepo
+            copy unknown:pkg somerepo:
+            '''
+        )
+
+        self.assertContainsInOrder(output, ('ERROR:', 'unknown'))
+        self.assertEqual(0, self.somerepo.upload_packages.call_count)
+
+    def test_copy_to_unknown_repo(self):
+        self.directory.files = ['/tmp/downloaded-package-file']
+        output = run_script(
+            self.cmd,
+            '''
+            directory_repo somerepo
+            copy somerepo:pkg unknown:
+            '''
+        )
+
+        self.assertContainsInOrder(output, ('ERROR:', 'unknown'))
+        self.assertEqual(0, self.somerepo.upload_packages.call_count)
+
+    def test_get_destination_repo_on_repo1(self):
+        self.define_repos('repo1')
+        repo = self.cmd._get_destination_repo('repo1:')
+        self.assertIs(self.repo1, repo)
+
+    def test_get_destination_repo_on_directory(self):
+        repo = self.cmd._get_destination_repo('/path/to/directory')
+        self.assertEqual('/path/to/directory', repo.directory)
+
+    def test_copy_with_directory_destination(self):
+        self.define_repos('repo1')
+        self.directory.files = ['a-pkg']
+        self.cmd._get_destination_repo = mock.Mock(
+            return_value=self.somerepo
+        )
+
+        self.cmd.onecmd('copy repo1:a /tmp/x')
+        self.cmd._get_destination_repo.assert_called_once_with('/tmp/x')
+        self.somerepo.upload_packages.assert_called_once_with(['a-pkg'])
 
     def test_copy_clears_directory_after_upload(self):
+        self.define_repos('repo1', 'repo2')
         package_files = ('pkg-1.0.0.tar.gz', 'dep-0.3.1.zip')
         files = mock.PropertyMock(return_value=list(package_files))
         type(self.directory).files = files
@@ -195,81 +253,467 @@ class Test_PyreneCmd(unittest.TestCase):
             self.directory.mock_calls
         )
 
-    def test_define(self):
-        self.cmd.onecmd('define new-repo')
+    def test_copy_clears_directory_even_if_download_fails(self):
+        self.define_repos('repo1', 'repo2')
+        self.repo1.download_packages.configure_mock(side_effect=Exception)
 
-        self.repo_manager.define.assert_called_once_with('new-repo')
+        try:
+            self.cmd.onecmd('copy repo1:a repo2:')
+        except:
+            pass
+
+        self.assertIn(mock.call.clear(), self.directory.mock_calls)
+
+    def test_http_repo_defines_new_repo(self):
+        output = run_script(
+            self.cmd,
+            '''
+            http_repo new-repo
+            list
+            '''
+        )
+
+        self.assertIn('new-repo', output)
+
+    def test_existing_repo_http_repo_changes_repo_type(self):
+        run_script(
+            self.cmd,
+            '''
+            directory_repo new-repo
+            set attr=somevalue
+            http_repo
+            '''
+        )
+
+        self.assertEqual('new-repo', self.network.active_repo)
+        repo = self.network.get_repo('new-repo')
+        self.assertEqual(m.REPOTYPE.HTTP, repo.type)
+        self.assertEqual('somevalue', repo.attr)
+
+    def test_directory_repo_defines_new_repo(self):
+        output = run_script(
+            self.cmd,
+            '''
+            directory_repo new-repo
+            list
+            '''
+        )
+
+        self.assertIn('new-repo', output)
+
+    def test_existing_repo_directory_repo_changes_repo_type(self):
+        run_script(
+            self.cmd,
+            '''
+            http_repo new-repo
+            set attr=somevalue
+            directory_repo
+            '''
+        )
+
+        self.assertEqual('new-repo', self.network.active_repo)
+        repo = self.network.get_repo('new-repo')
+        self.assertEqual(m.REPOTYPE.DIRECTORY, repo.type)
+        self.assertEqual('somevalue', repo.attr)
 
     def test_forget(self):
+        self.network.define('somerepo')
+
         self.cmd.onecmd('forget somerepo')
 
-        self.repo_manager.forget.assert_called_once_with('somerepo')
+        self.assertNotIn('somerepo', self.network.repo_names)
 
-    def test_set(self):
-        self.cmd.onecmd('set repo1 key=value')
+    def test_unset(self):
+        output = run_script(
+            self.cmd,
+            '''
+            http_repo repo
+            set someattribute=value
+            unset someattribute
+            set someotherattribute=othervalue
+            show repo
+            '''
+        )
 
-        self.repo_manager.set.assert_called_once_with('repo1', 'key', 'value')
+        self.assertNotIn('someattribute', output)
+        self.assertIn('someotherattribute', output)
 
     def test_list(self):
-        self.repo_manager.repo_names = ['S1', '#@!']
+        self.define_repos('S1', '#@!')
 
-        with mock.patch('sys.stdout', new_callable=StringIO) as stdout:
+        with capture_stdout() as stdout:
             self.cmd.onecmd('list')
+            output = stdout.content
 
-            self.assertIn('S1', stdout.getvalue())
-            self.assertIn('#@!', stdout.getvalue())
+        self.assertIn('S1', output)
+        self.assertIn('#@!', output)
 
     def test_show(self):
-        self.repo_manager.get_attributes.configure_mock(
-            return_value={'name': 'SHRP1', KEY_TYPE: '??'}
+        output = run_script(
+            self.cmd,
+            '''
+            directory_repo repo
+            set name=SHRP1
+            set type=??
+            show repo
+            '''
         )
-        with mock.patch('sys.stdout', new_callable=StringIO) as stdout:
-            self.cmd.onecmd('show repo1')
 
-            self.assertEqual(
-                [mock.call.get_attributes('repo1')],
-                self.repo_manager.mock_calls
-            )
-            output = stdout.getvalue()
-            self.assertRegexpMatches(output, '.*name.*SHRP1.*')
-            self.assertRegexpMatches(output, '.*type.*[?][?].*')
+        self.assertIn('SHRP1', output)
+        self.assertIn('??', output)
 
-    def test_complete_set_before_repo(self):
-        self.repo_manager.repo_names = ('repo', 'repo2')
-        completion = self.cmd.complete_set('', 'set re key=value', 4, 4)
-        self.assertEqual({'repo ', 'repo2 '}, set(completion))
-
-    def test_complete_set_on_repo(self):
-        self.repo_manager.repo_names = ('repo', 'repo2')
-        completion = self.cmd.complete_set('re', 'set re key=value', 4, 5)
-        self.assertEqual({'repo ', 'repo2 '}, set(completion))
-
-    def test_complete_set_on_key(self):
-        completion = self.cmd.complete_set('', 'set re key=value', 7, 7)
+    def test_complete_set_on_attribute(self):
+        completion = self.cmd.complete_set('', 'set atibute=value', 4, 4)
         self.assertEqual(set(m.REPO_ATTRIBUTE_COMPLETIONS), set(completion))
 
-    def test_complete_set_on_key_ty(self):
-        completion = self.cmd.complete_set('ty', 'set re ty=value', 7, 9)
+    def test_complete_set_on_attribute_ty(self):
+        completion = self.cmd.complete_set('ty', 'set ty=value', 4, 6)
         self.assertEqual({'type='}, set(completion))
 
     def test_complete_set_on_type_value_fi(self):
-        completion = self.cmd.complete_set(
-            'fi',
-            'set re type=fi',
-            12,
-            14,
-        )
-        self.assertEqual(['file'], completion)
+        completion = self.cmd.complete_set('di', 'set type=di', 9, 11)
+        self.assertEqual(['directory'], completion)
 
     def test_complete_set_on_empty_type_value(self):
-        completion = self.cmd.complete_set(
-            '',
-            'set re type=',
-            12,
-            12,
+        completion = self.cmd.complete_set('', 'set type=', 9, 9)
+        self.assertEqual(set(m.Network.REPO_TYPES), set(completion))
+
+    def test_complete_set_completes_existing_attribute_value(self):
+        run_script(
+            self.cmd,
+            '''
+            directory_repo repo
+            set attr=somevalue
+            '''
         )
-        self.assertEqual(set(m.RepoManager.REPO_TYPES), set(completion))
+        completion = self.cmd.complete_set('', 'set attr=', 9, 9)
+        self.assertEqual({'somevalue'}, set(completion))
 
     def test_complete_set_on_value(self):
-        completion = self.cmd.complete_set('key=', 'set re key=value', 7, 11)
+        completion = self.cmd.complete_set(
+            'attribute=', 'set re attribute=value', 7, 17
+        )
         self.assertEqual(set(), set(completion))
+
+    def test_complete_unset_on_attribute_name(self):
+        self.define_repo('repo', {'a': '1', 'b': '2'})
+        completion = self.cmd.complete_unset('', 'unset ', 6, 6)
+        self.assertEqual({'a', 'b'}, set(completion))
+
+    def test_complete_repo_name(self):
+        self.define_repos('repo', 'repo2')
+        completion = self.cmd.complete_repo_name('', 'cmd ', 4, 4)
+        self.assertEqual({'repo', 'repo2'}, set(completion))
+
+    def test_complete_repo_name_with_suffix(self):
+        self.define_repos('repo', 'repo2')
+        completion = self.cmd.complete_repo_name('', 'cmd ', 4, 4, suffix=':')
+        self.assertEqual({'repo:', 'repo2:'}, set(completion))
+
+    def test_complete_repo_name_returns_sorted_output(self):
+        self.define_repos('c-repo', 'repo-b', 'repo-a')
+        completion = self.cmd.complete_repo_name('re', 'cmd re', 4, 6)
+        self.assertEqual(['repo-a', 'repo-b'], completion)
+
+    def test_complete_copy_completes_repos(self):
+        self.define_repos('repo', 'repo2')
+        completion = self.cmd.complete_copy('', 'copy ', 5, 5)
+        self.assertTrue({'repo:', 'repo2:'}.issubset(set(completion)))
+
+    @within_temp_dir
+    def test_complete_filenames(self):
+        os.makedirs('a')
+        os.makedirs('c')
+        write_file('ef', b'')
+
+        completion = self.cmd.complete_filenames('', 'cmd ', 4, 4)
+
+        self.assertEqual(['a/', 'c/', 'ef'], completion)
+
+    @within_temp_dir
+    def test_complete_filenames_with_prefix(self):
+        os.makedirs('aa')
+
+        completion = self.cmd.complete_filenames('a', 'cmd a', 4, 5)
+
+        self.assertEqual(['aa/'], completion)
+
+    @within_temp_dir
+    def test_complete_filenames_with_nonexistent_prefix(self):
+        completion = self.cmd.complete_filenames('a', 'cmd a/b/', 4, 8)
+
+        self.assertEqual([], completion)
+
+    @within_temp_dir
+    def test_complete_filenames_with_subpaths(self):
+        write_file('a/b/c', b'')
+
+        completion = self.cmd.complete_filenames('', 'cmd a/b/', 6, 6)
+
+        self.assertEqual(['b/'], completion)
+
+    @within_temp_dir
+    def test_complete_copy_completes_directories(self):
+        os.makedirs('dir3/dir2/dir1')
+
+        completion = self.cmd.complete_copy('', 'copy ', 4, 4)
+
+        self.assertTrue({'dir3/'}.issubset(set(completion)))
+
+    @within_temp_dir
+    def test_complete_copy_does_not_complete_repos_after_slash(self):
+        os.makedirs('dir')
+        self.define_repos('repo', 'repo2')
+
+        completion = self.cmd.complete_copy('', 'copy ./', 7, 7)
+
+        self.assertEqual(['dir/'], completion)
+
+    @within_temp_dir
+    def test_complete_copy_does_not_complete_filenames_after_a_repo(self):
+        os.makedirs('dir')
+        self.define_repos('repo', 'repo2')
+
+        completion = self.cmd.complete_copy('', 'copy repo:', 10, 10)
+
+        self.assertEqual([], completion)
+
+    def test_setup_for_pypi_python_org(self):
+        self.define_repos('repo')
+
+        self.cmd.onecmd('setup_for_pypi_python_org repo')
+
+        repo = self.network.get_repo('repo')
+        self.assertIn('pypi.python.org', repo.download_url)
+
+    def test_setup_for_pip_local(self):
+        self.define_repos('repo')
+
+        self.cmd.onecmd('setup_for_pip_local repo')
+
+        repo = self.network.get_repo('repo')
+        self.assertIn('pip/local', repo.directory)
+
+    def test_serve(self):
+        self.define_repos('repo1')
+
+        self.cmd.onecmd('serve repo1')
+
+        self.repo1.serve.assert_called_once_with()
+
+    def test_network_reload_called_before_every_command_in_the_loop(self):
+        calls = []
+        self.network.reload = record_calls(calls, self.network.reload)
+        self.define_repos('repo-a')
+
+        run_script(self.cmd, '\nlist\n')
+
+        # expect 3 calls, one for each of
+        # empty line
+        # list
+        # EOF
+        self.assertEqual(3, len(calls))
+
+    def test_define_sets_default_repo(self):
+        script = '''
+        http_repo repo
+        set someattr=somevalue
+        show repo
+        '''
+        output = run_script(self.cmd, script)
+        self.assertContainsInOrder(output, ['someattr', 'somevalue'])
+
+    def test_work_on_sets_prompt(self):
+        output = run_script(
+            self.cmd,
+            '''
+            http_repo somerepo
+            work_on somerepo
+            '''
+        )
+        self.assertIn('Pyrene[somerepo]: ', output)
+
+
+def run_script(cmd, script):
+    with fake_stdin(script):
+        with capture_stdout() as stdout:
+            cmd.cmdloop()
+            return stdout.content
+
+
+#########################################################
+import nose.util
+
+
+# nose specific: uses test generators for checking all commands
+class Test_PyreneCmd_repo_parameter_checking(Assertions):
+
+    def setup(self):
+        self.dot_pyrene = tempfile.NamedTemporaryFile()
+        self.network = m.Network(self.dot_pyrene.name)
+
+        self.directory = mock.Mock(spec_set=Directory)
+        self.directory.files = ('dummy')
+        self.cmd = m.PyreneCmd(
+            network=self.network,
+            directory=self.directory
+        )
+        self.cmd.write_file = mock.Mock()
+
+    def teardown(self):
+        self.dot_pyrene.close()
+
+    def test_requires_explicit_repo_parameter(self):
+        commands = [
+            'forget',
+            'work_on',
+        ]
+        for command in commands:
+            yield self.check_requires_repo_parameter, command
+
+    def check_requires_repo_parameter(self, command):
+        output = run_script(
+            self.cmd,
+            '''
+            directory_repo somerepo
+            work_on somerepo
+            {}
+            '''.format(command)
+        )
+        self.assertContainsInOrder(output, ('ERROR', command, 'requires'))
+
+    def test_active_repo_works(self):
+        commands = [
+            'use',
+            # 'forget',
+            'show',
+            'setup_for_pip_local',
+            'setup_for_pypi_python_org',
+            'serve',
+            # 'work_on',
+            'directory_repo',
+            'http_repo',
+        ]
+        for command in commands:
+            yield self.check_active_repo_works_for, command
+
+    def check_active_repo_works_for(self, command):
+        output = run_script(
+            self.cmd,
+            '''
+            http_repo somerepo
+            set download_url=http://example.com:8080/simple
+            work_on somerepo
+            {}
+            '''.format(command)
+        )
+        nose.tools.assert_not_in('ERROR', output)
+
+    def test_missing_active_repo_error_message(self):
+        commands = [
+            'use',
+            'forget',
+            'show',
+            'setup_for_pip_local',
+            'setup_for_pypi_python_org',
+            'serve',
+            'work_on',
+            'directory_repo',
+            'http_repo',
+        ]
+        for command in commands:
+            yield self.check_missing_active_repo_error_message, command
+
+    def check_missing_active_repo_error_message(self, command):
+        output = run_script(
+            self.cmd,
+            '''
+            {}
+            '''.format(command)
+        )
+        self.assertContainsInOrder(output, ('ERROR', command, 'requires'))
+
+    def test_active_repo_only_error_message(self):
+        commands = [
+            ('set', 'attr=value'),
+            ('unset', 'attr'),
+        ]
+        for command, param in commands:
+            yield self.check_active_repo_only_error_message, command, param
+
+    def check_active_repo_only_error_message(self, command, param):
+        output = run_script(
+            self.cmd,
+            '''
+            {} {}
+            '''.format(command, param)
+        )
+        self.assertContainsInOrder(
+            output,
+            ('ERROR', command, 'requires', 'work')
+        )
+
+    def test_unknown_repo_error_message(self):
+        commands = [
+            'use',
+            'forget',
+            'show',
+            'setup_for_pip_local',
+            'setup_for_pypi_python_org',
+            'serve',
+            'work_on',
+            # 'directory_repo',
+            # 'http_repo',
+        ]
+        for command in commands:
+            yield self.check_unknown_repo_error_message, command
+
+    def check_unknown_repo_error_message(self, command):
+        output = run_script(
+            self.cmd,
+            '''
+            {} undefined-repo
+            '''.format(command)
+        )
+        self.assertContainsInOrder(output, ('ERROR', 'undefined-repo'))
+
+    def test_set_without_parameter(self):
+        output = run_script(
+            self.cmd,
+            '''
+            directory_repo repo
+            set
+            '''
+        )
+        self.assertContainsInOrder(
+            output,
+            ('ERROR', 'set', 'requires', 'attribute')
+        )
+
+    def test_set_without_equal_sign(self):
+        output = run_script(
+            self.cmd,
+            '''
+            directory_repo repo
+            set attr
+            '''
+        )
+        self.assertContainsInOrder(
+            output,
+            ('ERROR', 'set', 'requires', 'value')
+        )
+
+    def test_unset_without_attribute(self):
+        output = run_script(
+            self.cmd,
+            '''
+            directory_repo repo
+            unset
+            '''
+        )
+        self.assertContainsInOrder(
+            output,
+            ('ERROR', 'unset', 'requires', 'attribute')
+        )
+
+# TODO: tests for error cases in copy

@@ -1,105 +1,46 @@
-Python Repository Network tool
-==============================
-
-I am a tool to help your interactions with Python package repositories.
-I can copy packages between repos for you without modifying any config files.
-
-There are three types of repos I support, probably this covers all you might need:
-
-- https://pypi.python.org - the global python public package repo
-- ~/.pip/local - a directory with package files, for fast/offline development
-- project specific PyPI server - defined by you or your company, for deployment
-
-I provide a shell-like environment as primary interface - with completion for commands and parameters, but can be used as a command-line tool as well.
-
-I support the following commands:
-
-use
----
-
-Creates/overwrites a `pip.conf` config file, for use by the outer environment: installing packages with `pip` can be greatly influenced by the `~/.pip/pip.conf` configuration file: it defines which repo is used to download from (`index-url` or `find-links`) and how (`no-use-wheels`, etc.)
-
-```
-use repo
-```
+Pyrene is about treating Python package repositories equal.
 
 
-copy
-----
+Thoughts
+========
 
-Copy packages like files with `cp`.
+Package repositories contain and serve packages securely (at least they should).
 
-```
-copy package[s] repo:
-```
+Local directories with a bunch of packages work.
 
-
-define
-------
-
-Introduces a new repository.
-
-```
-define repo download-url [upload-url username password]
-```
+There is great need for private repositories with restricted access.
 
 
-set
----
+Features
+========
 
-Sets a repository parameter.
+Configure pip (by writing a `~/.pip/pip.conf` file) to use a repo without
+`--index-url` or `--find-links` command line options:
 
-```
-set repo key=value
-```
+    $ pyrene use repo
 
+Serve a directory for quick & direct package exchange over http:
 
-forget
-------
+    $ pyrene serve dir-repo
 
-Makes a known repository unknown.
+Populate a repo from another repository:
 
-```
-forget repo
-```
+    $ pyrene copy source-repo:package-with-lots-of-dependencies destination-repo:
 
+Shell for configuration and interactive operations:
 
-list
-----
-
-Lists known repositories.
-
-
-show
-----
-
-Shows repository attributes
-
-```
-show repo
-```
+    $ pyrene
+    ...
+    Pyrene: directory_repo local
+    Pyrene[local]: set directory=/path/to/repo
+    Pyrene[local]: copy pypi:someinterestingpkg==0.1 local:
+    Pyrene[local]: work_on private
+    Pyrene[private]: copy local:someinterestingpkg private:
+    Pyrene[private]: help use
+    ...
 
 
-Developers
-==========
+Changelog
+=========
 
-Internals:
-
-- packages are downloaded with [pip](http://www.pip-installer.org).
-- packages are uploaded with code adopted from [twine](https://pypi.python.org/pypi/twine).
-
-Guidelines:
-
-- all code should be extremely simple and clear
-- all features require unit tests
-- zero messages from flake8
-
-Contributions
-
-- reporting issues
-- improving documentation
-- improving on the simplicity and clarity of the code
-- adding relevant tests
-- providing new badly missing features (preferably with tests)
-
-are welcome.
+0.1.0 (2014-05-08) - initial release - for testing
