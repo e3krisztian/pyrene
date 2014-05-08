@@ -15,19 +15,19 @@ Features
 ========
 
 Configure pip (by writing a `~/.pip/pip.conf` file) to use a repo without
-`--index-url` or `--find-links` command line options:
+`--index-url` or `--find-links` command line options::
 
     $ pyrene use repo
 
-Serve a directory for quick & direct package exchange over http:
+Serve a directory for quick & direct package exchange over http::
 
     $ pyrene serve dir-repo
 
-Populate a repo from another repository:
+Populate a repo from another repository::
 
     $ pyrene copy source-repo:package-with-lots-of-dependencies destination-repo:
 
-Shell for configuration and interactive operations:
+Shell for configuration and interactive operations::
 
     $ pyrene
     ...
