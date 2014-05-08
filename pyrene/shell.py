@@ -341,7 +341,7 @@ class PyreneCmd(BaseCmd):
         self.network.set(
             effective_repo_name,
             REPO.UPLOAD_URL,
-            'https://pypi.python.org/'
+            'https://pypi.python.org/pypi'
         )
 
     def do_setup_for_pip_local(self, repo):
