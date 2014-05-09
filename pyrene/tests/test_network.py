@@ -37,7 +37,7 @@ class Test_Network(unittest.TestCase):
         with self.assertRaises(m.UnknownRepoError):
             self.network.get_repo('undefined')
 
-    def test_get_repo_returns_nullrepo_on_missing_repo_type(self):
+    def test_get_repo_returns_badrepo_on_missing_repo_type(self):
         self.network.define('no-type')
         self.network.set('no-type', 'attr', 'attr-value')
         repo = self.network.get_repo('no-type')
@@ -60,6 +60,15 @@ class Test_Network(unittest.TestCase):
         self.network.define('r!')
         repo = self.network.get_repo('r!')
         self.assertEqual('r!', repo.name)
+
+    def test_get_repo_with_empty_repo_name_returns_active_repo(self):
+        self.network.define('activerepo')
+        self.network.set('activerepo', 'type', 'http')
+        self.network.active_repo = 'activerepo'
+
+        repo = self.network.get_repo('')
+
+        self.assertEqual('activerepo', repo.name)
 
     def make_file_repo(self, directory):
         self.network.define('repo')

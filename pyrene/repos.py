@@ -6,7 +6,7 @@ import abc
 import os
 import shutil
 from .upload import upload
-from .util import pip_install, PyPI, red, green
+from .util import pip_install, PyPI, red, yellow
 from .constants import REPO
 
 
@@ -14,6 +14,7 @@ class Repo(object):
     __metaclass__ = abc.ABCMeta
 
     ATTRIBUTES = (REPO.TYPE,)
+    DEFAULTS = {}
     attributes = dict
 
     def __init__(self, name, attributes):
@@ -25,7 +26,10 @@ class Repo(object):
         try:
             return self.attributes[attribute]
         except KeyError:
-            raise AttributeError(attribute)
+            try:
+                return self.DEFAULTS[attribute]
+            except KeyError:
+                raise AttributeError(attribute)
 
     @abc.abstractmethod
     def get_as_pip_conf(self):
@@ -44,14 +48,21 @@ class Repo(object):
         pass
 
     def print_attributes(self):
+        def comment(text, color):
+            return '# {}'.format(color(text))
         for attribute in self.ATTRIBUTES:
             if attribute in self.attributes:
-                msg = green(
-                    '   {}: {}'
+                msg = (
+                    '{} = {}'
                     .format(attribute, self.attributes[attribute])
                 )
+            elif attribute in self.DEFAULTS:
+                msg = (
+                    '# {} = {}'
+                    .format(attribute, self.DEFAULTS[attribute])
+                )
             else:
-                msg = ' - {}'.format(attribute)
+                msg = comment(attribute, yellow)
 
             print(msg)
 
@@ -60,16 +71,14 @@ class Repo(object):
         )
         if extra_attrs:
             print()
-            print(red('Extra attributes:'))
+            print(comment('EXTRA ATTRIBUTES >>>', red))
             for attribute in extra_attrs:
-                msg = red(
-                    ' ? {}: {}'.format(attribute, self.attributes[attribute])
-                )
-
+                msg = '{} = {}'.format(attribute, self.attributes[attribute])
                 print(msg)
+            print(comment('<<< EXTRA ATTRIBUTES', red))
 
 
-PIPCONF_NULLREPO = '''\
+PIPCONF_BADREPO = '''\
 [global]
 # no package can be installed from a BadRepo
 no-index = true
@@ -79,9 +88,10 @@ no-index = true
 class BadRepo(Repo):
 
     ATTRIBUTES = {}
+    DEFAULTS = {}
 
     def get_as_pip_conf(self):
-        return PIPCONF_NULLREPO
+        return PIPCONF_BADREPO
 
     @property
     def printable_name(self):
@@ -127,6 +137,12 @@ class DirectoryRepo(Repo):
         REPO.SERVE_PASSWORD,
     )
 
+    DEFAULTS = {
+        REPO.SERVE_INTERFACE: '0.0.0.0',
+        REPO.SERVE_PORT: '8080',
+        REPO.VOLATILE: 'no',
+    }
+
     def get_as_pip_conf(self):
         return PIPCONF_DIRECTORYREPO.format(directory=self.directory)
 
@@ -154,10 +170,10 @@ class DirectoryRepo(Repo):
 
         server = pypi_server()
         server.directory = self.directory
-        server.interface = getattr(self, REPO.SERVE_INTERFACE, '0.0.0.0')
-        server.port = getattr(self, REPO.SERVE_PORT, '8080')
+        server.interface = getattr(self, REPO.SERVE_INTERFACE)
+        server.port = getattr(self, REPO.SERVE_PORT)
         true = {'y', 'yes', 't', 'true'}
-        server.volatile = getattr(self, REPO.VOLATILE, 'no').lower() in true
+        server.volatile = getattr(self, REPO.VOLATILE).lower() in true
 
         try:
             username = getattr(self, REPO.SERVE_USERNAME)
@@ -186,6 +202,8 @@ class HttpRepo(Repo):
         REPO.USERNAME,
         REPO.PASSWORD,
     )
+
+    DEFAULTS = {}
 
     def get_as_pip_conf(self):
         return PIPCONF_HTTPREPO.format(download_url=self.download_url)
