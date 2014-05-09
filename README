@@ -1,6 +1,12 @@
 Pyrene is about treating Python package repositories equal.
 
 
+This is an early release so if you have any problems
+(*including usability*), please tell them about at
+
+    https://github.com/krisztianfekete/pyrene/issues
+
+
 Thoughts
 ========
 
@@ -43,4 +49,6 @@ Shell for configuration and interactive operations::
 Changelog
 =========
 
-0.1.0 (2014-05-08) - initial release - for testing
+0.1.2 (2014-05-09) - setup.cfg: fix keywords & classifiers, early release notice
+
+0.1.1 (2014-05-08) - initial release - for testing
