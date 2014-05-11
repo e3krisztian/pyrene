@@ -129,3 +129,22 @@ class Test_HttpRepo(Assertions, unittest.TestCase):
 
         self.assertContainsInOrder(output, m.HttpRepo.ATTRIBUTES)
         self.assertNotIn(REPO.DIRECTORY, output)
+
+    def test_upload_continues_after_UploadError(self):
+        repo = self.make_repo(
+            {
+                REPO.UPLOAD_URL: 'example.com',
+                REPO.SERVE_USERNAME: 'index owner',
+                REPO.SERVE_PASSWORD: 'password',
+            }
+        )
+        upload = mock.Mock(m.upload, side_effect=m.UploadError('409'))
+        with capture_stdout() as stdout:
+            repo.upload_packages(['file1', 'file2', 'file3'], upload)
+            output = stdout.content
+
+        self.assertEqual(3, upload.call_count)
+        self.assertContainsInOrder(
+            output,
+            ['ERROR', '409', 'Conflict'] * 3
+        )
