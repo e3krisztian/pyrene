@@ -179,14 +179,12 @@ class UploadError(Exception):
 
     def __init__(self, status_code):
         self.status_code = status_code
+        self.status_text = httplib.responses.get(int(status_code))
 
     def __str__(self):
         return (
-            'UploadError(HTTP status {}: {})'
-            .format(
-                self.status_code,
-                httplib.responses.get(int(self.status_code))
-            )
+            'UploadError - HTTP {}: {}'
+            .format(self.status_code, self.status_text)
         )
 
     __unicode__ = __str__

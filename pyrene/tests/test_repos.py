@@ -146,5 +146,5 @@ class Test_HttpRepo(Assertions, unittest.TestCase):
         self.assertEqual(3, upload.call_count)
         self.assertContainsInOrder(
             output,
-            ['ERROR', '409', 'Conflict'] * 3
+            ['UploadError', '409', 'Conflict'] * 3
         )

@@ -6,7 +6,7 @@ import abc
 import os
 import shutil
 from .upload import upload, UploadError
-from .util import pip_install, PyPI, red, green, yellow, bold
+from .util import pip_install, PyPI, red, yellow
 from .constants import REPO
 
 
@@ -217,17 +217,15 @@ class HttpRepo(Repo):
 
     def upload_packages(self, package_files, upload=upload):
         for source in package_files:
-            try:
-                print(
-                    bold(
-                        'Uploading {} to {} ({})'
-                        .format(
-                            os.path.basename(source),
-                            self.name,
-                            self.upload_url
-                        )
-                    )
+            print(
+                'Uploading {} to {} ({})'
+                .format(
+                    os.path.basename(source),
+                    self.name,
+                    self.upload_url
                 )
+            )
+            try:
                 upload(
                     source,
                     signature=None,
@@ -236,15 +234,9 @@ class HttpRepo(Repo):
                     password=self.password,
                     comment='Uploaded with Pyrene',
                 )
-                print(green('(OK)'))
+                print('  OK')
             except UploadError as e:
-                print(
-                    '({} {})'
-                    .format(
-                        yellow('Ignoring'),
-                        red('ERROR: {}'.format(e))
-                    )
-                )
+                print(yellow('  {}'.format(e)))
 
     def serve(self):
         print('Externally served at url {}'.format(self.download_url))
