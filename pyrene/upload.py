@@ -25,6 +25,7 @@ import pkginfo
 import pkg_resources
 import requests
 import re
+import httplib
 
 
 class BDist(pkginfo.BDist):
@@ -162,8 +163,6 @@ def upload(filename, signature, repository, username, password, comment):
             filedata["gpg_signature"] = (pypi_filename + ".asc", signature)
         data["md5_digest"] = hashlib.md5(content).hexdigest()
 
-    print("Uploading {0}".format(pypi_filename))
-
     session = requests.session()
     resp = session.post(
         repository,
@@ -171,4 +170,21 @@ def upload(filename, signature, repository, username, password, comment):
         files=filedata,
         auth=(username, password),
     )
-    resp.raise_for_status()
+
+    if not resp.ok:
+        raise UploadError(resp.status_code)
+
+
+class UploadError(Exception):
+
+    def __init__(self, status_code):
+        self.status_code = status_code
+        self.status_text = httplib.responses.get(int(status_code))
+
+    def __str__(self):
+        return (
+            'UploadError - HTTP {}: {}'
+            .format(self.status_code, self.status_text)
+        )
+
+    __unicode__ = __str__

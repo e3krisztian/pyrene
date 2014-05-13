@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import abc
 import os
 import shutil
-from .upload import upload
+from .upload import upload, UploadError
 from .util import pip_install, PyPI, red, yellow
 from .constants import REPO
 
@@ -215,16 +215,28 @@ class HttpRepo(Repo):
             package_spec,
         )
 
-    def upload_packages(self, package_files):
+    def upload_packages(self, package_files, upload=upload):
         for source in package_files:
-            upload(
-                source,
-                signature=None,
-                repository=self.upload_url,
-                username=self.username,
-                password=self.password,
-                comment='Uploaded with Pyrene',
+            print(
+                'Uploading {} to {} ({})'
+                .format(
+                    os.path.basename(source),
+                    self.name,
+                    self.upload_url
+                )
             )
+            try:
+                upload(
+                    source,
+                    signature=None,
+                    repository=self.upload_url,
+                    username=self.username,
+                    password=self.password,
+                    comment='Uploaded with Pyrene',
+                )
+                print('  OK')
+            except UploadError as e:
+                print(yellow('  {}'.format(e)))
 
     def serve(self):
         print('Externally served at url {}'.format(self.download_url))
