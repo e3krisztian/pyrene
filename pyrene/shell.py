@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import os
 from cmd import Cmd
 import traceback
+import pkg_resources
 from .util import write_file, bold, red
 from .network import Network, DirectoryRepo, UnknownRepoError
 from .constants import REPO, REPOTYPE
@@ -60,20 +61,20 @@ REPO_ATTRIBUTE_COMPLETIONS = tuple(
 )
 
 
+def get_version():
+    try:
+        return pkg_resources.get_distribution('Pyrene').version
+    except pkg_resources.DistributionNotFound:
+        return '(local dev)'
+
+
 class PyreneCmd(BaseCmd):
 
     intro = '''
-    Pyrene provides tools to work with different repos of python packages.
-
-    e.g. one might use three different repos in one project:
-
-     - pypi.python.org       (globally shared)
-     - private pypi instance (project/company specific,
-                              pip needs to be configured to fetch from here)
-     - developer cache       (~/.pip/local)
+    Pyrene {version}
 
     For help on commands type {help} or {qmark}
-    '''.format(help=bold('help'), qmark=bold('?'))
+    '''.format(help=bold('help'), qmark=bold('?'), version=bold(get_version()))
 
     @property
     def prompt(self):
