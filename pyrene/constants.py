@@ -21,3 +21,6 @@ class REPOTYPE:
     '''Values for REPO.TYPE'''
     DIRECTORY = 'directory'
     HTTP = 'http'
+
+
+MAX_HISTORY_SIZE = 100

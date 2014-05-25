@@ -8,7 +8,7 @@ import traceback
 import pkg_resources
 from .util import write_file, bold, red
 from .network import Network, DirectoryRepo, UnknownRepoError
-from .constants import REPO, REPOTYPE
+from .constants import REPO, REPOTYPE, MAX_HISTORY_SIZE
 
 
 class ShellError(Exception):
@@ -23,6 +23,7 @@ class BaseCmd(Cmd, object):
         pass
 
     def cmdloop(self, intro=None):
+        self.load_history()
         while True:
             try:
                 super(BaseCmd, self).cmdloop(intro)
@@ -33,6 +34,27 @@ class BaseCmd(Cmd, object):
             except KeyboardInterrupt:
                 print('^C')
             intro = ''
+        self.save_history()
+
+    @property
+    def history_file(self):
+        return os.devnull
+
+    def load_history(self):
+        try:
+            import readline
+            readline.clear_history()
+            readline.set_history_length(MAX_HISTORY_SIZE)
+            readline.read_history_file(self.history_file)
+        except (ImportError, AttributeError, IOError):
+            pass
+
+    def save_history(self):
+        try:
+            import readline
+            readline.write_history_file(self.history_file)
+        except (ImportError, AttributeError, IOError):
+            pass
 
     def onecmd(self, line):
         try:
@@ -90,6 +112,10 @@ class PyreneCmd(BaseCmd):
         super(PyreneCmd, self).__init__()
         self.network = network
         self.__temp_dir = directory
+
+    @property
+    def history_file(self):
+        return os.path.expanduser('~/.pyrene.history')
 
     def precmd(self, line):
         self.network.reload()
