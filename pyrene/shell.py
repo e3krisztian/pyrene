@@ -28,6 +28,7 @@ class BaseCmd(Cmd, object):
                 super(BaseCmd, self).cmdloop(intro)
                 break
             except Exception:
+                print(red('You have found an uncrushed \U0001F41B!'))
                 traceback.print_exc()
             except KeyboardInterrupt:
                 print('^C')
