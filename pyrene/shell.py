@@ -108,10 +108,11 @@ class PyreneCmd(BaseCmd):
         )
         return prompt
 
-    def __init__(self, network, directory):
+    def __init__(self, network, directory, pypirc):
         super(PyreneCmd, self).__init__()
         self.network = network
         self.__temp_dir = directory
+        self.pypirc = pypirc
 
     @property
     def history_file(self):
@@ -251,6 +252,12 @@ class PyreneCmd(BaseCmd):
         '''
         self.abort_on_missing_effective_repo_name(repo, 'directory_repo')
         self.__define_or_change_type(repo, REPOTYPE.DIRECTORY)
+
+    def do_import_pypirc(self, _empty):
+        '''
+        Import repositories defined in ~/.pypirc
+        '''
+        self.network.import_pypirc(self.pypirc)
 
     def do_forget(self, repo):
         '''

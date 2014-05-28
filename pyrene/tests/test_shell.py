@@ -16,6 +16,15 @@ from .util import capture_stdout, fake_stdin, Assertions, record_calls
 
 write_file = m.write_file
 
+PYPIRC_W_repo1_repo2 = b'''\
+[distutils]
+[repo1]
+repository: repo...
+username: xy
+[repo2]
+repository: repo...
+'''
+
 
 class MockingNetwork(m.Network):
     '''get_repo returns BadRepo to prevent all destructive operations'''
@@ -39,9 +48,11 @@ class Test_PyreneCmd_write_file(unittest.TestCase):
         super(Test_PyreneCmd_write_file, self).setUp()
         self.network = mock.Mock(spec_set=m.Network)
         self.directory = mock.Mock(spec_set=Directory)
+        self.pypirc = mock.Mock(os.devnull)
         self.cmd = m.PyreneCmd(
             network=self.network,
-            directory=self.directory
+            directory=self.directory,
+            pypirc=self.pypirc,
         )
 
     @within_temp_dir
@@ -66,6 +77,7 @@ class Test_PyreneCmd(Assertions, unittest.TestCase):
         self.somerepo = mock.Mock(spec_set=Repo)
 
         self.dot_pyrene = tempfile.NamedTemporaryFile()
+        self.dot_pypirc = tempfile.NamedTemporaryFile()
         self.network = MockingNetwork(self.dot_pyrene.name, self.get_repo)
 
         # self.network = mock.Mock(spec_set=m.Network)
@@ -74,12 +86,14 @@ class Test_PyreneCmd(Assertions, unittest.TestCase):
         self.directory.files = ()
         self.cmd = m.PyreneCmd(
             network=self.network,
-            directory=self.directory
+            directory=self.directory,
+            pypirc=self.dot_pypirc.name,
         )
         self.cmd.write_file = mock.Mock()
 
     def tearDown(self):
         self.dot_pyrene.close()
+        self.dot_pypirc.close()
         super(Test_PyreneCmd, self).tearDown()
 
     def define_repos(self, *repo_names):
@@ -533,6 +547,18 @@ class Test_PyreneCmd(Assertions, unittest.TestCase):
         )
         self.assertIn('Pyrene[somerepo]: ', output)
 
+    def test_import_pypirc(self):
+        write_file(self.dot_pypirc.name, PYPIRC_W_repo1_repo2)
+        output = run_script(
+            self.cmd,
+            '''
+            import_pypirc
+            list
+            '''
+        )
+        self.assertIn('repo1', output)
+        self.assertIn('repo2', output)
+
 
 def run_script(cmd, script):
     with fake_stdin(script):
@@ -556,7 +582,8 @@ class Test_PyreneCmd_repo_parameter_checking(Assertions):
         self.directory.files = ('dummy')
         self.cmd = m.PyreneCmd(
             network=self.network,
-            directory=self.directory
+            directory=self.directory,
+            pypirc=os.devnull,
         )
         self.cmd.write_file = mock.Mock()
 

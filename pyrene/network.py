@@ -106,3 +106,20 @@ class Network(object):
             for attribute in self._config.options(repokey)
         }
         return attributes
+
+    def import_pypirc(self, pypirc_filename):
+        pypirc = RawConfigParser()
+        pypirc.read(pypirc_filename)
+
+        def copy_attr(repo, key, repoattr):
+            if pypirc.has_option(repo, key):
+                value = pypirc.get(repo, key)
+                self.set(repo, repoattr, value)
+
+        for repo in pypirc.sections():
+            if repo != 'distutils':
+                self.define(repo)
+                self.set(repo, REPO.TYPE, REPOTYPE.HTTP)
+                copy_attr(repo, 'repository', REPO.UPLOAD_URL)
+                copy_attr(repo, 'username', REPO.USERNAME)
+                copy_attr(repo, 'password', REPO.PASSWORD)

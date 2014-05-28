@@ -138,6 +138,21 @@ type=directory
 directory=/tmp
 '''
 
+# https://docs.python.org/2/distutils/packageindex.html#pypirc
+A_PYPIRC = b'''\
+[distutils]
+index-servers =
+    pypi
+    other
+
+[pypi]
+repository: <repository-url>
+username: <username>
+
+[other]
+password: <password>
+'''
+
 
 class Test_Network_dot_pyrene(unittest.TestCase):
 
@@ -156,3 +171,23 @@ class Test_Network_dot_pyrene(unittest.TestCase):
         self.network.reload()
 
         self.assertEqual(['1'], self.network.repo_names)
+
+    def test_import_pypirc(self):
+        fd, pypirc = tempfile.mkstemp()
+        os.close(fd)
+        try:
+            write_file(pypirc, A_PYPIRC)
+            self.network.import_pypirc(pypirc)
+        finally:
+            os.remove(pypirc)
+
+        # reload - to show imported pypirc is persistent
+        self.network.reload()
+
+        self.assertEqual(set(['pypi', 'other']), set(self.network.repo_names))
+        pypi = self.network.get_repo('pypi')
+        self.assertEqual('http', pypi.type)
+        self.assertEqual('<repository-url>', pypi.upload_url)
+        self.assertEqual('<username>', pypi.username)
+        other = self.network.get_repo('other')
+        self.assertEqual('<password>', other.password)
