@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 
 import os
 
+import fixtures
 import unittest
 import mock
 from temp_dir import within_temp_dir
@@ -69,7 +70,7 @@ class Test_PyreneCmd_write_file(unittest.TestCase):
             self.assertEqual(b'somecontent', f.read())
 
 
-class Test_PyreneCmd(Assertions, unittest.TestCase):
+class Test_PyreneCmd(Assertions, fixtures.TestWithFixtures):
 
     def setUp(self):
         super(Test_PyreneCmd, self).setUp()
@@ -77,25 +78,24 @@ class Test_PyreneCmd(Assertions, unittest.TestCase):
         self.repo2 = mock.Mock(spec_set=Repo)
         self.somerepo = mock.Mock(spec_set=Repo)
 
-        self.dot_pyrene = tempfile.NamedTemporaryFile()
-        self.dot_pypirc = tempfile.NamedTemporaryFile()
-        self.network = MockingNetwork(self.dot_pyrene.name, self.get_repo)
+        self.home_dir = fixtures.TempHomeDir()
+        self.useFixture(self.home_dir)
+        self.dot_pyrene = os.path.expanduser('~/.pyrene')
+        self.dot_pypirc = os.path.expanduser('~/.pypirc')
+        self.dot_pipconf = os.path.expanduser('~/.pip/pip.conf')
+        assert self.dot_pyrene.startswith(self.home_dir.path)
+        assert self.dot_pypirc.startswith(self.home_dir.path)
+        self.network = MockingNetwork(self.dot_pyrene, self.get_repo)
 
-        # self.network = mock.Mock(spec_set=m.Network)
-        # self.network.get_repo.configure_mock(side_effect=self.get_repo)
         self.directory = mock.Mock(spec_set=Directory)
         self.directory.files = ()
         self.cmd = m.PyreneCmd(
             network=self.network,
             directory=self.directory,
-            pypirc=self.dot_pypirc.name,
+            pypirc=self.dot_pypirc,
         )
-        self.cmd.write_file = mock.Mock()
-
-    def tearDown(self):
-        self.dot_pyrene.close()
-        self.dot_pypirc.close()
-        super(Test_PyreneCmd, self).tearDown()
+        # count writes?
+        self.cmd.write_file = mock.Mock(side_effect=self.cmd.write_file)
 
     def define_repos(self, *repo_names):
         for repo_name in repo_names:
@@ -151,6 +151,22 @@ class Test_PyreneCmd(Assertions, unittest.TestCase):
 
         self.assertNotIn('ERROR:', output)
         self.assertEqual(1, self.cmd.write_file.call_count)
+
+    def test_use_creates_backup_of_pip_conf(self):
+        SOMECONTENT = b'sometext'
+        SOMECONTENT_MD5 = 'a29e90948f4eee52168fab5fa9cfbcf8'
+        write_file(self.dot_pipconf, SOMECONTENT)
+        run_script(
+            self.cmd,
+            '''
+            directory_repo somerepo
+            setup_for_pip_local somerepo
+            use
+            ''',
+        )
+        backup = '{}.{}'.format(self.dot_pipconf, SOMECONTENT_MD5)
+        with open(backup, 'rb') as f:
+            self.assertEqual(SOMECONTENT, f.read())
 
     def test_use_with_missing_implicit_repo(self):
         output = run_script(self.cmd, 'use')
@@ -549,7 +565,7 @@ class Test_PyreneCmd(Assertions, unittest.TestCase):
         self.assertIn('Pyrene[somerepo]: ', output)
 
     def test_import_pypirc(self):
-        write_file(self.dot_pypirc.name, PYPIRC_W_repo1_repo2)
+        write_file(self.dot_pypirc, PYPIRC_W_repo1_repo2)
         output = run_script(
             self.cmd,
             '''
@@ -576,6 +592,8 @@ import nose.util
 class Test_PyreneCmd_repo_parameter_checking(Assertions):
 
     def setup(self):
+        self.home_dir = fixtures.TempHomeDir()
+        self.home_dir.setUp()
         self.dot_pyrene = tempfile.NamedTemporaryFile()
         self.network = m.Network(self.dot_pyrene.name)
 
@@ -589,7 +607,10 @@ class Test_PyreneCmd_repo_parameter_checking(Assertions):
         self.cmd.write_file = mock.Mock()
 
     def teardown(self):
-        self.dot_pyrene.close()
+        try:
+            self.dot_pyrene.close()
+        finally:
+            self.home_dir.cleanUp()
 
     def test_requires_explicit_repo_parameter(self):
         commands = [

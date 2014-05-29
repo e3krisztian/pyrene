@@ -1,2 +1,8 @@
 mock==1.0.1
 nose==1.1.2
+fixtures==0.3.14
+# dependency to fixtures (but not installed automatically?!)
+testtools==0.9.35
+# dependencies to testtools
+# python-mimeparse==0.1.4
+# extras==0.0.3

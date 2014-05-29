@@ -6,7 +6,7 @@ import os
 from cmd import Cmd
 import traceback
 import pkg_resources
-from .util import write_file, bold, red
+from .util import write_file, create_md5_backup, bold, red
 from .network import Network, DirectoryRepo, UnknownRepoError
 from .constants import REPO, REPOTYPE, MAX_HISTORY_SIZE
 
@@ -162,6 +162,7 @@ class PyreneCmd(BaseCmd):
 
         repo = self.network.get_repo(repo)
         pip_conf = os.path.expanduser('~/.pip/pip.conf')
+        create_md5_backup(pip_conf)
         self.write_file(pip_conf, repo.get_as_pip_conf().encode('utf8'))
 
     def help_use(self):

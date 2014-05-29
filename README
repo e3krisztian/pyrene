@@ -52,6 +52,7 @@ Changelog
 =========
 
 0.?.? (2014-??-??)
+    - use command: makes backup of existing config before writing ~/.pip/pip.conf
     - add known repos on first run (.pypirc, http://pypi.python.org, ~/.pip/local)
     - new command: import_pypirc
     - readline history

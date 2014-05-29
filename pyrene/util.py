@@ -2,6 +2,8 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import hashlib
+import shutil
 import os
 import sys
 import subprocess
@@ -106,6 +108,17 @@ def write_file(path, content):
         pass
     with open(path, 'wb') as file:
         file.write(content)
+
+
+def create_md5_backup(filename):
+    try:
+        with open(filename, 'rb') as f:
+            content = f.read()
+    except IOError:
+        return
+    md5 = hashlib.md5(content).hexdigest()
+    backup = '{}.{}'.format(filename, md5)
+    shutil.copy2(filename, backup)
 
 
 class Directory(object):
