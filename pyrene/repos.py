@@ -147,6 +147,7 @@ class DirectoryRepo(Repo):
         return PIPCONF_DIRECTORYREPO.format(directory=self.directory)
 
     def download_packages(self, package_spec, directory):
+        self.ensure_repo_directory()
         pip_install(
             '--find-links', self.directory,
             '--no-index',

@@ -12,6 +12,7 @@ import tempfile
 import pyrene.shell as m
 from pyrene.util import Directory
 from pyrene.repos import Repo
+from pyrene.constants import REPOTYPE
 from .util import capture_stdout, fake_stdin, Assertions, record_calls
 
 write_file = m.write_file
@@ -301,7 +302,7 @@ class Test_PyreneCmd(Assertions, unittest.TestCase):
 
         self.assertEqual('new-repo', self.network.active_repo)
         repo = self.network.get_repo('new-repo')
-        self.assertEqual(m.REPOTYPE.HTTP, repo.type)
+        self.assertEqual(REPOTYPE.HTTP, repo.type)
         self.assertEqual('somevalue', repo.attr)
 
     def test_directory_repo_defines_new_repo(self):
@@ -327,7 +328,7 @@ class Test_PyreneCmd(Assertions, unittest.TestCase):
 
         self.assertEqual('new-repo', self.network.active_repo)
         repo = self.network.get_repo('new-repo')
-        self.assertEqual(m.REPOTYPE.DIRECTORY, repo.type)
+        self.assertEqual(REPOTYPE.DIRECTORY, repo.type)
         self.assertEqual('somevalue', repo.attr)
 
     def test_forget(self):

@@ -56,11 +56,14 @@ class Network(object):
         with open(self._repo_store_filename, 'wt') as f:
             self._config.write(f)
 
-    def get_repo(self, repo_name):
-        repo_name = repo_name or self.active_repo
+    def check_repo_exists(self, repo_name):
         repokey = self.REPO_SECTION_PREFIX + repo_name
         if not self._config.has_section(repokey):
             raise UnknownRepoError(repo_name)
+
+    def get_repo(self, repo_name):
+        repo_name = repo_name or self.active_repo
+        self.check_repo_exists(repo_name)
 
         attributes = self.get_attributes(repo_name)
         repo_type = attributes.get(REPO.TYPE)
@@ -79,6 +82,7 @@ class Network(object):
         self._save()
 
     def set(self, repo_name, attribute, value):
+        self.check_repo_exists(repo_name)
         repokey = self.REPO_SECTION_PREFIX + repo_name
         self._config.set(repokey, attribute, value)
         self._save()
@@ -107,6 +111,25 @@ class Network(object):
         }
         return attributes
 
+    # more complicated operations
+    def define_http_repo(self, repo):
+        self.define(repo)
+        self.set(repo, REPO.TYPE, REPOTYPE.HTTP)
+
+    def define_directory_repo(self, repo):
+        self.define(repo)
+        self.set(repo, REPO.TYPE, REPOTYPE.DIRECTORY)
+
+    def setup_for_pypi_python_org(self, repo):
+        self.set(repo, REPO.TYPE, REPOTYPE.HTTP)
+        self.set(repo, REPO.DOWNLOAD_URL, 'https://pypi.python.org/simple/')
+        self.set(repo, REPO.UPLOAD_URL, 'https://pypi.python.org/pypi')
+
+    def setup_for_pip_local(self, repo):
+        piplocal = os.path.expanduser('~/.pip/local')
+        self.set(repo, REPO.TYPE, REPOTYPE.DIRECTORY)
+        self.set(repo, REPO.DIRECTORY, piplocal)
+
     def import_pypirc(self, pypirc_filename):
         pypirc = RawConfigParser()
         pypirc.read(pypirc_filename)
@@ -123,3 +146,16 @@ class Network(object):
                 copy_attr(repo, 'repository', REPO.UPLOAD_URL)
                 copy_attr(repo, 'username', REPO.USERNAME)
                 copy_attr(repo, 'password', REPO.PASSWORD)
+
+    def add_known_repos(self, dot_pypirc):
+        self.import_pypirc(dot_pypirc)
+
+        PYPI = 'pypi'
+        if PYPI not in self.repo_names:
+            self.define_http_repo(PYPI)
+            self.setup_for_pypi_python_org(PYPI)
+
+        LOCAL = 'local'
+        if LOCAL not in self.repo_names:
+            self.define_directory_repo(LOCAL)
+            self.setup_for_pip_local(LOCAL)

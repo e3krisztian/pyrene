@@ -228,13 +228,6 @@ class PyreneCmd(BaseCmd):
         self.abort_on_nonexisting_repo(repo, 'work_on')
         self.network.active_repo = repo
 
-    def __define_or_change_type(self, repo, repotype):
-        effective_repo_name = self.get_effective_repo_name(repo)
-        if effective_repo_name not in self.network.repo_names:
-            self.network.define(effective_repo_name)
-        self.network.active_repo = effective_repo_name
-        self.network.set(effective_repo_name, REPO.TYPE, repotype)
-
     def do_http_repo(self, repo):
         '''
         [Re]define REPO as http package repository.
@@ -242,7 +235,12 @@ class PyreneCmd(BaseCmd):
         http_repo REPO
         '''
         self.abort_on_missing_effective_repo_name(repo, 'http_repo')
-        self.__define_or_change_type(repo, REPOTYPE.HTTP)
+        repo_name = self.get_effective_repo_name(repo)
+        try:
+            self.network.set(repo_name, REPO.TYPE, REPOTYPE.HTTP)
+        except UnknownRepoError:
+            self.network.define_http_repo(repo_name)
+        self.network.active_repo = repo_name
 
     def do_directory_repo(self, repo):
         '''
@@ -251,7 +249,12 @@ class PyreneCmd(BaseCmd):
         directory_repo REPO
         '''
         self.abort_on_missing_effective_repo_name(repo, 'directory_repo')
-        self.__define_or_change_type(repo, REPOTYPE.DIRECTORY)
+        repo_name = self.get_effective_repo_name(repo)
+        try:
+            self.network.set(repo_name, REPO.TYPE, REPOTYPE.DIRECTORY)
+        except UnknownRepoError:
+            self.network.define_directory_repo(repo_name)
+        self.network.active_repo = repo_name
 
     def do_import_pypirc(self, _empty):
         '''
@@ -367,17 +370,7 @@ class PyreneCmd(BaseCmd):
             effective_repo_name, 'setup_for_pypi_python_org'
         )
 
-        self.network.set(effective_repo_name, REPO.TYPE, REPOTYPE.HTTP)
-        self.network.set(
-            effective_repo_name,
-            REPO.DOWNLOAD_URL,
-            'https://pypi.python.org/simple/'
-        )
-        self.network.set(
-            effective_repo_name,
-            REPO.UPLOAD_URL,
-            'https://pypi.python.org/pypi'
-        )
+        self.network.setup_for_pypi_python_org(effective_repo_name)
 
     def do_setup_for_pip_local(self, repo):
         '''
@@ -389,11 +382,7 @@ class PyreneCmd(BaseCmd):
             effective_repo_name, 'setup_for_pip_local'
         )
 
-        piplocal = os.path.expanduser('~/.pip/local')
-        if not os.path.exists(piplocal):
-            os.makedirs(piplocal)
-        self.network.set(effective_repo_name, REPO.TYPE, REPOTYPE.DIRECTORY)
-        self.network.set(effective_repo_name, REPO.DIRECTORY, piplocal)
+        self.network.setup_for_pip_local(effective_repo_name)
 
     def do_serve(self, repo_name):
         '''
