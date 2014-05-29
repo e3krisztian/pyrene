@@ -157,11 +157,10 @@ class Test_create_md5_backup(unittest.TestCase):
     @within_temp_dir
     def test(self):
         SOMECONTENT = b'sometext'
-        SOMECONTENT_MD5 = 'a29e90948f4eee52168fab5fa9cfbcf8'
         m.write_file('file', SOMECONTENT)
 
         m.create_md5_backup('file')
 
-        with open('file.' + SOMECONTENT_MD5, 'rb') as f:
+        with open('file.a29e90948f4eee52168fab5fa9cfbcf8', 'rb') as f:
             content = f.read()
         self.assertEqual(SOMECONTENT, content)
