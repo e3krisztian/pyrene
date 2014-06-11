@@ -393,6 +393,16 @@ class Test_PyreneCmd(Assertions, fixtures.TestWithFixtures):
         self.assertIn('SHRP1', output)
         self.assertIn('??', output)
 
+    def test_status(self):
+        with capture_stdout() as stdout:
+            self.cmd.onecmd('status')
+            output = stdout.content
+
+        self.assertIn('Pyrene', output)
+        self.assertIn('version', output)
+        self.assertIn('pypirc', output)
+        self.assertIn('pip.conf', output)
+
     def test_complete_set_on_attribute(self):
         completion = self.cmd.complete_set('', 'set atibute=value', 4, 4)
         self.assertEqual(set(m.REPO_ATTRIBUTE_COMPLETIONS), set(completion))

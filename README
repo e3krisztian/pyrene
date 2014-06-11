@@ -184,6 +184,7 @@ Changelog
 
 0.?.? (2014-??-??)
 
+- status command: show python packaging configuration status
 - use command: makes backup of existing config before writing ~/.pip/pip.conf
 - add known repos on first run (import from `.pypirc`, add pypi as `http://pypi.python.org`, `local` as `~/.pip/local`)
 - new command: import_pypirc

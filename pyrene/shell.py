@@ -6,7 +6,7 @@ import os
 from cmd import Cmd
 import traceback
 import pkg_resources
-from .util import write_file, create_md5_backup, bold, red
+from .util import read_file, write_file, create_md5_backup, bold, red, green
 from .network import Network, DirectoryRepo, UnknownRepoError
 from .constants import REPO, REPOTYPE, MAX_HISTORY_SIZE
 
@@ -262,6 +262,45 @@ class PyreneCmd(BaseCmd):
         Import repositories defined in ~/.pypirc
         '''
         self.network.import_pypirc(self.pypirc)
+
+    def _get_repo_for_pip_conf(self, pip_conf):
+        for repo_name in self.network.repo_names:
+            repo = self.network.get_repo(repo_name)
+            if pip_conf == repo.get_as_pip_conf():
+                return repo
+
+    def do_status(self, line):
+        '''
+        Show python packaging configuration status
+        '''
+        # Pyrene version
+        print('{} {}'.format(bold('Pyrene version'), green(get_version())))
+
+        # .pip/pip.conf - Pyrene repo name | exists or not
+        pip_conf = os.path.expanduser('~/.pip/pip.conf')
+        if os.path.exists(pip_conf):
+            conf = read_file(pip_conf)
+            repo = self._get_repo_for_pip_conf(conf)
+            if repo:
+                print(
+                    '{} is configured for repository "{}"'
+                    .format(bold(pip_conf), green(repo.name))
+                )
+            else:
+                print(
+                    '{} exists, but is a {}'
+                    .format(bold(pip_conf), red('custom configuration'))
+                )
+        else:
+            print('{} {}'.format(bold(pip_conf), red('does not exists')))
+
+        # existence of ~/.pypirc
+        if os.path.exists(self.pypirc):
+            template = green('exists')
+        else:
+            template = red('does not exists')
+        template = '{} ' + template
+        print(template.format(bold(self.pypirc)))
 
     def do_forget(self, repo):
         '''

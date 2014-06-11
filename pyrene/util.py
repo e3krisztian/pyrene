@@ -101,6 +101,11 @@ class PyPI(object):
         print()
 
 
+def read_file(path, mode='rb'):
+    with open(path) as f:
+        return f.read()
+
+
 def write_file(path, content):
     try:
         os.makedirs(os.path.dirname(path))
