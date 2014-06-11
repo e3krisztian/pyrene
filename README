@@ -163,7 +163,7 @@ which can be thought of as a combined `~/.pypirc` and `~/.pip/pip.conf`.
 All operations are delegated to external tools (not to reinvent the `eggs`):
 
 - downloading packages is delegated to `pip`
-- uploading is done with code extracted from `twine` - should use `twine` directly?
+- uploading via http/https is delegated to `twine`
 - serving a directory is delegated to `pypiserver`
 
 Tools are heavily influenced to work in a certain way by
@@ -184,6 +184,7 @@ Changelog
 
 0.?.? (2014-??-??)
 
+- delegate http uploads to `twine` - simplifies code & license
 - status command: show python packaging configuration status
 - use command: makes backup of existing config before writing ~/.pip/pip.conf
 - add known repos on first run (import from `.pypirc`, add pypi as `http://pypi.python.org`, `local` as `~/.pip/local`)

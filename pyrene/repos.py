@@ -4,9 +4,12 @@ from __future__ import unicode_literals
 
 import abc
 import os
+import sys
 import shutil
-from .upload import upload, UploadError
-from .util import pip_install, PyPI, red, yellow
+import subprocess
+import tempfile
+from .util import set_env, write_file
+from .util import pip_install, PyPI, red, green, yellow, bold
 from .constants import REPO
 
 
@@ -193,6 +196,17 @@ index-url = {download_url}
 extra-index-url =
 '''
 
+PYPIRC = '''\
+[distutils]
+index-servers =
+    {0.name}
+
+[{0.name}]
+repository: {0.upload_url}
+username: {0.username}
+password: {0.password}
+'''
+
 
 class HttpRepo(Repo):
 
@@ -216,28 +230,70 @@ class HttpRepo(Repo):
             package_spec,
         )
 
-    def upload_packages(self, package_files, upload=upload):
-        for source in package_files:
-            print(
-                'Uploading {} to {} ({})'
-                .format(
-                    os.path.basename(source),
-                    self.name,
-                    self.upload_url
-                )
-            )
-            try:
-                upload(
-                    source,
-                    signature=None,
-                    repository=self.upload_url,
-                    username=self.username,
-                    password=self.password,
-                    comment='Uploaded with Pyrene',
-                )
-                print('  OK')
-            except UploadError as e:
-                print(yellow('  {}'.format(e)))
+    def upload_packages(self, package_files):
+        with TwineUploader(self) as upload:
+            for package_file in package_files:
+                pkg_name = os.path.basename(package_file)
+
+                msg = ' * Uploading {} to {}'.format(pkg_name, self.name)
+                print(bold(msg))
+
+                try:
+                    upload(package_file)
+                    print(green(' * OK'))
+                except UploadError:
+                    msg = (
+                        ' * There was an error during upload of {}'
+                        .format(pkg_name)
+                    )
+                    print(red(msg))
 
     def serve(self):
         print('Externally served at url {}'.format(self.download_url))
+
+
+class UploadError(Exception):
+    pass
+
+
+class TwineUploader(object):
+
+    TWINE_UPLOAD = os.path.join(
+        os.path.dirname(sys.executable),
+        'twine-upload'
+    )
+
+    def __init__(self, repository):
+        self.repository = repository.name
+        self.pypirc_dir = tempfile.mkdtemp(
+            dir=os.path.expanduser('~'),
+            prefix='.pyrene.pypirc'
+        )
+        pypirc = PYPIRC.format(repository)
+        write_file(os.path.join(self.pypirc_dir, '.pypirc'), pypirc)
+
+    def __enter__(self):
+        return self.upload
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        shutil.rmtree(self.pypirc_dir)
+        self.pypirc_dir = None
+        self.repository = None
+
+    def upload(self, package_file):
+        with set_env('HOME', self.pypirc_dir):
+            cmd = [
+                self.TWINE_UPLOAD,
+                '--repository', self.repository,
+                '--comment', 'Uploaded with Pyrene',
+                package_file
+            ]
+            print(' '.join(cmd))
+            retcode = subprocess.call(
+                cmd,
+                stdout=sys.stdout,
+                stderr=sys.stderr
+            )
+
+        if retcode:
+            raise UploadError

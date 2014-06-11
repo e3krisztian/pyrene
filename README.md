@@ -103,7 +103,7 @@ External packages/tools:
 ------------------------
 
 - packages are downloaded with [pip]
-- packages are uploaded with code adopted from [twine], unfortunately `twine` is not used directly
+- packages are uploaded to http/https repos with [twine]
 - local packages are served with [pypiserver]
 
 [cmd-http_repo]: docs/commands.md#http_repo
