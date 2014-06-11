@@ -8,9 +8,37 @@ import sys
 import shutil
 import subprocess
 import tempfile
-from .util import set_env, write_file
+from .util import set_env, write_file, print_command
 from .util import pip_install, PyPI, red, green, yellow, bold
 from .constants import REPO
+
+
+class UploadError(Exception):
+
+    def __init__(self, package_file):
+        self.package_file = package_file
+        self.package_name = os.path.basename(package_file)
+
+    def __str__(self):
+        return (
+            'There was an error during upload of {}'
+            .format(self.package_name)
+        )
+
+
+class BaseUploader(object):
+
+    def __init__(self, repository):
+        self.repository = repository.name
+
+    def __enter__(self):
+        return self.upload
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
+
+    def upload(self, package_file):
+        pass
 
 
 class Repo(object):
@@ -18,6 +46,7 @@ class Repo(object):
 
     ATTRIBUTES = (REPO.TYPE,)
     DEFAULTS = {}
+    UPLOADER = BaseUploader
     attributes = dict
 
     def __init__(self, name, attributes):
@@ -42,9 +71,22 @@ class Repo(object):
     def download_packages(self, package_spec, directory):
         pass
 
-    @abc.abstractmethod
+    def get_uploader(self):
+        return self.UPLOADER(self)
+
     def upload_packages(self, package_files):
-        pass
+        with self.get_uploader() as upload:
+            for package_file in package_files:
+                pkg_name = os.path.basename(package_file)
+
+                msg = ' * Uploading {} to {}'.format(pkg_name, self.name)
+                print(bold(msg))
+
+                try:
+                    upload(package_file)
+                    print(green(' * OK'))
+                except UploadError as e:
+                    print(bold(red(' * {}'.format(e))))
 
     @abc.abstractmethod
     def serve(self):
@@ -121,6 +163,35 @@ class BadRepo(Repo):
         print('{}: is not served'.format(self.printable_name))
 
 
+class DirectoryUploadError(UploadError):
+
+    def __init__(self, error, package_file):
+        super(DirectoryUploadError, self).__init__(package_file)
+
+        self.error = error
+
+    def __str__(self):
+        return (
+            'There was an error during upload of {}: {}'
+            .format(self.package_name, self.error)
+        )
+
+
+class DirectoryUploader(BaseUploader):
+
+    def __init__(self, repository):
+        super(DirectoryUploader, self).__init__(repository)
+
+        repository.ensure_repo_directory()
+        self.directory = repository.directory
+
+    def upload(self, package_file):
+        try:
+            shutil.copy2(package_file, self.directory)
+        except IOError as e:
+            raise DirectoryUploadError(e, package_file)
+
+
 PIPCONF_DIRECTORYREPO = '''\
 [global]
 no-index = true
@@ -146,11 +217,16 @@ class DirectoryRepo(Repo):
         REPO.VOLATILE: 'no',
     }
 
+    UPLOADER = DirectoryUploader
+
     def get_as_pip_conf(self):
         return PIPCONF_DIRECTORYREPO.format(directory=self.directory)
 
     def download_packages(self, package_spec, directory):
         self.ensure_repo_directory()
+
+        msg = ' * Downloading {} and its dependencies'.format(package_spec)
+        print(bold(msg))
         pip_install(
             '--find-links', self.directory,
             '--no-index',
@@ -161,13 +237,6 @@ class DirectoryRepo(Repo):
     def ensure_repo_directory(self):
         if not os.path.isdir(self.directory):
             os.makedirs(self.directory)
-
-    def upload_packages(self, package_files):
-        self.ensure_repo_directory()
-
-        destination = self.directory
-        for source in package_files:
-            shutil.copy2(source, destination)
 
     def serve(self, pypi_server=PyPI):
         self.ensure_repo_directory()
@@ -190,12 +259,6 @@ class DirectoryRepo(Repo):
         server.serve()
 
 
-PIPCONF_HTTPREPO = '''\
-[global]
-index-url = {download_url}
-extra-index-url =
-'''
-
 PYPIRC = '''\
 [distutils]
 index-servers =
@@ -205,6 +268,65 @@ index-servers =
 repository: {0.upload_url}
 username: {0.username}
 password: {0.password}
+'''
+
+
+class TwineUploadError(UploadError):
+    pass
+
+
+class TwineUploader(BaseUploader):
+
+    '''Upload packages with `twine`
+
+    `twine` requires a ~/.pypirc, so HOME is changed to a temporary directory
+    that contains a single .pypirc file with content generated for
+    the destination repository.
+    '''
+
+    TWINE_UPLOAD = os.path.join(
+        os.path.dirname(sys.executable),
+        'twine-upload'
+    )
+
+    def __init__(self, repository):
+        super(TwineUploader, self).__init__(repository)
+
+        self.pypirc_dir = tempfile.mkdtemp(
+            dir=os.path.expanduser('~'),
+            prefix='.pyrene.pypirc'
+        )
+        pypirc = PYPIRC.format(repository)
+        write_file(os.path.join(self.pypirc_dir, '.pypirc'), pypirc)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        shutil.rmtree(self.pypirc_dir)
+        self.pypirc_dir = None
+        self.repository = None
+
+    def upload(self, package_file):
+        with set_env('HOME', self.pypirc_dir):
+            cmd = [
+                self.TWINE_UPLOAD,
+                '--repository', self.repository,
+                '--comment', 'Uploaded with Pyrene',
+                package_file
+            ]
+            print_command(cmd)
+            retcode = subprocess.call(
+                cmd,
+                stdout=sys.stdout,
+                stderr=sys.stderr
+            )
+
+        if retcode:
+            raise TwineUploadError(package_file)
+
+
+PIPCONF_HTTPREPO = '''\
+[global]
+index-url = {download_url}
+extra-index-url =
 '''
 
 
@@ -220,80 +342,19 @@ class HttpRepo(Repo):
 
     DEFAULTS = {}
 
+    UPLOADER = TwineUploader
+
     def get_as_pip_conf(self):
         return PIPCONF_HTTPREPO.format(download_url=self.download_url)
 
     def download_packages(self, package_spec, directory):
+        msg = ' * Downloading {} and its dependencies'.format(package_spec)
+        print(bold(msg))
         pip_install(
             '--index-url', self.download_url,
             '--download', directory.path,
             package_spec,
         )
 
-    def upload_packages(self, package_files):
-        with TwineUploader(self) as upload:
-            for package_file in package_files:
-                pkg_name = os.path.basename(package_file)
-
-                msg = ' * Uploading {} to {}'.format(pkg_name, self.name)
-                print(bold(msg))
-
-                try:
-                    upload(package_file)
-                    print(green(' * OK'))
-                except UploadError:
-                    msg = (
-                        ' * There was an error during upload of {}'
-                        .format(pkg_name)
-                    )
-                    print(red(msg))
-
     def serve(self):
         print('Externally served at url {}'.format(self.download_url))
-
-
-class UploadError(Exception):
-    pass
-
-
-class TwineUploader(object):
-
-    TWINE_UPLOAD = os.path.join(
-        os.path.dirname(sys.executable),
-        'twine-upload'
-    )
-
-    def __init__(self, repository):
-        self.repository = repository.name
-        self.pypirc_dir = tempfile.mkdtemp(
-            dir=os.path.expanduser('~'),
-            prefix='.pyrene.pypirc'
-        )
-        pypirc = PYPIRC.format(repository)
-        write_file(os.path.join(self.pypirc_dir, '.pypirc'), pypirc)
-
-    def __enter__(self):
-        return self.upload
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        shutil.rmtree(self.pypirc_dir)
-        self.pypirc_dir = None
-        self.repository = None
-
-    def upload(self, package_file):
-        with set_env('HOME', self.pypirc_dir):
-            cmd = [
-                self.TWINE_UPLOAD,
-                '--repository', self.repository,
-                '--comment', 'Uploaded with Pyrene',
-                package_file
-            ]
-            print(' '.join(cmd))
-            retcode = subprocess.call(
-                cmd,
-                stdout=sys.stdout,
-                stderr=sys.stderr
-            )
-
-        if retcode:
-            raise UploadError

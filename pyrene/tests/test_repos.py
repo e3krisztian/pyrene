@@ -138,13 +138,23 @@ class Test_HttpRepo(Assertions, unittest.TestCase):
                 REPO.SERVE_PASSWORD: 'password',
             }
         )
-        upload = mock.Mock(m.upload, side_effect=m.UploadError('409'))
+
+        call_args = []
+
+        class Uploader(m.BaseUploader):
+            def upload(self, package_file):
+                call_args.append(package_file)
+                raise m.UploadError(package_file)
+        repo.get_uploader = mock.Mock(
+            repo.get_uploader,
+            side_effect=[Uploader(repo)]
+        )
         with capture_stdout() as stdout:
-            repo.upload_packages(['file1', 'file2', 'file3'], upload)
+            repo.upload_packages(['file1', 'file2', 'file3'])
             output = stdout.content
 
-        self.assertEqual(3, upload.call_count)
+        self.assertEqual(call_args, ['file1', 'file2', 'file3'])
         self.assertContainsInOrder(
             output,
-            ['UploadError', '409', 'Conflict'] * 3
+            ['There was an error', 'upload', 'file'] * 3
         )

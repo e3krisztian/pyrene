@@ -187,7 +187,7 @@ class PyreneCmd(BaseCmd):
                 )
 
         attributes = {'directory': word}
-        return DirectoryRepo('Implicit({})'.format(word), attributes)
+        return DirectoryRepo('directory:{}'.format(word), attributes)
 
     def do_copy(self, line):
         '''

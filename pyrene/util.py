@@ -12,6 +12,7 @@ import contextlib
 from tempfile import NamedTemporaryFile
 from passlib.apache import HtpasswdFile
 import termcolor
+import pipes
 
 
 def red(text):
@@ -28,6 +29,10 @@ def yellow(text):
 
 def bold(text):
     return termcolor.colored(text, attrs={'bold'})
+
+
+def print_command(cmd):
+    print(bold(' $ ' + ' '.join(map(pipes.quote, cmd))))
 
 
 @contextlib.contextmanager
@@ -50,7 +55,7 @@ def pip_install(*args):
     pip_cmd = os.path.join(os.path.dirname(sys.executable), 'pip')
     with set_env('PIP_CONFIG_FILE', os.devnull):
         cmd = [pip_cmd, 'install'] + list(args)
-        print(' '.join(cmd))
+        print_command(cmd)
         subprocess.call(cmd, stdout=sys.stdout, stderr=sys.stderr)
 
 
@@ -92,6 +97,7 @@ class PyPI(object):
             self.execute(cmd)
 
     def execute(self, cmd):
+        print_command(cmd)
         process = subprocess.Popen(cmd)
         try:
             process.wait()
