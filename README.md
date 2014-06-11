@@ -8,7 +8,8 @@ a _Py_ thon _Re_ pository _Ne_ twork tool
 
 I am a tool to help your interactions with Python package repositories.
 
-For example I can copy packages between repos.
+For example I can copy packages between repos, or configure `pip` to use
+a private repository instead of the default http://pypi.python.org.
 
 I provide a shell-like environment as primary interface - with help and completion for commands and attributes, but I can be used as a command-line tool as well.
 
