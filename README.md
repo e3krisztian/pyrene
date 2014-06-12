@@ -29,23 +29,22 @@ Installation
 From PyPI:
 
 ```
-mkvirtualenv sys-pyrene
+mkvirtualenv app-pyrene
 pip install pyrene
 ```
 
-Directly from GitHub:
-
-`master` branch is always the latest release, so it is safe to install with
+`master` branch directly from GitHub:
 
 ```
-mkvirtualenv sys-pyrene
+mkvirtualenv app-pyrene
 pip install git+https://github.com/krisztianfekete/pyrene.git
 ```
 
-In order to have `pyrene` without activating its `virtualenv` do the following:
+In order to have `pyrene` without activating its `virtualenv` do the following
+(assuming `~/bin` is on your `PATH`):
 
 ```
-ln -s ~/.virtualenvs/sys-pyrene/bin/pyrene ~/bin
+ln -s ~/.virtualenvs/app-pyrene/bin/pyrene ~/bin
 ```
 
 Usage
@@ -68,10 +67,7 @@ I listen to commands, that
 Development
 ===========
 
-Fork the [github repo] and create a pull request against the `develop` branch: development is done using `git flow` on branch `develop`.
-`master` is the release branch.
-
-`Pyrene` is a work in progress, with sharp edges, miswordings, etc.
+`Pyrene` is a work in progress, with sharp edges, miswordings...
 
 So
 
@@ -125,4 +121,3 @@ External packages/tools:
 [pip]: http://www.pip-installer.org
 [twine]: https://pypi.python.org/pypi/twine
 [pypiserver]: https://pypi.python.org/pypi/pypiserver
-
