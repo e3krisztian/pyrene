@@ -94,7 +94,7 @@ Publish an in-house package
 
     $ cd in-house-pkg
     $ python setup.py sdist
-    $ pyrene copy dist/in-house-pkg-1.0.0.tgz private:
+    $ pyrene copy dist/in-house-pkg-1.0.0.tgz local:
     $ pyrene copy local:in-house-pkg private:
 
 
