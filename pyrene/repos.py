@@ -228,6 +228,7 @@ class DirectoryRepo(Repo):
         msg = ' * Downloading {} and its dependencies'.format(package_spec)
         print(bold(msg))
         pip_install(
+            '--no-use-wheel',
             '--find-links', self.directory,
             '--no-index',
             '--download', directory.path,
@@ -351,6 +352,7 @@ class HttpRepo(Repo):
         msg = ' * Downloading {} and its dependencies'.format(package_spec)
         print(bold(msg))
         pip_install(
+            '--no-use-wheel',
             '--index-url', self.download_url,
             '--download', directory.path,
             package_spec,
