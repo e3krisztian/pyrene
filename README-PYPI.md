@@ -1,9 +1,15 @@
+.. this is a reST document, intentionally mistyped as .md for viewing on github
+
+.. image::
+  https://raw.githubusercontent.com/krisztianfekete/pyrene/master/docs/pyrene.png
+
+
 A PY-thon RE-pository NE-twork tool
 ===================================
 
 Python package `repositories` are nodes in a network.
 
-`Pyrene` is a tool to transfer `packages` between repository nodes
+`Pyrene` is a tool to transfer `packages` between repositories
 
 - with an easy syntax:
   sources and targets are both defined as `repo:package`
@@ -13,38 +19,35 @@ Python package `repositories` are nodes in a network.
 configuration tool for `pip`.
 
 
+Installation
+============
+
+As an application into a separate `virtualenv` using `virtualenvwrapper`::
+
+    mkvirtualenv app-pyrene
+    pip install pyrene
+
+creating this link is optional, but let's us use `pyrene` outside its virtualenv::
+
+    ln -s ~/.virtualenvs/app-pyrene/bin/pyrene ~/bin
+
+
 A simple network
 ================
 
-Repositories are `pypi`, `local`, `private` as defined below::
+The following simple network is intended to be a working reference setup for Pyrene.
 
-    $ pyrene
-    ...
-    Pyrene: http_repo private
-    Pyrene[private]: set download_url=https://packages.proprietary.com/simple/
-    Pyrene[private]: set upload_url=https://packages.proprietary.com/pypi
-    Pyrene[private]: set username=<me@company repo>
-    Pyrene[private]: set password=<secret>
-
-    Pyrene[private]: use local
-
-
-Here pyrene is used as a shell like tool, and `Pyrene[...]:` is a prompt for
-commands.
-
-This simple network is intended to be a working reference setup for Pyrene.
-Both `pypi` and `local` are predefined repos (details below),
-only `private` needs definition, which could be done like shown above.
+Repositories are `pypi`, `local`, `private` as defined below:
 
 
 repo `pypi`
 -----------
 
-is the public Python package repository at https://pypi.python.org/simple
+is a pre-defined repo pointing to the public Python package repository at https://pypi.python.org/simple
 
 It is used for publishing packages of public interest.
 
-Project owners can DELETE published packages or even projects.
+It is a *volatile repo*: **project owners can DELETE published packages or even entire projects.**
 
 The obvious package names are mostly already taken.
 
@@ -52,9 +55,11 @@ The obvious package names are mostly already taken.
 repo `local`
 ------------
 
-is a directory: `~/.pip/local`
+is a pre-defined repo pointing to the local directory: `~/.pip/local`
 
-The user wants this to be the default repository for new package installs.
+The user wants this to be the default repository for new package installs::
+
+    $ pyrene use local
 
 This directory holds all packages needed for development, thus development
 can continue offline as well.
@@ -72,6 +77,19 @@ This repository holds all packages needed for deployments: both publicly
 available packages from pypi and in-house developed closed source ones.
 
 The project/company has full control over the repo content.
+
+It is not pre-defined, so define it::
+
+    $ pyrene
+    ...
+    Pyrene: http_repo private
+    Pyrene[private]: set download_url=https://packages.proprietary.com/simple/
+    Pyrene[private]: set upload_url=https://packages.proprietary.com/pypi
+    Pyrene[private]: set username=<me@company repo>
+    Pyrene[private]: set password=<secret>
+
+Here `pyrene` is used in shell mode, and `Pyrene[...]:` is a prompt for
+commands.
 
 
 Usage scenarios
@@ -157,7 +175,8 @@ Features
 Internals
 =========
 
-The network configuration is persisted in the file `~/.pyrene`,
+The network configuration is persisted in the file `~/.pyrene`
+(including passwords in plain text),
 which can be thought of as a combined `~/.pypirc` and `~/.pip/pip.conf`.
 
 All operations are delegated to external tools (not to reinvent the `eggs`):
@@ -182,12 +201,16 @@ options.
 Changelog
 =========
 
-0.?.? (2014-??-??)
+0.2.0 (2014-07-02)
 
+- wheels are not downloaded anymore - local wheels can still be uploaded
 - delegate http uploads to `twine` - simplifies code & license
 - status command: show python packaging configuration status
 - use command: makes backup of existing config before writing ~/.pip/pip.conf
-- add known repos on first run (import from `.pypirc`, add pypi as `http://pypi.python.org`, `local` as `~/.pip/local`)
+- add known repos on first run:
+   - repositories from `.pypirc` (only sets `upload-url`)
+   - `pypi` as `http://pypi.python.org`
+   - `local` as `~/.pip/local`
 - new command: import_pypirc
 - readline history
 - show version on startup
